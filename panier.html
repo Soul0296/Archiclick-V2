@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier - Archiclick</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --dore: #d4af37;
+            --gris-luxe: #4b5563;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: #1e293b;
+        }
+        
+        h1, h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: #1e3a8a;
+            color: white;
+            padding: 12px 32px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 300px;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 80px 20px 20px;
+        }
+        .mobile-menu.open {
+            right: 0;
+        }
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .menu-overlay.open {
+            display: block;
+        }
+        @media (min-width: 768px) {
+            .mobile-menu, .menu-overlay, .menu-btn {
+                display: none !important;
+            }
+        }
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .lang-toggle {
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 8px;
+            font-weight: 600;
+        }
+        .lang-toggle.active {
+            color: var(--dore);
+        }
+
+        .panier-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+
+        .promo-box {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="images/logo.png" alt="Archiclick" class="h-12">
+            </div>
+            
+            <nav class="hidden md:flex gap-8">
+                <a href="index.html" style="color: var(--gris-luxe);">Accueil</a>
+                <a href="catalogue.html" style="color: var(--gris-luxe);">Catalogue</a>
+                <a href="blog.html" style="color: var(--gris-luxe);">Blog</a>
+                <a href="a-propos.html" style="color: var(--gris-luxe);">À propos</a>
+                <a href="contact.html" style="color: var(--gris-luxe);">Contact</a>
+            </nav>
+            
+            <div class="flex gap-4 items-center">
+                <button class="lang-toggle" id="langFr" onclick="setLanguage('fr')">FR</button>
+                <span style="color: #ccc;">|</span>
+                <button class="lang-toggle" id="langEn" onclick="setLanguage('en')">EN</button>
+                
+                <button class="menu-btn md:hidden" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="panier.html">
+                    <i class="fas fa-shopping-cart text-xl" style="color: var(--dore);"></i>
+                </a>
+                <a href="compte.html">
+                    <i class="fas fa-user text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-menu">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="blog.html">Blog</a>
+        <a href="a-propos.html">À propos</a>
+        <a href="contact.html">Contact</a>
+    </div>
+    <div class="menu-overlay" onclick="toggleMobileMenu()"></div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <h1 class="text-4xl font-bold mb-8" style="color: var(--gris-luxe);" data-fr="Mon Panier" data-en="My Cart">Mon Panier</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Panier items -->
+            <div class="lg:col-span-2">
+                <div id="panierItems"></div>
+                <a href="catalogue.html" class="inline-block mt-6 text-blue-600 hover:underline" data-fr="← Continuer vos achats" data-en="← Continue shopping">← Continuer vos achats</a>
+            </div>
+
+            <!-- Résumé -->
+            <div class="bg-white p-6 rounded-lg shadow-lg h-fit sticky top-24">
+                <h3 class="font-bold text-xl mb-6" data-fr="Résumé de commande" data-en="Order summary">Résumé de commande</h3>
+
+                <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
+                    <div class="flex justify-between">
+                        <span data-fr="Sous-total" data-en="Subtotal">Sous-total</span>
+                        <span id="subtotal">0 FCFA</span>
+                    </div>
+                </div>
+
+                <!-- Code promo -->
+                <div class="promo-box">
+                    <input type="text" id="promoCode" placeholder="Code promo" class="w-full p-2 border border-gray-300 rounded mb-2">
+                    <button onclick="appliquerPromo()" class="w-full bg-gray-200 py-2 rounded font-bold hover:bg-gray-300" data-fr="Appliquer" data-en="Apply">Appliquer</button>
+                    <p id="promoMessage" class="text-sm mt-2 text-green-600"></p>
+                </div>
+
+                <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span data-fr="Total" data-en="Total">Total</span>
+                        <span id="total" style="color: var(--dore);">0 FCFA</span>
+                    </div>
+                </div>
+
+                <button onclick="allerAuCheckout()" class="w-full btn-primary" data-fr="Procéder au paiement" data-en="Proceed to checkout">Procéder au paiement</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-gray-300 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+
+    <script>
+        let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+        let panier = [];
+        let promoDiscount = 0;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setLanguage(currentLang);
+            chargerPanier();
+        });
+
+        function chargerPanier() {
+            panier = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('panier_')) {
+                    panier.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+            afficherPanier();
+        }
+
+        function afficherPanier() {
+            const container = document.getElementById('panierItems');
+
+            if (panier.length === 0) {
+                container.innerHTML = '<div class="text-gray-500" data-fr="Votre panier est vide" data-en="Your cart is empty">Votre panier est vide</div>';
+                return;
+            }
+
+            container.innerHTML = panier.map((item, idx) => `
+                <div class="panier-item bg-white">
+                    <div>
+                        <h4 class="font-bold">${item.titre}</h4>
+                        <p class="text-sm text-gray-600">${Object.keys(item.options).length > 0 ? Object.keys(item.options).join(', ') : 'Plan seul'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold" style="color: var(--dore);">${item.total.toLocaleString()} FCFA</p>
+                        <button onclick="supprimerPanier(${idx})" class="text-red-600 text-sm hover:underline" data-fr="Supprimer" data-en="Remove">Supprimer</button>
+                    </div>
+                </div>
+            `).join('');
+
+            calculerTotal();
+        }
+
+        function supprimerPanier(idx) {
+            const key = 'panier_' + panier[idx].planId;
+            localStorage.removeItem(key);
+            chargerPanier();
+        }
+
+        function calculerTotal() {
+            let total = panier.reduce((sum, item) => sum + item.total, 0);
+            promoDiscount = 0;
+            document.getElementById('subtotal').textContent = total.toLocaleString() + ' FCFA';
+            document.getElementById('total').textContent = total.toLocaleString() + ' FCFA';
+        }
+
+        async function appliquerPromo() {
+            const code = document.getElementById('promoCode').value.toUpperCase();
+            const messageEl = document.getElementById('promoMessage');
+
+            if (!code) {
+                messageEl.textContent = currentLang === 'fr' ? 'Entrez un code' : 'Enter a code';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('promos')
+                    .select('*')
+                    .eq('code', code)
+                    .eq('actif', true)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    promoDiscount = data.type === '%' ? Math.round(panier.reduce((sum, item) => sum + item.total, 0) * data.reduction / 100) : data.reduction;
+                    const newTotal = panier.reduce((sum, item) => sum + item.total, 0) - promoDiscount;
+                    document.getElementById('total').textContent = newTotal.toLocaleString() + ' FCFA';
+                    messageEl.textContent = currentLang === 'fr' ? 'Code appliqué !' : 'Code applied!';
+                    messageEl.className = 'text-sm mt-2 text-green-600';
+                } else {
+                    messageEl.textContent = currentLang === 'fr' ? 'Code invalide' : 'Invalid code';
+                    messageEl.className = 'text-sm mt-2 text-red-600';
+                }
+            } catch (err) {
+                messageEl.textContent = currentLang === 'fr' ? 'Erreur' : 'Error';
+                messageEl.className = 'text-sm mt-2 text-red-600';
+            }
+        }
+
+        function allerAuCheckout() {
+            if (panier.length === 0) {
+                alert(currentLang === 'fr' ? 'Panier vide' : 'Empty cart');
+                return;
+            }
+            sessionStorage.setItem('panier_items', JSON.stringify(panier));
+            sessionStorage.setItem('panier_discount', promoDiscount);
+            window.location.href = 'confirmation.html';
+        }
+
+        window.setLanguage = function(lang) {
+            currentLang = lang;
+            localStorage.setItem('archiclick_lang', lang);
+            document.querySelectorAll('[data-fr]').forEach(el => {
+                el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+            });
+            document.getElementById('langFr').classList.toggle('active', lang === 'fr');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+        };
+
+        function toggleMobileMenu() {
+            document.querySelector('.mobile-menu').classList.toggle('open');
+            document.querySelector('.menu-overlay').classList.toggle('open');
+        }
+    </script>
+
+</body>
+</html>

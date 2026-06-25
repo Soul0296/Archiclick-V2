@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+            padding:8rem 0 4rem; text-align:center; margin-top:5rem;
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem);
+            font-weight:300; color:var(--ardoise); margin-bottom:1rem; letter-spacing:2px;
+        }
+        .page-desc {
+            font-size:.95rem; color:var(--gris-doux); max-width:600px; margin:0 auto;
+            line-height:1.8;
+        }
+
+        /* ========== SECTION CONTAINER ========== */
+        .contact-container {
+            display:grid; grid-template-columns:1fr 1fr; gap:4rem;
+            max-width:7xl; margin:4rem auto; padding:0 1.5rem; align-items:center;
+        }
+        @media(max-width:1023px) {
+            .contact-container { grid-template-columns:1fr; gap:2rem; }
+        }
+
+        /* ========== IMAGE PARALLAXE ========== */
+        .parallax-image {
+            position:sticky; top:7rem; height:fit-content;
+        }
+        .parallax-img {
+            width:100%; height:500px; object-fit:cover;
+            border-radius:12px; box-shadow:0 30px 60px rgba(0,0,0,.08);
+        }
+        @media(max-width:1023px) {
+            .parallax-image { position:relative; top:0; }
+            .parallax-img { height:350px; }
+        }
+
+        /* ========== FORMULAIRE ========== */
+        .form-section { }
+        .section-label {
+            font-family:'Inter',sans-serif; font-size:.7rem; font-weight:500;
+            letter-spacing:4px; text-transform:uppercase; color:var(--or); margin-bottom:.8rem;
+        }
+        .section-title {
+            font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem);
+            font-weight:300; color:var(--ardoise); letter-spacing:2px; line-height:1.2; margin-bottom:1rem;
+        }
+        .section-desc {
+            color:var(--gris-doux); margin-bottom:2rem; font-size:.95rem; line-height:1.8;
+        }
+
+        .form-group {
+            margin-bottom:1.5rem;
+        }
+        .form-label {
+            display:block; font-weight:500; margin-bottom:.5rem;
+            font-size:.9rem; color:var(--ardoise); letter-spacing:.5px;
+        }
+        .form-input, .form-textarea {
+            width:100%; padding:1rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem; font-weight:300;
+            background:white; border-radius:4px; transition:all .3s ease;
+        }
+        .form-input:focus, .form-textarea:focus {
+            outline:none; border-color:var(--or);
+            box-shadow:0 0 0 3px rgba(201,169,110,.1);
+        }
+        .form-textarea {
+            resize:vertical; min-height:140px;
+        }
+
+        .btn-submit {
+            background:var(--or); color:var(--noir); border:none;
+            padding:14px 36px; font-weight:500; letter-spacing:2px;
+            text-transform:uppercase; font-size:.8rem;
+            cursor:pointer; transition:all .4s ease; width:100%;
+            font-family:'Inter',sans-serif;
+        }
+        .btn-submit:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+            box-shadow:0 12px 30px rgba(201,169,110,.25);
+        }
+        .btn-submit:disabled {
+            opacity:.6; cursor:not-allowed;
+        }
+
+        .form-message {
+            margin-top:1rem; padding:1rem; border-radius:4px;
+            font-size:.9rem; text-align:center;
+            display:none;
+        }
+        .form-message.success {
+            background:rgba(16,185,129,.1); color:#10b981;
+            border:1px solid rgba(16,185,129,.3);
+        }
+        .form-message.error {
+            background:rgba(239,68,68,.1); color:#ef4444;
+            border:1px solid rgba(239,68,68,.3);
+        }
+        .form-message.show { display:block; }
+
+        /* ========== REVEAL ANIMATION ========== */
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+        .footer-social {
+            color:rgba(255,255,255,.4); font-size:1rem;
+            transition:color .3s ease; text-decoration:none;
+        }
+        .footer-social:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .contact-container { margin:2rem auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== PAGE HEADER ==================== -->
+    <section class="page-header">
+        <div class="max-w-7xl mx-auto px-6 reveal">
+            <h1 class="page-title" data-fr="Nous contacter" data-en="Contact Us">Nous contacter</h1>
+            <div class="sep-or" style="margin:1.5rem auto;"></div>
+            <p class="page-desc" data-fr="Une question sur nos plans ? Besoin d'une personnalisation ? Notre équipe d'architectes est là pour vous aider. Envoyez-nous un message et nous vous répondrons dans les plus brefs délais." data-en="Questions about our plans? Need customization? Our team of architects is here to help. Send us a message and we'll respond as soon as possible.">Une question sur nos plans ? Besoin d'une personnalisation ? Notre équipe d'architectes est là pour vous aider. Envoyez-nous un message et nous vous répondrons dans les plus brefs délais.</p>
+        </div>
+    </section>
+
+    <!-- ==================== CONTACT SECTION ==================== -->
+    <section class="py-16 lg:py-24">
+        <div class="contact-container">
+            <!-- IMAGE PARALLAXE -->
+            <div class="parallax-image reveal">
+                <img src="https://images.pexels.com/photos/8204385/pexels-photo-8204385.jpeg" alt="Équipe Archiclick" class="parallax-img">
+            </div>
+
+            <!-- FORMULAIRE -->
+            <div class="form-section">
+                <p class="section-label reveal" data-fr="Laissez-nous un message" data-en="Send us a message">Laissez-nous un message</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="On vous répond vite !" data-en="We respond quickly!">On vous répond vite !</h2>
+                <p class="section-desc reveal reveal-d2" data-fr="Remplissez le formulaire ci-dessous et notre équipe vous contactera dès que possible pour discuter de votre projet." data-en="Fill out the form below and our team will contact you as soon as possible to discuss your project.">Remplissez le formulaire ci-dessous et notre équipe vous contactera dès que possible pour discuter de votre projet.</p>
+
+                <form id="contactForm" onsubmit="submitForm(event)">
+                    <!-- NOM -->
+                    <div class="form-group reveal reveal-d1">
+                        <label class="form-label" data-fr="Nom complet" data-en="Full Name">Nom complet</label>
+                        <input type="text" id="contactName" class="form-input" required data-fr-placeholder="Votre nom" data-en-placeholder="Your name" placeholder="Votre nom">
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="form-group reveal reveal-d2">
+                        <label class="form-label" data-fr="Email" data-en="Email">Email</label>
+                        <input type="email" id="contactEmail" class="form-input" required data-fr-placeholder="votre@email.com" data-en-placeholder="your@email.com" placeholder="votre@email.com">
+                    </div>
+
+                    <!-- TÉLÉPHONE -->
+                    <div class="form-group reveal reveal-d3">
+                        <label class="form-label" data-fr="Téléphone" data-en="Phone">Téléphone</label>
+                        <input type="tel" id="contactPhone" class="form-input" required data-fr-placeholder="+237 6XX XXX XXX" data-en-placeholder="+237 6XX XXX XXX" placeholder="+237 6XX XXX XXX">
+                    </div>
+
+                    <!-- SUJET -->
+                    <div class="form-group reveal reveal-d4">
+                        <label class="form-label" data-fr="Sujet" data-en="Subject">Sujet</label>
+                        <input type="text" id="contactSubject" class="form-input" required data-fr-placeholder="À propos de..." data-en-placeholder="About..." placeholder="À propos de...">
+                    </div>
+
+                    <!-- MESSAGE -->
+                    <div class="form-group reveal reveal-d4">
+                        <label class="form-label" data-fr="Message" data-en="Message">Message</label>
+                        <textarea id="contactMessage" class="form-textarea" required data-fr-placeholder="Votre message..." data-en-placeholder="Your message..." placeholder="Votre message..."></textarea>
+                    </div>
+
+                    <!-- SUBMIT -->
+                    <button type="submit" class="btn-submit reveal reveal-d4" id="submitBtn" data-fr="Envoyer le message" data-en="Send message">Envoyer le message</button>
+
+                    <!-- MESSAGE DE CONFIRMATION -->
+                    <div class="form-message" id="formMessage"></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-social"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Connexion Supabase directe
+        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            /* ---- LANGUE ---- */
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+                updatePlaceholders();
+            }
+
+            function updatePlaceholders() {
+                document.querySelectorAll('[data-fr-placeholder]').forEach(el => {
+                    el.placeholder = currentLang === 'fr' ? el.dataset.frPlaceholder : el.dataset.enPlaceholder;
+                });
+            }
+
+            window.toggleLanguage = function() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            };
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            /* ---- FORMULAIRE ---- */
+            window.submitForm = async function(event) {
+                event.preventDefault();
+
+                const name = document.getElementById('contactName').value.trim();
+                const email = document.getElementById('contactEmail').value.trim();
+                const phone = document.getElementById('contactPhone').value.trim();
+                const subject = document.getElementById('contactSubject').value.trim();
+                const message = document.getElementById('contactMessage').value.trim();
+                const msgEl = document.getElementById('formMessage');
+                const submitBtn = document.getElementById('submitBtn');
+
+                // Validation
+                if (!name || !email || !phone || !subject || !message) {
+                    showMessage(currentLang === 'fr' ? 'Tous les champs sont requis' : 'All fields are required', 'error');
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = currentLang === 'fr' ? 'Envoi en cours...' : 'Sending...';
+
+                try {
+                    // Créer une tâche dans la table demandes_contact
+                    const { data, error } = await supabase.from('demandes_contact').insert([{
+                        nom_client: name,
+                        email_client: email,
+                        telephone_client: phone,
+                        sujet: subject,
+                        message: message,
+                        statut: 'nouveau',
+                        date_creation: new Date().toISOString(),
+                        date_rappel: null
+                    }]);
+
+                    if (error) throw error;
+
+                    // Succès
+                    showMessage(currentLang === 'fr' ? 'Message envoyé avec succès ! Nous vous répondrons bientôt.' : 'Message sent successfully! We will respond soon.', 'success');
+                    document.getElementById('contactForm').reset();
+
+                    // Réinitialiser le bouton
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = currentLang === 'fr' ? 'Envoyer le message' : 'Send message';
+                    }, 2000);
+
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    showMessage(currentLang === 'fr' ? 'Erreur lors de l\'envoi. Veuillez réessayer.' : 'Error sending. Please try again.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = currentLang === 'fr' ? 'Envoyer le message' : 'Send message';
+                }
+            };
+
+            function showMessage(text, type) {
+                const msgEl = document.getElementById('formMessage');
+                msgEl.textContent = text;
+                msgEl.className = `form-message ${type} show`;
+                setTimeout(() => msgEl.classList.remove('show'), 5000);
+            }
+
+            /* ---- REVEAL ANIMATION ---- */
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            /* ---- INIT ---- */
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                observeReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>

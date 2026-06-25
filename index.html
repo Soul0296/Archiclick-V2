@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archiclick - Plans de Maison Cameroun</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+            --bleu-nuit:#1a2849;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== CAROUSEL ========== */
+        .hero-carousel { position:relative; width:100%; height:100vh; min-height:600px; overflow:hidden; }
+        .hero-slide {
+            position:absolute; inset:0; opacity:0;
+            transition:opacity 1.2s ease-in-out;
+            background-size:cover; background-position:center;
+        }
+        .hero-slide.active { opacity:1; }
+        .hero-slide::after {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,.15) 40%,rgba(0,0,0,.50) 100%);
+        }
+        .hero-content {
+            position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%); text-align:center;
+            color:#fff; width:90%; max-width:750px; z-index:10;
+            animation:heroIn 1s ease-out;
+        }
+        .hero-slide:not(.active) .hero-content { animation:none; }
+        @keyframes heroIn {
+            from { opacity:0; transform:translate(-50%,-48%); }
+            to   { opacity:1; transform:translate(-50%,-50%); }
+        }
+        .hero-title {
+            font-family:'Cormorant Garamond',serif;
+            font-size:clamp(2.5rem,6vw,4.5rem); font-weight:300;
+            letter-spacing:4px; line-height:1.15; margin-bottom:1.2rem;
+        }
+        .hero-sub {
+            font-family:'Inter',sans-serif; font-size:clamp(.85rem,1.5vw,1.05rem);
+            font-weight:300; letter-spacing:3px; text-transform:uppercase;
+            opacity:.85; margin-bottom:2.5rem;
+        }
+        .hero-arrow {
+            position:absolute; top:50%; transform:translateY(-50%); z-index:20;
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25);
+            color:#fff; width:56px; height:56px; cursor:pointer;
+            transition:all .4s ease; display:flex; align-items:center; justify-content:center; font-size:.9rem;
+        }
+        .hero-arrow:hover { background:var(--or); border-color:var(--or); color:var(--noir); }
+        .hero-arrow.prev { left:2rem; }
+        .hero-arrow.next { right:2rem; }
+        .hero-dots {
+            position:absolute; bottom:2.5rem; left:50%;
+            transform:translateX(-50%); display:flex; gap:12px; z-index:20;
+        }
+        .hero-dot {
+            width:8px; height:8px; background:rgba(255,255,255,.4);
+            cursor:pointer; transition:all .4s ease; border:none;
+        }
+        .hero-dot.active { background:var(--or); width:32px; }
+        .hero-dot:hover { background:rgba(255,255,255,.8); }
+        .scroll-hint {
+            position:absolute; bottom:5rem; left:50%;
+            transform:translateX(-50%); z-index:20;
+            color:rgba(255,255,255,.6); animation:scrollB 2s infinite;
+        }
+        @keyframes scrollB {
+            0%,100% { transform:translateX(-50%) translateY(0); }
+            50%     { transform:translateX(-50%) translateY(8px); }
+        }
+        @media(max-width:768px) {
+            .hero-carousel { min-height:500px; }
+            .hero-arrow { width:40px; height:40px; font-size:.75rem; }
+            .hero-arrow.prev { left:.8rem; }
+            .hero-arrow.next { right:.8rem; }
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            padding:1.5rem 0; transition:all .5s ease;
+        }
+        .navbar.scrolled-light {
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .navbar.scrolled-dark {
+            background:rgba(10,10,10,.95); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease;
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item, .nav-icon, .lang-toggle, .burger-btn { color:rgba(255,255,255,.8); }
+        .nav-link-item:hover, .nav-icon:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(255,255,255,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; }
+        .navbar.text-dark .nav-link-item { color:var(--ardoise); }
+        .navbar.text-dark .nav-link-item:hover { color:var(--or); }
+        .navbar.text-dark .nav-icon { color:var(--ardoise); }
+        .navbar.text-dark .nav-icon:hover { color:var(--or); }
+        .navbar.text-dark .lang-toggle { border-color:rgba(45,45,45,.3); color:var(--ardoise); }
+        .navbar.text-dark .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .navbar.text-dark .burger-btn { color:var(--ardoise); }
+        .navbar.text-light .nav-link-item { color:rgba(255,255,255,.8); }
+        .navbar.text-light .nav-link-item:hover { color:var(--or); }
+        .navbar.text-light .nav-icon { color:rgba(255,255,255,.8); }
+        .navbar.text-light .nav-icon:hover { color:var(--or); }
+        .navbar.text-light .lang-toggle { border-color:rgba(255,255,255,.3); color:rgba(255,255,255,.8); }
+        .navbar.text-light .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .navbar.text-light .burger-btn { color:rgba(255,255,255,.8); }
+
+        /* ========== MOBILE ========== */
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; transition:color .4s ease;
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        /* ========== BOUTONS ========== */
+        .btn-or {
+            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
+            font-weight:500; letter-spacing:3px; text-transform:uppercase;
+            text-decoration:none; color:var(--noir); background:var(--or);
+            border:none; padding:14px 36px; cursor:pointer; transition:all .4s ease;
+        }
+        .btn-or:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+            box-shadow:0 12px 30px rgba(201,169,110,.25);
+        }
+        .btn-outline {
+            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
+            font-weight:400; letter-spacing:3px; text-transform:uppercase;
+            text-decoration:none; color:var(--or); background:transparent;
+            border:1px solid var(--or); padding:14px 36px; cursor:pointer; transition:all .4s ease;
+        }
+        .btn-outline:hover { background:var(--or); color:var(--noir); }
+        .btn-outline-dark {
+            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
+            font-weight:400; letter-spacing:3px; text-transform:uppercase;
+            text-decoration:none; color:var(--ardoise); background:transparent;
+            border:1px solid var(--ardoise); padding:13px 32px; cursor:pointer; transition:all .4s ease;
+        }
+        .btn-outline-dark:hover { border-color:var(--or); color:var(--or); }
+
+        /* ========== REVEAL AU SCROLL ========== */
+        .reveal { opacity:0; transform:translateY(40px); transition:opacity .9s ease-out, transform .9s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        .reveal-d1 { transition-delay:.15s; }
+        .reveal-d2 { transition-delay:.3s; }
+        .reveal-d3 { transition-delay:.45s; }
+        .reveal-d4 { transition-delay:.6s; }
+
+        /* ========== SECTION TITLES ========== */
+        .section-label {
+            font-family:'Inter',sans-serif; font-size:.7rem; font-weight:500;
+            letter-spacing:4px; text-transform:uppercase; color:var(--or); margin-bottom:.8rem;
+        }
+        .section-title {
+            font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem);
+            font-weight:300; color:var(--ardoise); letter-spacing:2px; line-height:1.2; margin-bottom:1rem;
+        }
+
+        /* ========== PARALLAX STICKY IMAGE ========== */
+        .parallax-section { overflow:hidden; }
+        .parallax-grid { display:grid; grid-template-columns:1fr 1fr; align-items:start; }
+        @media(max-width:1023px) { .parallax-grid { grid-template-columns:1fr; } }
+        .parallax-sticky-img {
+            position:sticky; top:100px; width:100%;
+            height:80vh; min-height:500px; overflow:hidden;
+        }
+        .parallax-sticky-img img { width:100%; height:100%; object-fit:cover; }
+        .parallax-accent {
+            position:absolute; bottom:-1.5rem; right:-1.5rem;
+            width:96px; height:96px; border:1px solid var(--or); opacity:.25;
+        }
+        @media(max-width:1023px) {
+            .parallax-sticky-img { position:relative; top:0; height:50vh; min-height:350px; }
+            .parallax-accent { display:none; }
+        }
+
+        /* ========== CARTES PLANS ========== */
+        .plan-card {
+            background:var(--blanc); overflow:hidden;
+            transition:transform .5s ease, box-shadow .5s ease; cursor:pointer;
+        }
+        .plan-card:hover { transform:translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,.08); }
+        .plan-card .card-img { position:relative; overflow:hidden; }
+        .plan-card .card-img img {
+            width:100%; height:280px; object-fit:cover; transition:transform .6s ease;
+        }
+        .plan-card:hover .card-img img { transform:scale(1.05); }
+        .card-badge {
+            position:absolute; top:1rem; left:1rem;
+            font-family:'Inter',sans-serif; font-size:.65rem; font-weight:500;
+            letter-spacing:2px; text-transform:uppercase;
+            background:var(--or); color:var(--noir); padding:6px 14px;
+        }
+        .card-body { padding:1.8rem; }
+        .card-title {
+            font-family:'Cormorant Garamond',serif; font-size:1.35rem;
+            font-weight:400; color:var(--ardoise); margin-bottom:.8rem; letter-spacing:.5px;
+        }
+        .card-meta { display:flex; flex-wrap:wrap; gap:.5rem 1rem; margin-bottom:1.2rem; }
+        .card-meta span {
+            font-family:'Inter',sans-serif; font-size:.75rem;
+            font-weight:300; color:var(--gris-doux); letter-spacing:.5px;
+        }
+        .meta-icon { color:var(--or)!important; font-size:.7rem!important; margin-right:4px!important; }
+        .card-footer {
+            display:flex; justify-content:space-between; align-items:center;
+            padding-top:1.2rem; border-top:1px solid var(--creme);
+        }
+        .card-price {
+            font-family:'Cormorant Garamond',serif; font-size:1.5rem;
+            font-weight:400; color:var(--or); letter-spacing:.5px;
+        }
+        .card-price small {
+            font-family:'Inter',sans-serif; font-size:.7rem;
+            font-weight:400; color:var(--gris-doux); letter-spacing:1px;
+        }
+
+        /* ========== ÉTAPES ========== */
+        .step-num {
+            font-family:'Cormorant Garamond',serif; font-size:3.5rem;
+            font-weight:300; color:rgba(201,169,110,.15); line-height:1; margin-bottom:1rem;
+        }
+
+        /* ========== SECTION BLEU NUIT ========== */
+        .section-bleu-nuit {
+            background:var(--bleu-nuit); color:#fff;
+        }
+        .section-bleu-nuit .section-title {
+            color:#fff;
+        }
+        .section-bleu-nuit .card-title {
+            color:#fff;
+        }
+        .section-bleu-nuit .card-meta span {
+            color:rgba(255,255,255,.6);
+        }
+
+        /* ========== SECTION STATS ========== */
+        .parallax-bg { background-attachment:fixed; background-size:cover; background-position:center; }
+        @supports(-webkit-touch-callout:none) { .parallax-bg { background-attachment:scroll; } }
+
+        /* ========== TÉMOIGNAGES ========== */
+        .testimonial-card {
+            background:#fff; padding:2rem; border-left:1px solid var(--or);
+            transition:transform .5s ease, box-shadow .5s ease;
+        }
+        .testimonial-card:hover { transform:translateX(8px); box-shadow:0 20px 40px rgba(201,169,110,.1); }
+        .quote-mark {
+            font-size:3rem; color:var(--or); opacity:.3; margin-bottom:1rem;
+        }
+        .testimonial-text {
+            font-family:'Inter',sans-serif; font-size:.95rem;
+            color:var(--gris-doux); line-height:1.9; margin-bottom:1.5rem;
+        }
+        .testimonial-author {
+            font-family:'Cormorant Garamond',serif; font-size:1rem;
+            font-weight:400; color:var(--ardoise); letter-spacing:1px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease; letter-spacing:.5px;
+        }
+        .footer-link:hover { color:var(--or); }
+        .footer-social {
+            color:rgba(255,255,255,.4); font-size:1rem;
+            transition:color .3s ease; text-decoration:none;
+        }
+        .footer-social:hover { color:var(--or); }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon" title="Panier"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon" title="Compte"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== HERO CAROUSEL ==================== -->
+    <section class="hero-carousel" data-theme="dark">
+        <div class="hero-slide active" style="background-image:url('https://images.pexels.com/photos/13203179/pexels-photo-13203179.jpeg');">
+            <div class="hero-content">
+                <p class="hero-sub" data-fr="L'excellence architecturale" data-en="Architectural Excellence">L'excellence architecturale</p>
+                <h1 class="hero-title" data-fr="Construisez votre maison" data-en="Build Your Dream Home">Construisez votre maison</h1>
+                <div class="sep-or" style="margin-bottom:2rem;"></div>
+                <a href="catalogue.html" class="btn-or" data-fr="Découvrir les plans" data-en="Discover Plans">Découvrir les plans</a>
+            </div>
+        </div>
+        <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/29334668/pexels-photo-29334668.png');">
+            <div class="hero-content">
+                <p class="hero-sub" data-fr="Sur mesure pour vous" data-en="Tailored for You">Sur mesure pour vous</p>
+                <h1 class="hero-title" data-fr="Créez l'espace idéal" data-en="Create Your Ideal Space">Créez l'espace idéal</h1>
+                <div class="sep-or" style="margin-bottom:2rem;"></div>
+                <a href="catalogue.html" class="btn-or" data-fr="Explorer le catalogue" data-en="Explore Catalog">Explorer le catalogue</a>
+            </div>
+        </div>
+        <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/8134847/pexels-photo-8134847.jpeg');">
+            <div class="hero-content">
+                <p class="hero-sub" data-fr="De la vision à la réalité" data-en="From Vision to Reality">De la vision à la réalité</p>
+                <h1 class="hero-title" data-fr="Réalisez vos ambitions" data-en="Achieve Your Dreams">Réalisez vos ambitions</h1>
+                <div class="sep-or" style="margin-bottom:2rem;"></div>
+                <a href="catalogue.html" class="btn-or" data-fr="Commencer maintenant" data-en="Start Now">Commencer maintenant</a>
+            </div>
+        </div>
+        <button class="hero-arrow prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+        <button class="hero-arrow next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+        <div class="hero-dots">
+            <button class="hero-dot active" onclick="goSlide(0)"></button>
+            <button class="hero-dot" onclick="goSlide(1)"></button>
+            <button class="hero-dot" onclick="goSlide(2)"></button>
+        </div>
+        <div class="scroll-hint"><i class="fas fa-chevron-down" style="font-size:1rem;"></i></div>
+    </section>
+
+    <!-- ==================== POURQUOI ARCHICLICK ==================== -->
+    <section class="py-24 lg:py-32 bg-white parallax-section" data-theme="light">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="parallax-grid">
+                <div class="relative reveal">
+                    <div class="parallax-sticky-img">
+                        <img src="https://images.pexels.com/photos/8089172/pexels-photo-8089172.jpeg" alt="Architecture moderne">
+                        <div class="parallax-accent"></div>
+                    </div>
+                </div>
+                <div class="lg:pl-16">
+                    <p class="section-label reveal" data-fr="Notre engagement" data-en="Our commitment">Notre engagement</p>
+                    <h2 class="section-title reveal reveal-d1" data-fr="Pourquoi Archiclick ?" data-en="Why Archiclick?">Pourquoi Archiclick ?</h2>
+                    <div class="sep-or reveal reveal-d1" style="margin:0 0 2.5rem 0;"></div>
+
+                    <div class="space-y-8">
+                        <div class="flex gap-5 reveal reveal-d1">
+                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
+                                <i class="fas fa-drafting-compass text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Plans professionnels certifiés" data-en="Certified professional plans">Plans professionnels certifiés</h3>
+                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Chaque plan est conçu par un architecte diplômé d'État avec une expertise approfondie des normes de construction au Cameroun." data-en="Each plan is designed by a state-certified architect with deep expertise in Cameroonian building standards.">Chaque plan est conçu par un architecte diplômé d'État avec une expertise approfondie des normes de construction au Cameroun.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-5 reveal reveal-d2">
+                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
+                                <i class="fas fa-bolt text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Livraison express sous 2h" data-en="Express delivery within 2 hours">Livraison express sous 2h</h3>
+                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Dès votre paiement confirmé, notre équipe prépare et envoie votre dossier complet par email en moins de 2 heures." data-en="As soon as your payment is confirmed, our team sends your complete file by email in under 2 hours.">Dès votre paiement confirmé, notre équipe prépare et envoie votre dossier complet par email en moins de 2 heures.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-5 reveal reveal-d3">
+                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
+                                <i class="fas fa-sliders-h text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Personnalisation sur mesure" data-en="Bespoke customization">Personnalisation sur mesure</h3>
+                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Adaptez chaque plan à vos contraintes topographiques et vos goûts avec un suivi direct par un architecte." data-en="Adapt each plan to your constraints and tastes with direct follow-up by an architect.">Adaptez chaque plan à vos contraintes topographiques et vos goûts avec un suivi direct par un architecte.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-5 reveal reveal-d4">
+                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
+                                <i class="fas fa-shield-alt text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Paiement sécurisé local" data-en="Secure local payment">Paiement sécurisé local</h3>
+                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Réglez par MTN Mobile Money ou Orange Money. Aucun frais caché, aucun intermédiaire." data-en="Pay via MTN or Orange Money. No hidden fees, no intermediary.">Réglez par MTN Mobile Money ou Orange Money. Aucun frais caché, aucun intermédiaire.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="catalogue.html" class="btn-outline-dark mt-12 inline-block reveal reveal-d4" data-fr="Voir le catalogue" data-en="View catalog">Voir le catalogue</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== COMMENT ÇA MARCHE ==================== -->
+    <section class="py-24 lg:py-32" style="background:var(--beige);" data-theme="light">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <p class="section-label reveal" data-fr="Processus simple" data-en="Simple process">Processus simple</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="Comment ça marche ?" data-en="How it works?">Comment ça marche ?</h2>
+                <div class="sep-or mt-6 reveal reveal-d1"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div class="text-center reveal reveal-d1">
+                    <div class="step-num">01</div>
+                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-search text-or text-lg"></i></div>
+                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Choisissez" data-en="Choose">Choisissez</h3>
+                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Parcourez plus de 50 plans et trouvez celui adapté à vos besoins." data-en="Browse 50+ plans and find the right one for you.">Parcourez plus de 50 plans et trouvez celui adapté à vos besoins.</p>
+                </div>
+                <div class="text-center reveal reveal-d2">
+                    <div class="step-num">02</div>
+                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-pen-ruler text-or text-lg"></i></div>
+                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Personnalisez" data-en="Customize">Personnalisez</h3>
+                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Ajoutez options et demandez modifications avec suivi d'un architecte." data-en="Add options and request modifications with architect support.">Ajoutez options et demandez modifications avec suivi d'un architecte.</p>
+                </div>
+                <div class="text-center reveal reveal-d3">
+                    <div class="step-num">03</div>
+                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-mobile-alt text-or text-lg"></i></div>
+                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Payez" data-en="Pay">Payez</h3>
+                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="MTN ou Orange Money - simple et sécurisé, aucuns frais cachés." data-en="MTN or Orange Money - simple and secure, no hidden fees.">MTN ou Orange Money - simple et sécurisé, aucuns frais cachés.</p>
+                </div>
+                <div class="text-center reveal reveal-d4">
+                    <div class="step-num">04</div>
+                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-download text-or text-lg"></i></div>
+                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Recevez" data-en="Receive">Recevez</h3>
+                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Dossier complet par email en moins de 2 heures après paiement." data-en="Complete file by email within 2 hours of payment.">Dossier complet par email en moins de 2 heures après paiement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== BEST-SELLERS ==================== -->
+    <section class="py-24 lg:py-32 bg-white" data-theme="light">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <p class="section-label reveal" data-fr="Les plus populaires" data-en="Most popular">Les plus populaires</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="Best-Sellers" data-en="Best-Sellers">Best-Sellers</h2>
+                <div class="sep-or mt-6 reveal reveal-d1"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="best-sellers">
+                <div class="text-center text-gris-doux py-12">Chargement...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== NOUVEAUTÉS (BLEU NUIT) ==================== -->
+    <section class="py-24 lg:py-32 section-bleu-nuit" data-theme="dark">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <p class="section-label reveal" data-fr="Récemment ajoutés" data-en="Recently added">Récemment ajoutés</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="Nouveautés" data-en="Latest">Nouveautés</h2>
+                <div class="sep-or mt-6 reveal reveal-d1"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="nouveautes">
+                <div class="text-center text-gray-400 py-12">Chargement...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROMOTIONS ==================== -->
+    <section class="py-24 lg:py-32 bg-white" data-theme="light">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <p class="section-label reveal" data-fr="Offres spéciales" data-en="Special offers">Offres spéciales</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="Promotions" data-en="Promotions">Promotions</h2>
+                <div class="sep-or mt-6 reveal reveal-d1"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10" id="promotions">
+                <div class="text-center text-gris-doux py-12">Chargement...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== STATISTIQUES ==================== -->
+    <section class="py-24 lg:py-32 parallax-bg text-white flex items-center justify-center" style="background-image:url('https://images.pexels.com/photos/4792479/pexels-photo-4792479.jpeg'); min-height:500px;" data-theme="dark">
+        <div class="absolute inset-0 bg-black/30"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="section-title reveal" style="color:#fff;font-size:clamp(2.5rem,5vw,4rem);" data-fr="+5 000 maisons construites" data-en="+5,000 houses built">+5 000 maisons construites</h2>
+            <p class="text-lg reveal reveal-d1 mt-4" style="opacity:.9;" data-fr="Des clients satisfaits au Cameroun et dans toute l'Afrique de l'Ouest" data-en="Satisfied customers in Cameroon and across West Africa">Des clients satisfaits au Cameroun et dans toute l'Afrique de l'Ouest</p>
+        </div>
+    </section>
+
+    <!-- ==================== TÉMOIGNAGES ==================== -->
+    <section class="py-24 lg:py-32 bg-beige" data-theme="light">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <p class="section-label reveal" data-fr="Ils nous font confiance" data-en="They trust us">Ils nous font confiance</p>
+                <h2 class="section-title reveal reveal-d1" data-fr="Témoignages clients" data-en="Customer testimonials">Témoignages clients</h2>
+                <div class="sep-or mt-6 reveal reveal-d1"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="avis">
+                <div class="text-center text-gris-doux py-12">Chargement...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le marché camerounais et africain." data-en="Professional house plans for the Cameroonian and African market.">Plans de maison professionnels pour le marché camerounais et africain.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                        <li><a href="a-propos.html" class="footer-link" data-fr="À propos" data-en="About">À propos</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                        <li><a href="contact.html" class="footer-link" data-fr="Contact" data-en="Contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-social"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick - Tous droits réservés" data-en="© 2025 Archiclick - All rights reserved">© 2025 Archiclick - Tous droits réservés</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+            let allPlans = [];
+            let currentSlide = 0;
+            let autoplayInterval;
+
+            /* ---- CAROUSEL ---- */
+            function show(n) {
+                const slides = document.querySelectorAll('.hero-slide');
+                const dots = document.querySelectorAll('.hero-dot');
+                if (n >= slides.length) currentSlide = 0;
+                if (n < 0) currentSlide = slides.length - 1;
+                slides.forEach(s => s.classList.remove('active'));
+                dots.forEach(d => d.classList.remove('active'));
+                slides[currentSlide].classList.add('active');
+                dots[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() {
+                currentSlide++;
+                show(currentSlide);
+                clearInterval(autoplayInterval);
+                startAuto();
+            }
+
+            function prevSlide() {
+                currentSlide--;
+                show(currentSlide);
+                clearInterval(autoplayInterval);
+                startAuto();
+            }
+
+            function goSlide(n) {
+                currentSlide = n;
+                show(currentSlide);
+                clearInterval(autoplayInterval);
+                startAuto();
+            }
+
+            function startAuto() {
+                autoplayInterval = setInterval(() => {
+                    currentSlide++;
+                    show(currentSlide);
+                }, 5000);
+            }
+
+            window.nextSlide = nextSlide;
+            window.prevSlide = prevSlide;
+            window.goSlide = goSlide;
+
+            /* ---- NAVBAR SCROLL ---- */
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                const heroCarousel = document.querySelector('.hero-carousel');
+                const carouselBottom = heroCarousel.offsetHeight;
+                if (window.scrollY > carouselBottom - 100) {
+                    navbar.classList.remove('text-light');
+                    navbar.classList.add('text-dark', 'scrolled-light');
+                } else {
+                    navbar.classList.remove('text-dark', 'scrolled-light');
+                    navbar.classList.add('text-light');
+                }
+            });
+
+            /* ---- REVEAL AU SCROLL ---- */
+            function observeNewReveals() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+            window.observeNewReveals = observeNewReveals;
+
+            /* ---- LANGUE ---- */
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+                if (window.onLanguageChange) window.onLanguageChange();
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            window.toggleLanguage = toggleLanguage;
+            window.getAppLang = () => currentLang;
+
+            /* ---- MOBILE MENU ---- */
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            /* ---- CHARGER PLANS ---- */
+            async function loadPlans() {
+                try {
+                    const { data, error } = await supabase.from('plans').select('*').eq('actif', true).order('created_at', { ascending: false });
+                    if (error) throw error;
+                    allPlans = data || [];
+                    renderSections();
+                } catch (err) {
+                    console.error('Erreur:', err);
+                }
+            }
+
+            function renderSections() {
+                renderCards('best-sellers', allPlans.slice(0, 3));
+                renderCards('nouveautes', allPlans.slice(3, 6));
+                renderCards('promotions', allPlans.slice(6, 8));
+            }
+
+            function renderCards(id, plans) {
+                const c = document.getElementById(id);
+                if (!c) return;
+                if (!plans || !plans.length) {
+                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Aucun plan disponible' : 'No plans available') + '</div>';
+                    return;
+                }
+                const isNouveau = (id === 'nouveautes');
+                const badge = isNouveau ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Nouveau' : 'New') + '</div>' : '';
+                const buy = currentLang === 'fr' ? 'Voir le plan' : 'View plan';
+                const et = currentLang === 'fr' ? 'ét.' : 'fl.';
+                const ch = currentLang === 'fr' ? 'ch.' : 'bdr';
+
+                c.innerHTML = plans.map(p => {
+                    const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/600x400/eae3db/b0b0b0?text=Plan';
+                    return '<div class="plan-card reveal">' +
+                        '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
+                        '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +
+                        '<div class="card-meta"><span><i class="fas fa-layer-group meta-icon"></i>' + (p.etages || '?') + ' ' + et + '</span>' +
+                        '<span><i class="fas fa-bed meta-icon"></i>' + (p.chambres || '?') + ' ' + ch + '</span>' +
+                        '<span><i class="fas fa-bath meta-icon"></i>' + (p.sdb || '?') + ' sdb</span>' +
+                        '<span><i class="fas fa-ruler-combined meta-icon"></i>' + (p.surface_habitable || '?') + ' m²</span></div>' +
+                        '<div class="card-footer"><div class="card-price">' + (p.prix_base || 0).toLocaleString('fr-FR') + ' <small>FCFA</small></div>' +
+                        '<a href="plan-detail.html?id=' + p.id + '" class="btn-outline" style="padding:10px 22px;font-size:.7rem;">' + buy + '</a></div></div></div>';
+                }).join('');
+                observeNewReveals();
+            }
+
+            function renderAvis() {
+                const c = document.getElementById('avis');
+                if (!c) return;
+                const data = currentLang === 'fr' ? [
+                    { t: "Reçu mon plan en moins de 2 heures. La qualité est exceptionnelle et l'architecte très disponible. Je recommande vivement!", n: "Martine N., Douala" },
+                    { t: "Le paiement par code marchand MTN était simple. Le plan était exactement ce que je cherchais. Rapport qualité-prix imbattable.", n: "Jules K., Yaoundé" },
+                    { t: "L'option personnalisation a été déterminante. L'équipe a adapté le plan à mon terrain en un temps record.", n: "Aïssatou M., Garoua" }
+                ] : [
+                    { t: "Received my plan within 2 hours. Exceptional quality and very responsive architect. Highly recommend!", n: "Martine N., Douala" },
+                    { t: "MTN payment was simple. The plan was exactly what I wanted. Unbeatable value.", n: "Jules K., Yaoundé" },
+                    { t: "Customization was key. Team adapted my plan to my land in record time.", n: "Aïssatou M., Garoua" }
+                ];
+
+                c.innerHTML = data.map(a => '<div class="testimonial-card reveal"><div class="quote-mark">"</div><p class="testimonial-text">' + a.t + '</p><span style="color:var(--or);letter-spacing:2px;">★★★★★</span><p class="testimonial-author" style="margin-top:1.2rem;">— ' + a.n + '</p></div>').join('');
+                observeNewReveals();
+            }
+
+            window.onLanguageChange = function() {
+                renderSections();
+                renderAvis();
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                show(currentSlide);
+                startAuto();
+                loadPlans();
+                renderAvis();
+                setLang(currentLang);
+                observeNewReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>

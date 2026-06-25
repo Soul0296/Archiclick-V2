@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue - Archiclick | Plans de Maison Cameroun</title>
+    <meta name="description" content="Découvrez notre catalogue complet de plans de maison professionnels pour le Cameroun. Villas, duplex, triplex et immeubles. Filtrez par surface, budget et chambres. Paiement Mobile Money.">
+    <meta property="og:title" content="Catalogue - Archiclick | Plans de Maison Cameroun">
+    <meta property="og:description" content="Plus de 50 plans architecturaux professionnels. Villas, duplex, triplex. Livraison sous 2h.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://archiclick.cm/catalogue.html">
+    <meta property="og:image" content="https://archiclick.cm/images/og-catalogue.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://hhtkrdklyukhkybutxyb.supabase.co">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            padding:1.5rem 0; transition:all .5s ease;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; transition:color .4s ease; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE HEADER AVEC IMAGE DE FOND ========== */
+        .page-header {
+            position:relative;
+            background:url('images/catalogue-header-bg.jpg') center/cover no-repeat;
+            padding:10rem 0 5rem; text-align:center;
+            margin-top:0;
+        }
+        .page-header::after {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(to bottom, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 100%);
+        }
+        .page-header .header-content {
+            position:relative; z-index:2;
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:clamp(2.2rem,5vw,3.8rem);
+            font-weight:300; color:#fff; margin-bottom:1rem; letter-spacing:3px;
+        }
+        .page-desc {
+            font-size:.95rem; color:rgba(255,255,255,.8); max-width:600px; margin:0 auto;
+            line-height:1.8; font-weight:300;
+        }
+
+        /* ========== CATALOGUE CONTENEUR ========== */
+        .catalog-container {
+            display:grid; grid-template-columns:280px 1fr; gap:3rem;
+            max-width:1280px;
+            margin:3rem auto; padding:0 1.5rem;
+        }
+        @media(max-width:1023px) {
+            .catalog-container { grid-template-columns:1fr; }
+            .filter-sidebar { order:2; }
+            .catalog-main { order:1; }
+        }
+
+        /* ========== SIDEBAR FILTRES ========== */
+        .filter-group {
+            border-bottom:1px solid var(--creme); padding:1.5rem 0;
+        }
+        .filter-group:last-child { border-bottom:none; }
+        .filter-title {
+            font-family:'Inter',sans-serif; font-size:.85rem; font-weight:600;
+            letter-spacing:2px; text-transform:uppercase; color:var(--ardoise);
+            margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;
+            cursor:pointer;
+        }
+        .filter-title i { font-size:.7rem; transition:transform .3s ease; }
+        .filter-title.collapsed i { transform:rotate(-90deg); }
+        .filter-items { display:flex; flex-direction:column; gap:.5rem; }
+        .filter-items.collapsed { display:none; }
+        .filter-item {
+            display:flex; align-items:center; gap:.5rem;
+            font-size:.85rem; color:var(--gris-doux);
+        }
+        .filter-item input[type="checkbox"] {
+            width:16px; height:16px; cursor:pointer; accent-color:var(--or);
+        }
+        .filter-item label { cursor:pointer; flex:1; }
+        .filter-item input[type="number"] {
+            width:100%; padding:.4rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.85rem;
+        }
+        .filter-item input[type="number"]:focus {
+            outline:none; border-color:var(--or);
+        }
+        .price-range { display:flex; gap:.5rem; align-items:center; }
+        .price-range input { flex:1; }
+        .filter-count {
+            font-size:.75rem; color:var(--gris-clair); margin-left:auto;
+        }
+
+        /* ========== BOUTONS ========== */
+        .btn-filter {
+            background:var(--or); color:var(--noir);
+            padding:10px 20px; font-size:.8rem;
+            font-weight:500; letter-spacing:2px;
+            border:none; cursor:pointer; transition:all .3s ease;
+            width:100%; margin-top:1rem;
+        }
+        .btn-filter:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+        }
+        .btn-reset {
+            background:transparent; border:1px solid var(--gris-clair);
+            color:var(--gris-doux); padding:10px 20px; font-size:.8rem;
+            font-weight:500; letter-spacing:1px; cursor:pointer;
+            width:100%; transition:all .3s ease; margin-top:.5rem;
+        }
+        .btn-reset:hover {
+            border-color:var(--or); color:var(--or);
+        }
+        .btn-retry {
+            background:var(--or); color:var(--noir);
+            padding:12px 32px; font-size:.8rem;
+            font-weight:500; letter-spacing:2px; text-transform:uppercase;
+            border:none; cursor:pointer; transition:all .3s ease;
+            margin-top:1.5rem;
+        }
+        .btn-retry:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+        }
+
+        /* ========== BARRE TRI & COMPTAGE ========== */
+        .catalog-top {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:2rem; gap:2rem; flex-wrap:wrap;
+        }
+        .sort-select {
+            font-family:'Inter',sans-serif; font-size:.85rem;
+            padding:.5rem 1rem; border:1px solid var(--creme);
+            background:white; cursor:pointer; transition:all .3s ease;
+        }
+        .sort-select:hover, .sort-select:focus {
+            outline:none; border-color:var(--or);
+        }
+        .product-count {
+            font-size:.85rem; color:var(--gris-doux);
+        }
+
+        .products-grid {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+            gap:2rem;
+        }
+        @media(max-width:768px) {
+            .products-grid { grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem; }
+        }
+
+        /* ========== SKELETON SHIMMER ========== */
+        .skeleton-card {
+            background:var(--blanc); overflow:hidden;
+        }
+        .skeleton-img {
+            width:100%; height:280px;
+            background:linear-gradient(90deg, var(--creme) 25%, #f0ebe5 50%, var(--creme) 75%);
+            background-size:200% 100%;
+            animation:shimmer 1.5s infinite;
+        }
+        .skeleton-body { padding:1.5rem; }
+        .skeleton-line {
+            height:12px; background:var(--creme); border-radius:2px;
+            margin-bottom:.6rem;
+            background:linear-gradient(90deg, var(--creme) 25%, #f0ebe5 50%, var(--creme) 75%);
+            background-size:200% 100%;
+            animation:shimmer 1.5s infinite;
+        }
+        .skeleton-line.short { width:60%; }
+        .skeleton-line.medium { width:80%; }
+        .skeleton-footer {
+            display:flex; justify-content:space-between; align-items:center;
+            padding-top:1rem; border-top:1px solid var(--creme); margin-top:1rem;
+        }
+        .skeleton-price {
+            width:80px; height:20px;
+            background:linear-gradient(90deg, var(--creme) 25%, #f0ebe5 50%, var(--creme) 75%);
+            background-size:200% 100%;
+            animation:shimmer 1.5s infinite; border-radius:2px;
+        }
+        .skeleton-btn {
+            width:90px; height:32px;
+            background:linear-gradient(90deg, var(--creme) 25%, #f0ebe5 50%, var(--creme) 75%);
+            background-size:200% 100%;
+            animation:shimmer 1.5s infinite; border-radius:2px;
+        }
+        @keyframes shimmer {
+            0% { background-position:200% 0; }
+            100% { background-position:-200% 0; }
+        }
+
+        /* ========== CARTES PLANS (coherent avec index.html) ========== */
+        .plan-card {
+            background:var(--blanc); overflow:hidden;
+            transition:transform .5s ease, box-shadow .5s ease; cursor:pointer;
+        }
+        .plan-card:hover { transform:translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,.08); }
+        .plan-card .card-img { position:relative; overflow:hidden; }
+        .plan-card .card-img img {
+            width:100%; height:280px; object-fit:cover; transition:transform .6s ease;
+        }
+        .plan-card:hover .card-img img { transform:scale(1.05); }
+        .card-body { padding:1.8rem; }
+        .card-title {
+            font-family:'Cormorant Garamond',serif; font-size:1.35rem;
+            font-weight:400; color:var(--ardoise); margin-bottom:.8rem; letter-spacing:.5px;
+        }
+        .card-meta { display:flex; flex-wrap:wrap; gap:.5rem 1rem; margin-bottom:1.2rem; }
+        .card-meta span {
+            font-family:'Inter',sans-serif; font-size:.75rem;
+            font-weight:300; color:var(--gris-doux); letter-spacing:.5px;
+        }
+        .meta-icon { color:var(--or)!important; font-size:.7rem!important; margin-right:4px!important; }
+        .card-footer {
+            display:flex; justify-content:space-between; align-items:center;
+            padding-top:1.2rem; border-top:1px solid var(--creme);
+        }
+        .card-price {
+            font-family:'Cormorant Garamond',serif; font-size:1.5rem;
+            font-weight:400; color:var(--or); letter-spacing:.5px;
+        }
+        .card-price small {
+            font-family:'Inter',sans-serif; font-size:.7rem;
+            font-weight:400; color:var(--gris-doux); letter-spacing:1px;
+        }
+        .btn-outline {
+            font-family:'Inter',sans-serif; font-size:.7rem;
+            font-weight:400; letter-spacing:2px; text-transform:uppercase;
+            text-decoration:none; color:var(--or); background:transparent;
+            border:1px solid var(--or); padding:10px 22px; cursor:pointer;
+            transition:all .4s ease;
+        }
+        .btn-outline:hover { background:var(--or); color:var(--noir); }
+
+        /* ========== PAGINATION ========== */
+        .load-more {
+            text-align:center; margin:3rem 0;
+        }
+        .btn-load {
+            font-family:'Inter',sans-serif; font-size:.8rem;
+            font-weight:500; letter-spacing:2px; text-transform:uppercase;
+            background:transparent; border:1.5px solid var(--or);
+            color:var(--or); padding:12px 40px; cursor:pointer;
+            transition:all .4s ease;
+        }
+        .btn-load:hover {
+            background:var(--or); color:var(--noir);
+        }
+
+        /* ========== MESSAGE ERREUR ========== */
+        .error-state {
+            text-align:center; padding:4rem 2rem; color:var(--gris-doux);
+        }
+        .error-state i {
+            font-size:3rem; color:var(--or); opacity:.5; margin-bottom:1rem;
+        }
+        .error-state p {
+            font-size:1rem; margin-bottom:.5rem;
+        }
+        .error-state small {
+            font-size:.85rem; opacity:.7;
+        }
+
+        /* ========== REVEAL AVEC DELAIS ========== */
+        .reveal { opacity:0; transform:translateY(40px); transition:opacity .9s ease-out, transform .9s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        .reveal-d1 { transition-delay:.15s; }
+        .reveal-d2 { transition-delay:.3s; }
+        .reveal-d3 { transition-delay:.45s; }
+        .reveal-d4 { transition-delay:.6s; }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease; letter-spacing:.5px;
+        }
+        .footer-link:hover { color:var(--or); }
+        .footer-social {
+            color:rgba(255,255,255,.4); font-size:1rem;
+            transition:color .3s ease; text-decoration:none;
+        }
+        .footer-social:hover { color:var(--or); }
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="A propos" data-en="About">A propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon" title="Panier"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon" title="Compte"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="A propos" data-en="About">A propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== PAGE HEADER AVEC IMAGE DE FOND ==================== -->
+    <header class="page-header">
+        <div class="header-content max-w-7xl mx-auto px-6 reveal">
+            <p class="section-label" style="color:var(--or-clair);margin-bottom:.8rem;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:500;letter-spacing:4px;text-transform:uppercase;" data-fr="Notre collection" data-en="Our Collection">Notre collection</p>
+            <h1 class="page-title" data-fr="Tous nos plans de maison" data-en="All House Plans">Tous nos plans de maison</h1>
+            <div class="sep-or" style="margin:1.5rem auto;background:var(--or-clair);"></div>
+            <p class="page-desc" data-fr="Decouvrez notre collection complete de plans d'architecture professionnels. Filtrez par type, superficie, nombre de chambres ou budget pour trouver votre plan ideal." data-en="Discover our complete collection of professional architectural plans. Filter by type, area, number of bedrooms or budget to find your ideal plan.">Decouvrez notre collection complete de plans d'architecture professionnels. Filtrez par type, superficie, nombre de chambres ou budget pour trouver votre plan ideal.</p>
+        </div>
+    </header>
+
+    <!-- ==================== CONTENU PRINCIPAL ==================== -->
+    <main>
+
+    <!-- ==================== SECTION CATALOGUE ==================== -->
+    <section class="py-8">
+        <div class="catalog-container">
+            <!-- SIDEBAR FILTRES -->
+            <aside class="filter-sidebar">
+                <!-- TYPE DE MAISON -->
+                <fieldset class="filter-group">
+                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Type de maison" data-en="Building Type">
+                        Type de maison <i class="fas fa-chevron-down"></i>
+                    </legend>
+                    <div class="filter-items">
+                        <div class="filter-item">
+                            <input type="checkbox" id="type-villa" value="villa" onchange="queueFilters()">
+                            <label for="type-villa">Villa</label>
+                            <span class="filter-count" id="count-villa"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="type-duplex" value="duplex" onchange="queueFilters()">
+                            <label for="type-duplex">Duplex</label>
+                            <span class="filter-count" id="count-duplex"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="type-triplex" value="triplex" onchange="queueFilters()">
+                            <label for="type-triplex">Triplex</label>
+                            <span class="filter-count" id="count-triplex"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="type-immeuble" value="immeuble" onchange="queueFilters()">
+                            <label for="type-immeuble" data-fr="Immeuble" data-en="Building">Immeuble</label>
+                            <span class="filter-count" id="count-immeuble"></span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ETAGES -->
+                <fieldset class="filter-group">
+                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Etages" data-en="Floors">
+                        Etages <i class="fas fa-chevron-down"></i>
+                    </legend>
+                    <div class="filter-items">
+                        <div class="filter-item">
+                            <input type="checkbox" id="etage-1" value="1" onchange="queueFilters()">
+                            <label for="etage-1" data-fr="Plain-pied" data-en="Single floor">Plain-pied</label>
+                            <span class="filter-count" id="count-etage-1"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="etage-2" value="2" onchange="queueFilters()">
+                            <label for="etage-2" data-fr="2 etages" data-en="2 floors">2 etages</label>
+                            <span class="filter-count" id="count-etage-2"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="etage-3" value="3" onchange="queueFilters()">
+                            <label for="etage-3" data-fr="3 etages et +" data-en="3 floors+">3 etages et +</label>
+                            <span class="filter-count" id="count-etage-3"></span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- CHAMBRES -->
+                <fieldset class="filter-group">
+                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Chambres" data-en="Bedrooms">
+                        Chambres <i class="fas fa-chevron-down"></i>
+                    </legend>
+                    <div class="filter-items">
+                        <div class="filter-item">
+                            <input type="checkbox" id="bed-1" value="1" onchange="queueFilters()">
+                            <label for="bed-1">1+</label>
+                            <span class="filter-count" id="count-bed-1"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="bed-2" value="2" onchange="queueFilters()">
+                            <label for="bed-2">2+</label>
+                            <span class="filter-count" id="count-bed-2"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="bed-3" value="3" onchange="queueFilters()">
+                            <label for="bed-3">3+</label>
+                            <span class="filter-count" id="count-bed-3"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="bed-4" value="4" onchange="queueFilters()">
+                            <label for="bed-4">4+</label>
+                            <span class="filter-count" id="count-bed-4"></span>
+                        </div>
+                        <div class="filter-item">
+                            <input type="checkbox" id="bed-5" value="5" onchange="queueFilters()">
+                            <label for="bed-5">5+</label>
+                            <span class="filter-count" id="count-bed-5"></span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- SURFACE -->
+                <fieldset class="filter-group">
+                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Surface (m&sup2;)" data-en="Area (sqm)">
+                        Surface (m&sup2;) <i class="fas fa-chevron-down"></i>
+                    </legend>
+                    <div class="filter-items">
+                        <div class="filter-item price-range">
+                            <input type="number" id="surfaceMin" placeholder="Min" onchange="queueFilters()">
+                            <span>-</span>
+                            <input type="number" id="surfaceMax" placeholder="Max" onchange="queueFilters()">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- BUDGET -->
+                <fieldset class="filter-group">
+                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Budget (FCFA)" data-en="Budget (FCFA)">
+                        Budget (FCFA) <i class="fas fa-chevron-down"></i>
+                    </legend>
+                    <div class="filter-items">
+                        <div class="filter-item price-range">
+                            <input type="number" id="budgetMin" placeholder="Min" onchange="queueFilters()">
+                            <span>-</span>
+                            <input type="number" id="budgetMax" placeholder="Max" onchange="queueFilters()">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- BOUTONS -->
+                <button class="btn-filter" onclick="applyFilters()" data-fr="Appliquer" data-en="Apply">Appliquer</button>
+                <button class="btn-reset" onclick="resetFilters()" data-fr="Reinitialiser" data-en="Reset">Reinitialiser</button>
+            </aside>
+
+            <!-- CONTENU CATALOGUE -->
+            <div class="catalog-main">
+                <!-- BARRE : TRI & COMPTEUR -->
+                <div class="catalog-top">
+                    <div class="product-count">
+                        <span id="planCount">0</span> <span data-fr="plans" data-en="plans">plans</span>
+                    </div>
+                    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+                        <option value="default" data-fr="Pertinence" data-en="Featured">Pertinence</option>
+                        <option value="price-asc" data-fr="Prix croissant" data-en="Price: Low to High">Prix croissant</option>
+                        <option value="price-desc" data-fr="Prix decroissant" data-en="Price: High to Low">Prix decroissant</option>
+                        <option value="newest" data-fr="Plus recent" data-en="Newest">Plus recent</option>
+                    </select>
+                </div>
+
+                <!-- GRILLE PRODUITS -->
+                <div class="products-grid" id="productsGrid">
+                    <!-- Skeleton shimmer affiche pendant le chargement -->
+                    <div class="skeleton-card reveal"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                    <div class="skeleton-card reveal reveal-d1"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                    <div class="skeleton-card reveal reveal-d2"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                    <div class="skeleton-card reveal reveal-d3"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                    <div class="skeleton-card reveal reveal-d4"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                    <div class="skeleton-card reveal"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
+                </div>
+
+                <!-- CHARGER PLUS -->
+                <div class="load-more" id="loadMoreContainer" style="display:none;">
+                    <button class="btn-load" onclick="loadMorePlans()" data-fr="Voir plus de plans" data-en="Load More Plans">Voir plus de plans</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun et l'Afrique de l'Ouest." data-en="Professional house plans for Cameroon and West Africa.">Plans de maison professionnels pour le Cameroun et l'Afrique de l'Ouest.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                        <li><a href="a-propos.html" class="footer-link" data-fr="A propos" data-en="About">A propos</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Legal" data-en="Legal">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialite" data-en="Privacy">Confidentialite</a></li>
+                        <li><a href="contact.html" class="footer-link" data-fr="Contact" data-en="Contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-social"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm">&copy; 2026 Archiclick - <span data-fr="Tous droits reserves" data-en="All rights reserved">Tous droits reserves</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+            let allPlans = [];
+            let displayedPlans = [];
+            let itemsPerPage = 12;
+            let currentPage = 1;
+            let filterTimeout = null;
+
+            /* ---- LANGUE (API coherente avec index.html) ---- */
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+                if (window.onLanguageChange) window.onLanguageChange();
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            window.toggleLanguage = toggleLanguage;
+            window.getAppLang = () => currentLang;
+
+            /* ---- MOBILE MENU ---- */
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            /* ---- COLLAPSIBLE FILTER GROUPS ---- */
+            function toggleFilterGroup(titleEl) {
+                titleEl.classList.toggle('collapsed');
+                const items = titleEl.nextElementSibling;
+                if (items) items.classList.toggle('collapsed');
+            }
+            window.toggleFilterGroup = toggleFilterGroup;
+
+            /* ---- DEBOUNCE FILTRES ---- */
+            function queueFilters() {
+                if (filterTimeout) clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 300);
+            }
+            window.queueFilters = queueFilters;
+
+            /* ---- LIRE FILTRES URL ---- */
+            function readFiltersFromURL() {
+                const params = new URLSearchParams(window.location.search);
+                const types = params.get('type');
+                const beds = params.get('beds');
+                const floors = params.get('floors');
+                const sMin = params.get('surface_min');
+                const sMax = params.get('surface_max');
+                const bMin = params.get('budget_min');
+                const bMax = params.get('budget_max');
+                const sort = params.get('sort');
+
+                if (types) types.split(',').forEach(t => {
+                    const cb = document.getElementById('type-' + t);
+                    if (cb) cb.checked = true;
+                });
+                if (beds) beds.split(',').forEach(b => {
+                    const cb = document.getElementById('bed-' + b);
+                    if (cb) cb.checked = true;
+                });
+                if (floors) floors.split(',').forEach(f => {
+                    const cb = document.getElementById('etage-' + f);
+                    if (cb) cb.checked = true;
+                });
+                if (sMin) document.getElementById('surfaceMin').value = sMin;
+                if (sMax) document.getElementById('surfaceMax').value = sMax;
+                if (bMin) document.getElementById('budgetMin').value = bMin;
+                if (bMax) document.getElementById('budgetMax').value = bMax;
+                if (sort) document.getElementById('sortSelect').value = sort;
+            }
+
+            /* ---- ECRIRE FILTRES URL ---- */
+            function writeFiltersToURL() {
+                const params = new URLSearchParams();
+                const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
+                const beds = Array.from(document.querySelectorAll('input[id^="bed-"]:checked')).map(el => el.value);
+                const floors = Array.from(document.querySelectorAll('input[id^="etage-"]:checked')).map(el => el.value);
+                const sMin = document.getElementById('surfaceMin').value;
+                const sMax = document.getElementById('surfaceMax').value;
+                const bMin = document.getElementById('budgetMin').value;
+                const bMax = document.getElementById('budgetMax').value;
+                const sort = document.getElementById('sortSelect').value;
+
+                if (types.length) params.set('type', types.join(','));
+                if (beds.length) params.set('beds', beds.join(','));
+                if (floors.length) params.set('floors', floors.join(','));
+                if (sMin) params.set('surface_min', sMin);
+                if (sMax) params.set('surface_max', sMax);
+                if (bMin) params.set('budget_min', bMin);
+                if (bMax) params.set('budget_max', bMax);
+                if (sort && sort !== 'default') params.set('sort', sort);
+
+                const newUrl = params.toString() ? '?' + params.toString() : window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            /* ---- COMPTER PAR FILTRE ---- */
+            function updateFilterCounts() {
+                const countBy = (keyPrefix, attr) => {
+                    for (let i = 1; i <= 5; i++) {
+                        const el = document.getElementById('count-' + keyPrefix + '-' + i);
+                        if (!el) continue;
+                        const count = allPlans.filter(p => {
+                            const val = p[attr];
+                            if (val == null) return false;
+                            if (attr === 'chambres' || attr === 'etages') return val >= i;
+                            return String(val).toLowerCase() === el.id.replace('count-' + keyPrefix + '-', '');
+                        }).length;
+                        el.textContent = '(' + count + ')';
+                    }
+                };
+                // Compte pour types
+                ['villa', 'duplex', 'triplex', 'immeuble'].forEach(type => {
+                    const el = document.getElementById('count-' + type);
+                    if (el) el.textContent = '(' + allPlans.filter(p => p.type_batiment === type).length + ')';
+                });
+                // Compte pour etages
+                [1, 2, 3].forEach(n => {
+                    const el = document.getElementById('count-etage-' + n);
+                    if (!el) return;
+                    if (n === 3) {
+                        el.textContent = '(' + allPlans.filter(p => (p.etages || 0) >= 3).length + ')';
+                    } else {
+                        el.textContent = '(' + allPlans.filter(p => (p.etages || 0) === n).length + ')';
+                    }
+                });
+                // Compte pour chambres
+                [1, 2, 3, 4, 5].forEach(n => {
+                    const el = document.getElementById('count-bed-' + n);
+                    if (el) el.textContent = '(' + allPlans.filter(p => (p.chambres || 0) >= n).length + ')';
+                });
+            }
+
+            /* ---- CHARGER PLANS (colonnes optimisees) ---- */
+            async function loadPlans() {
+                showSkeleton();
+                try {
+                    const { data, error } = await supabase
+                        .from('plans')
+                        .select('id,titre,type_batiment,chambres,sdb,etages,surface_habitable,prix_base,images,created_at')
+                        .eq('actif', true)
+                        .order('created_at', { ascending: false });
+                    if (error) throw error;
+                    allPlans = data || [];
+                    updateFilterCounts();
+                    readFiltersFromURL();
+                    applyFilters();
+                    observeReveals();
+                } catch (err) {
+                    console.error('Erreur chargement plans:', err);
+                    showErrorState();
+                }
+            }
+
+            /* ---- ETATS UI ---- */
+            function showSkeleton() {
+                // Le skeleton est deja dans le HTML, on le laisse
+            }
+
+            function showErrorState() {
+                document.getElementById('productsGrid').innerHTML =
+                    '<div class="error-state col-span-full">' +
+                    '<i class="fas fa-exclamation-circle"></i>' +
+                    '<p>' + (currentLang === 'fr' ? 'Impossible de charger les plans' : 'Failed to load plans') + '</p>' +
+                    '<small>' + (currentLang === 'fr' ? 'Verifiez votre connexion et reessayez' : 'Check your connection and try again') + '</small><br>' +
+                    '<button class="btn-retry" onclick="loadPlansRetry()">' + (currentLang === 'fr' ? 'Reessayer' : 'Retry') + '</button>' +
+                    '</div>';
+                document.getElementById('loadMoreContainer').style.display = 'none';
+            }
+
+            window.loadPlansRetry = function() {
+                loadPlans();
+            };
+
+            /* ---- FILTRES ---- */
+            function getSelectedFilters() {
+                const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
+                const beds = Array.from(document.querySelectorAll('input[id^="bed-"]:checked')).map(el => parseInt(el.value));
+                const floors = Array.from(document.querySelectorAll('input[id^="etage-"]:checked')).map(el => parseInt(el.value));
+                const surfaceMin = parseInt(document.getElementById('surfaceMin').value) || 0;
+                const surfaceMax = parseInt(document.getElementById('surfaceMax').value) || Infinity;
+                const budgetMin = parseInt(document.getElementById('budgetMin').value) || 0;
+                const budgetMax = parseInt(document.getElementById('budgetMax').value) || Infinity;
+
+                return { types, beds, floors, surfaceMin, surfaceMax, budgetMin, budgetMax };
+            }
+
+            function applyFilters() {
+                const filters = getSelectedFilters();
+                displayedPlans = allPlans.filter(plan => {
+                    if (filters.types.length > 0 && !filters.types.includes(plan.type_batiment)) return false;
+                    if (filters.beds.length > 0 && !filters.beds.some(b => (plan.chambres || 0) >= b)) return false;
+                    if (filters.floors.length > 0 && !filters.floors.some(f => {
+                        if (f === 3) return (plan.etages || 0) >= 3;
+                        return (plan.etages || 0) === f;
+                    })) return false;
+                    if ((plan.surface_habitable || 0) < filters.surfaceMin || (plan.surface_habitable || 0) > filters.surfaceMax) return false;
+                    if ((plan.prix_base || 0) < filters.budgetMin || (plan.prix_base || 0) > filters.budgetMax) return false;
+                    return true;
+                });
+
+                // TRI
+                const sortValue = document.getElementById('sortSelect').value;
+                if (sortValue === 'price-asc') displayedPlans.sort((a, b) => (a.prix_base || 0) - (b.prix_base || 0));
+                else if (sortValue === 'price-desc') displayedPlans.sort((a, b) => (b.prix_base || 0) - (a.prix_base || 0));
+                else if (sortValue === 'newest') displayedPlans.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+                currentPage = 1;
+                writeFiltersToURL();
+                renderPlans();
+            }
+            window.applyFilters = applyFilters;
+
+            function renderPlans() {
+                const start = 0;
+                const end = currentPage * itemsPerPage;
+                const plansToShow = displayedPlans.slice(start, end);
+
+                document.getElementById('planCount').textContent = displayedPlans.length;
+
+                if (!plansToShow.length) {
+                    document.getElementById('productsGrid').innerHTML =
+                        '<div class="col-span-full text-center py-12" style="color:var(--gris-doux);">' +
+                        (currentLang === 'fr' ? 'Aucun plan ne correspond a votre recherche' : 'No plans match your search') +
+                        '</div>';
+                    document.getElementById('loadMoreContainer').style.display = 'none';
+                    return;
+                }
+
+                const et = currentLang === 'fr' ? 'et.' : 'fl.';
+                const ch = currentLang === 'fr' ? 'ch.' : 'bdr';
+                const sdb = currentLang === 'fr' ? 'sdb' : 'bath';
+                const voir = currentLang === 'fr' ? 'Voir le plan' : 'View plan';
+
+                document.getElementById('productsGrid').innerHTML = plansToShow.map((p, idx) => {
+                    const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/600x400/eae3db/b0b0b0?text=Plan';
+                    const delayClass = idx < 6 ? ' reveal-d' + (idx % 5) : '';
+                    return `<div class="plan-card reveal${delayClass}">
+                        <div class="card-img">
+                            <img src="${img}" alt="${p.titre}" loading="lazy">
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">${p.titre}</h3>
+                            <div class="card-meta">
+                                <span><i class="fas fa-layer-group meta-icon"></i>${p.etages || '?'} ${et}</span>
+                                <span><i class="fas fa-bed meta-icon"></i>${p.chambres || '?'} ${ch}</span>
+                                <span><i class="fas fa-bath meta-icon"></i>${p.sdb || '?'} ${sdb}</span>
+                                <span><i class="fas fa-ruler-combined meta-icon"></i>${p.surface_habitable || '?'} m&sup2;</span>
+                            </div>
+                            <div class="card-footer">
+                                <div class="card-price">${(p.prix_base || 0).toLocaleString('fr-FR')} <small>FCFA</small></div>
+                                <a href="plan-detail.html?id=${p.id}" class="btn-outline">${voir}</a>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                document.getElementById('loadMoreContainer').style.display = end < displayedPlans.length ? 'block' : 'none';
+                observeReveals();
+            }
+
+            function loadMorePlans() {
+                currentPage++;
+                renderPlans();
+            }
+            window.loadMorePlans = loadMorePlans;
+
+            function resetFilters() {
+                document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+                document.querySelectorAll('input[type="number"]').forEach(el => el.value = '');
+                document.getElementById('sortSelect').value = 'default';
+                applyFilters();
+            }
+            window.resetFilters = resetFilters;
+
+            /* ---- REVEAL AU SCROLL ---- */
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+            window.observeNewReveals = observeReveals;
+
+            /* ---- CALLBACK i18n ---- */
+            window.onLanguageChange = function() {
+                if (allPlans.length) {
+                    applyFilters();
+                }
+            };
+
+            /* ---- INIT ---- */
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                loadPlans();
+            });
+        })();
+    </script>
+
+</body>
+</html>

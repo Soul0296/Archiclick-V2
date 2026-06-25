@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Plan - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/index.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; transition:color .4s ease; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== DETAIL SECTION ========== */
+        .detail-container {
+            display:grid; grid-template-columns:1fr 1fr; gap:4rem;
+            max-width:7xl; margin:6rem auto 0; padding:0 1.5rem;
+        }
+        @media(max-width:1023px) {
+            .detail-container { grid-template-columns:1fr; gap:2rem; }
+        }
+
+        /* ========== GALERIE ========== */
+        .gallery-main {
+            position:sticky; top:7rem; height:fit-content;
+        }
+        .main-image {
+            width:100%; aspect-ratio:1; object-fit:cover;
+            border-radius:8px; overflow:hidden; margin-bottom:1rem;
+        }
+        .thumbnails {
+            display:grid; grid-template-columns:repeat(5, 1fr); gap:.8rem;
+        }
+        .thumb {
+            width:100%; aspect-ratio:1; object-fit:cover;
+            border-radius:4px; cursor:pointer; transition:all .3s ease;
+            border:2px solid transparent;
+        }
+        .thumb:hover { border-color:var(--or); }
+        .thumb.active { border-color:var(--or); box-shadow:0 0 0 2px rgba(201,169,110,.2); }
+
+        /* ========== INFO SECTION ========== */
+        .info-section { }
+        .plan-title {
+            font-size:clamp(1.8rem,4vw,2.5rem); color:var(--ardoise);
+            margin-bottom:1rem; letter-spacing:1px;
+        }
+        .plan-meta {
+            display:flex; flex-wrap:wrap; gap:1rem 2rem; margin-bottom:2rem;
+            font-size:.85rem; color:var(--gris-doux);
+        }
+        .meta-item { display:flex; align-items:center; gap:.5rem; }
+        .meta-icon { color:var(--or); }
+        .plan-desc {
+            color:var(--gris-doux); line-height:1.9; margin-bottom:2.5rem;
+            font-size:.95rem;
+        }
+
+        /* ========== OPTIONS ========== */
+        .options-section {
+            border:1px solid var(--creme); padding:2rem; border-radius:8px;
+            background:rgba(245,240,235,.5); margin-bottom:2rem;
+        }
+        .options-title {
+            font-size:1.1rem; font-weight:500; margin-bottom:1.5rem;
+            color:var(--ardoise);
+        }
+        .option-group {
+            display:flex; align-items:flex-start; gap:1rem;
+            padding:1rem 0; border-bottom:1px solid var(--creme);
+        }
+        .option-group:last-child { border-bottom:none; }
+        .option-check {
+            width:20px; height:20px; margin-top:2px;
+            cursor:pointer; accent-color:var(--or);
+        }
+        .option-content { flex:1; }
+        .option-label {
+            font-weight:500; color:var(--ardoise); margin-bottom:.3rem;
+            cursor:pointer;
+        }
+        .option-desc {
+            font-size:.85rem; color:var(--gris-doux); margin-bottom:.5rem;
+            line-height:1.6;
+        }
+        .option-price {
+            font-family:'Cormorant Garamond',serif; font-size:1.1rem;
+            color:var(--or); font-weight:400;
+        }
+
+        /* ========== REGION SELECT ========== */
+        .region-select {
+            display:none; margin-top:1rem;
+        }
+        .region-select.show { display:block; }
+        .region-select select {
+            width:100%; padding:.7rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem;
+            background:white; cursor:pointer;
+        }
+        .region-select select:focus {
+            outline:none; border-color:var(--or);
+        }
+
+        /* ========== PROMO CODE ========== */
+        .promo-section {
+            padding:1.5rem; border:1px solid var(--creme);
+            background:rgba(245,240,235,.3); border-radius:8px; margin-bottom:2rem;
+        }
+        .promo-title {
+            font-size:.9rem; font-weight:500; margin-bottom:1rem;
+            letter-spacing:1px; text-transform:uppercase; color:var(--ardoise);
+        }
+        .promo-input-group {
+            display:flex; gap:.5rem;
+        }
+        .promo-input {
+            flex:1; padding:.7rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem;
+        }
+        .promo-input:focus {
+            outline:none; border-color:var(--or);
+        }
+        .promo-btn {
+            background:var(--or); color:var(--noir); border:none;
+            padding:.7rem 1.5rem; cursor:pointer; font-weight:500;
+            font-size:.85rem; transition:all .3s ease;
+        }
+        .promo-btn:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+        }
+        .promo-msg {
+            font-size:.85rem; margin-top:.7rem; color:var(--gris-doux);
+        }
+        .promo-msg.success { color:#10b981; }
+        .promo-msg.error { color:#ef4444; }
+
+        /* ========== PRICE SECTION ========== */
+        .price-section {
+            padding:2rem; border:2px solid var(--or);
+            border-radius:8px; margin-bottom:2rem; background:rgba(201,169,110,.05);
+        }
+        .price-row {
+            display:flex; justify-content:space-between; margin-bottom:.8rem;
+            font-size:.9rem; color:var(--gris-doux);
+        }
+        .price-row.total {
+            border-top:1px solid var(--creme); padding-top:.8rem;
+            font-size:1.3rem; color:var(--ardoise);
+            font-family:'Cormorant Garamond',serif; font-weight:400;
+        }
+        .price-row.discount { color:#10b981; font-weight:500; }
+
+        /* ========== BUTTONS ========== */
+        .btn-primary {
+            background:var(--or); color:var(--noir); border:none;
+            padding:14px 36px; font-weight:500; letter-spacing:2px;
+            text-transform:uppercase; font-size:.8rem;
+            cursor:pointer; transition:all .4s ease; width:100%;
+            margin-bottom:.8rem;
+        }
+        .btn-primary:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+            box-shadow:0 12px 30px rgba(201,169,110,.25);
+        }
+        .btn-secondary {
+            background:transparent; border:1.5px solid var(--or);
+            color:var(--or); padding:14px 36px; font-weight:500;
+            letter-spacing:2px; text-transform:uppercase; font-size:.8rem;
+            cursor:pointer; transition:all .4s ease; width:100%;
+        }
+        .btn-secondary:hover {
+            background:var(--or); color:var(--noir);
+        }
+
+        /* ========== FORM PERSONNALISATION ========== */
+        .customize-form {
+            display:none; padding:2rem; border:1px solid var(--creme);
+            background:rgba(245,240,235,.3); border-radius:8px; margin-top:2rem;
+        }
+        .customize-form.show { display:block; }
+        .form-group {
+            margin-bottom:1.5rem;
+        }
+        .form-label {
+            display:block; font-weight:500; margin-bottom:.5rem;
+            font-size:.9rem; color:var(--ardoise);
+        }
+        .form-input, .form-textarea {
+            width:100%; padding:.7rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem;
+            background:white;
+        }
+        .form-input:focus, .form-textarea:focus {
+            outline:none; border-color:var(--or);
+        }
+        .form-textarea {
+            resize:vertical; min-height:120px;
+        }
+        .form-note {
+            padding:1rem; background:rgba(16,185,129,.1);
+            border-left:3px solid #10b981; margin-bottom:1.5rem;
+            font-size:.85rem; color:var(--ardoise); line-height:1.6;
+        }
+
+        /* ========== REVEAL ========== */
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+        .footer-social {
+            color:rgba(255,255,255,.4); font-size:1rem;
+            transition:color .3s ease; text-decoration:none;
+        }
+        .footer-social:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .thumbnails { grid-template-columns:repeat(4, 1fr); }
+            .detail-container { margin-top:5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== DETAIL PAGE ==================== -->
+    <section class="py-8 pb-24">
+        <div class="detail-container">
+            <!-- GALERIE -->
+            <div class="gallery-main reveal">
+                <img id="mainImage" src="" alt="Plan" class="main-image">
+                <div class="thumbnails" id="thumbnails"></div>
+            </div>
+
+            <!-- INFO & ACHAT -->
+            <div class="info-section">
+                <h1 class="plan-title reveal" id="planTitle"></h1>
+                
+                <div class="plan-meta reveal">
+                    <div class="meta-item">
+                        <i class="fas fa-layer-group meta-icon"></i>
+                        <span><span id="planEtages">-</span> <span data-fr="étage(s)" data-en="floor(s)">étage(s)</span></span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-bed meta-icon"></i>
+                        <span><span id="planChambres">-</span> <span data-fr="ch." data-en="bdr">ch.</span></span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-bath meta-icon"></i>
+                        <span><span id="planSdb">-</span> <span data-fr="sdb" data-en="bath">sdb</span></span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-ruler-combined meta-icon"></i>
+                        <span><span id="planSurface">-</span> m²</span>
+                    </div>
+                </div>
+
+                <p class="plan-desc reveal" id="planDesc"></p>
+
+                <!-- OPTIONS -->
+                <div class="options-section reveal">
+                    <div class="options-title" data-fr="Options disponibles" data-en="Available options">Options disponibles</div>
+                    
+                    <!-- PDF BASE -->
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPDF" checked disabled>
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Plan PDF (inclus)" data-en="PDF Plan (included)">Plan PDF (inclus)</div>
+                            <div class="option-desc" data-fr="Fichier PDF haute résolution du plan complet" data-en="High-resolution PDF file of complete plan">Fichier PDF haute résolution du plan complet</div>
+                        </div>
+                    </div>
+
+                    <!-- DWG -->
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optDWG" onchange="updatePrice()">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Fichier DWG (plomberie/électricité)" data-en="DWG File (plumbing/electrical)">Fichier DWG (plomberie/électricité)</div>
+                            <div class="option-desc" data-fr="Plans détaillés CAO pour installation techniques" data-en="Detailed CAD plans for technical installations">Plans détaillés CAO pour installation techniques</div>
+                            <div class="option-price" id="dwgPrice">+ 0 FCFA</div>
+                        </div>
+                    </div>
+
+                    <!-- DOSSIER PHYSIQUE -->
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPhysique" onchange="toggleRegionSelect(); updatePrice();">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Dossier physique imprimé + livraison" data-en="Printed folder + delivery">Dossier physique imprimé + livraison</div>
+                            <div class="option-desc" data-fr="Impression couleur et livraison dans tout le Cameroun" data-en="Color printing and delivery throughout Cameroon">Impression couleur et livraison dans tout le Cameroun</div>
+                            <div class="option-price" id="physiquePrice">+ 0 FCFA</div>
+                            <div class="region-select" id="regionSelect">
+                                <select id="regionSelect" onchange="updatePrice()">
+                                    <option value="">Sélectionner une région</option>
+                                    <option value="douala">Douala - 5000 FCFA</option>
+                                    <option value="yaounde">Yaoundé - 5000 FCFA</option>
+                                    <option value="buea">Buéa - 7500 FCFA</option>
+                                    <option value="limbe">Limbé - 7500 FCFA</option>
+                                    <option value="kumba">Kumba - 10000 FCFA</option>
+                                    <option value="bamenda">Bamenda - 10000 FCFA</option>
+                                    <option value="bafoussam">Bafoussam - 10000 FCFA</option>
+                                    <option value="garoua">Garoua - 12500 FCFA</option>
+                                    <option value="maroua">Maroua - 12500 FCFA</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PERSONNALISATION -->
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPersonnalisation" onchange="toggleCustomizeForm(); updatePrice();">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Personnalisation sur mesure" data-en="Custom customization">Personnalisation sur mesure</div>
+                            <div class="option-desc" data-fr="Demandez une modification du plan selon vos besoins. L'architecte vous contactera pour déterminer le coût exact." data-en="Request a plan modification to your needs. The architect will contact you to determine the exact cost.">Demandez une modification du plan selon vos besoins. L'architecte vous contactera pour déterminer le coût exact.</div>
+                            <div class="option-price" data-fr="Tarif à définir" data-en="Price to be determined">Tarif à définir</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CODE PROMO -->
+                <div class="promo-section reveal">
+                    <div class="promo-title" data-fr="Code promo" data-en="Promo code">Code promo</div>
+                    <div class="promo-input-group">
+                        <input type="text" id="promoCode" class="promo-input" placeholder="Entrez votre code" data-fr-placeholder="Entrez votre code" data-en-placeholder="Enter your code">
+                        <button class="promo-btn" onclick="applyPromo()" data-fr="Appliquer" data-en="Apply">Appliquer</button>
+                    </div>
+                    <div class="promo-msg" id="promoMsg"></div>
+                </div>
+
+                <!-- PRIX TOTAL -->
+                <div class="price-section reveal">
+                    <div class="price-row">
+                        <span data-fr="Plan de base" data-en="Base plan">Plan de base</span>
+                        <span id="basePriceDisplay">0 FCFA</span>
+                    </div>
+                    <div class="price-row" id="dwgPriceRow" style="display:none;">
+                        <span data-fr="DWG supplémentaire" data-en="Additional DWG">DWG supplémentaire</span>
+                        <span id="dwgAddPrice">0 FCFA</span>
+                    </div>
+                    <div class="price-row" id="physiquePriceRow" style="display:none;">
+                        <span data-fr="Dossier + livraison" data-en="Folder + delivery">Dossier + livraison</span>
+                        <span id="physiqueAddPrice">0 FCFA</span>
+                    </div>
+                    <div class="price-row discount" id="discountRow" style="display:none;">
+                        <span data-fr="Réduction appliquée" data-en="Discount applied">Réduction appliquée</span>
+                        <span id="discountAmount">-0 FCFA</span>
+                    </div>
+                    <div class="price-row total">
+                        <span data-fr="Total" data-en="Total">Total</span>
+                        <span id="totalPrice">0 FCFA</span>
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <button class="btn-primary" id="buyBtn" onclick="addToCart()" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+                <button class="btn-secondary" onclick="goToCatalog()" data-fr="Continuer le catalogue" data-en="Continue shopping">Continuer le catalogue</button>
+
+                <!-- FORM PERSONNALISATION -->
+                <div class="customize-form" id="customizeForm">
+                    <div class="form-note" data-fr="L'architecte vous contactera pour définir le coût exact en fonction de vos modifications. Remplissez le formulaire ci-dessous." data-en="The architect will contact you to determine the exact cost based on your modifications. Fill in the form below.">L'architecte vous contactera pour définir le coût exact en fonction de vos modifications. Remplissez le formulaire ci-dessous.</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" data-fr="Nom complet" data-en="Full name">Nom complet</label>
+                        <input type="text" class="form-input" id="formName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-fr="Email" data-en="Email">Email</label>
+                        <input type="email" class="form-input" id="formEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-fr="Téléphone" data-en="Phone">Téléphone</label>
+                        <input type="tel" class="form-input" id="formPhone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-fr="Modifications souhaitées" data-en="Desired modifications">Modifications souhaitées</label>
+                        <textarea class="form-textarea" id="formModifications" required placeholder="Décrivez les modifications que vous souhaitez apporter au plan..." data-fr-placeholder="Décrivez les modifications que vous souhaitez apporter au plan..." data-en-placeholder="Describe the modifications you would like to make to the plan..."></textarea>
+                    </div>
+
+                    <button class="btn-primary" onclick="sendCustomizeEmail()" data-fr="Envoyer la demande" data-en="Submit request">Envoyer la demande</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-social"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase & EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Connexion Supabase directe (évite la double déclaration)
+        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+            let currentPlan = null;
+            let basePrice = 0;
+            let dwgCost = 0;
+            let physiqueCost = 0;
+            let promoDiscount = 0;
+            let currentPromoType = null;
+
+            // Init EmailJS
+            emailjs.init('wAe0yWf88bXZbKdnl');
+
+            /* ---- GET PLAN ID ---- */
+            const urlParams = new URLSearchParams(window.location.search);
+            const planId = urlParams.get('id');
+
+            if (!planId) {
+                document.body.innerHTML = '<div style="text-align:center;padding:3rem;">Erreur: Plan non trouvé</div>';
+            }
+
+            /* ---- CHARGER PLAN ---- */
+            async function loadPlan() {
+                try {
+                    const { data, error } = await supabase.from('plans').select('*').eq('id', planId).single();
+                    if (error || !data) throw error;
+                    currentPlan = data;
+                    basePrice = data.prix_base || 0;
+                    renderPlan();
+                    setLang(currentLang);
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    document.body.innerHTML = '<div style="text-align:center;padding:3rem;color:red;">Erreur au chargement du plan</div>';
+                }
+            }
+
+            function renderPlan() {
+                if (!currentPlan) return;
+                document.getElementById('planTitle').textContent = currentPlan.titre;
+                document.getElementById('planEtages').textContent = currentPlan.etages || '?';
+                document.getElementById('planChambres').textContent = currentPlan.chambres || '?';
+                document.getElementById('planSdb').textContent = currentPlan.sdb || '?';
+                document.getElementById('planSurface').textContent = currentPlan.surface_habitable || '?';
+                document.getElementById('planDesc').textContent = currentPlan.description || 'Découvrez ce magnifique plan d\'architecture.';
+
+                // Images
+                const images = currentPlan.images || [];
+                if (images.length > 0) {
+                    document.getElementById('mainImage').src = images[0];
+                    const thumbsHTML = images.map((img, i) => `<img src="${img}" class="thumb ${i === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)" alt="Image ${i+1}">`).join('');
+                    document.getElementById('thumbnails').innerHTML = thumbsHTML;
+                }
+
+                // Prix
+                updatePrice();
+                observeReveals();
+            }
+
+            window.changeImage = function(src, el) {
+                document.getElementById('mainImage').src = src;
+                document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+            };
+
+            /* ---- PRIX & OPTIONS ---- */
+            function updatePrice() {
+                dwgCost = document.getElementById('optDWG').checked ? (currentPlan.supplement_dwg || 0) : 0;
+                physiqueCost = document.getElementById('optPhysique').checked ? (currentPlan.supplement_physique || 0) : 0;
+
+                // Ajouter coût région si dossier physique
+                if (document.getElementById('optPhysique').checked) {
+                    const selectedRegion = document.getElementById('regionSelect').value;
+                    if (selectedRegion) {
+                        const costMatch = selectedRegion.match(/(\d+)\s*FCFA/);
+                        if (costMatch) {
+                            physiqueCost += parseInt(costMatch[1]);
+                        }
+                    }
+                }
+
+                const subtotal = basePrice + dwgCost + physiqueCost;
+                let finalPrice = subtotal;
+
+                // Appliquer réduction
+                if (promoDiscount > 0) {
+                    if (currentPromoType === '%') {
+                        finalPrice = subtotal - (subtotal * promoDiscount / 100);
+                    } else {
+                        finalPrice = subtotal - promoDiscount;
+                    }
+                }
+
+                // Affichage
+                document.getElementById('basePriceDisplay').textContent = basePrice.toLocaleString('fr-FR') + ' FCFA';
+                
+                if (dwgCost > 0) {
+                    document.getElementById('dwgPriceRow').style.display = 'flex';
+                    document.getElementById('dwgAddPrice').textContent = '+ ' + dwgCost.toLocaleString('fr-FR') + ' FCFA';
+                    document.getElementById('dwgPrice').textContent = '+ ' + dwgCost.toLocaleString('fr-FR') + ' FCFA';
+                } else {
+                    document.getElementById('dwgPriceRow').style.display = 'none';
+                }
+
+                if (physiqueCost > 0) {
+                    document.getElementById('physiquePriceRow').style.display = 'flex';
+                    document.getElementById('physiqueAddPrice').textContent = '+ ' + physiqueCost.toLocaleString('fr-FR') + ' FCFA';
+                    document.getElementById('physiquePrice').textContent = '+ ' + physiqueCost.toLocaleString('fr-FR') + ' FCFA';
+                } else {
+                    document.getElementById('physiquePriceRow').style.display = 'none';
+                }
+
+                if (promoDiscount > 0) {
+                    const discountAmount = subtotal - finalPrice;
+                    document.getElementById('discountRow').style.display = 'flex';
+                    document.getElementById('discountAmount').textContent = '- ' + discountAmount.toLocaleString('fr-FR') + ' FCFA';
+                } else {
+                    document.getElementById('discountRow').style.display = 'none';
+                }
+
+                document.getElementById('totalPrice').textContent = Math.max(0, finalPrice).toLocaleString('fr-FR') + ' FCFA';
+            }
+
+            window.toggleRegionSelect = function() {
+                const regionSelect = document.getElementById('regionSelect');
+                regionSelect.parentElement.classList.toggle('show', document.getElementById('optPhysique').checked);
+            };
+
+            window.toggleCustomizeForm = function() {
+                const form = document.getElementById('customizeForm');
+                form.classList.toggle('show', document.getElementById('optPersonnalisation').checked);
+            };
+
+            /* ---- PROMO CODE ---- */
+            window.applyPromo = async function() {
+                const code = document.getElementById('promoCode').value.trim().toUpperCase();
+                const msgEl = document.getElementById('promoMsg');
+                msgEl.textContent = '';
+                msgEl.classList.remove('success', 'error');
+
+                if (!code) {
+                    msgEl.textContent = currentLang === 'fr' ? 'Entrez un code promo' : 'Enter a promo code';
+                    msgEl.classList.add('error');
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.from('promos').select('*').eq('code', code).eq('actif', true).single();
+                    if (error || !data) {
+                        msgEl.textContent = currentLang === 'fr' ? 'Code promo invalide ou expiré' : 'Invalid or expired promo code';
+                        msgEl.classList.add('error');
+                        promoDiscount = 0;
+                        return;
+                    }
+
+                    // Vérifier expiration
+                    if (data.date_expiration) {
+                        const expDate = new Date(data.date_expiration);
+                        if (new Date() > expDate) {
+                            msgEl.textContent = currentLang === 'fr' ? 'Code promo expiré' : 'Promo code expired';
+                            msgEl.classList.add('error');
+                            promoDiscount = 0;
+                            return;
+                        }
+                    }
+
+                    promoDiscount = data.reduction || 0;
+                    currentPromoType = data.type || '%';
+                    msgEl.textContent = (currentLang === 'fr' ? 'Code appliqué !' : 'Code applied!');
+                    msgEl.classList.add('success');
+                    updatePrice();
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    msgEl.textContent = currentLang === 'fr' ? 'Erreur' : 'Error';
+                    msgEl.classList.add('error');
+                }
+            };
+
+            /* ---- PANIER ---- */
+            window.addToCart = function() {
+                const isCustomize = document.getElementById('optPersonnalisation').checked;
+                if (isCustomize) {
+                    document.getElementById('customizeForm').scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
+
+                const options = {
+                    pdf: true,
+                    dwg: document.getElementById('optDWG').checked,
+                    physique: document.getElementById('optPhysique').checked,
+                    region: document.getElementById('optPhysique').checked ? document.getElementById('regionSelect').value : null,
+                    promo: document.getElementById('promoCode').value.toUpperCase()
+                };
+
+                const prix = parseFloat(document.getElementById('totalPrice').textContent.replace(/\s|FCFA/g, ''));
+                const item = { plan_id: planId, titre: currentPlan.titre, options, prix, date: new Date().toISOString() };
+
+                let panier = JSON.parse(localStorage.getItem('panier') || '[]');
+                panier.push(item);
+                localStorage.setItem('panier', JSON.stringify(panier));
+
+                alert(currentLang === 'fr' ? 'Ajouté au panier !' : 'Added to cart!');
+                window.location.href = 'panier.html';
+            };
+
+            /* ---- PERSONNALISATION EMAIL ---- */
+            window.sendCustomizeEmail = async function() {
+                const name = document.getElementById('formName').value.trim();
+                const email = document.getElementById('formEmail').value.trim();
+                const phone = document.getElementById('formPhone').value.trim();
+                const mods = document.getElementById('formModifications').value.trim();
+
+                if (!name || !email || !phone || !mods) {
+                    alert(currentLang === 'fr' ? 'Tous les champs sont requis' : 'All fields are required');
+                    return;
+                }
+
+                try {
+                    const msgText = currentLang === 'fr' 
+                        ? `Demande de personnalisation pour ${currentPlan.titre}\n\nClient: ${name}\nEmail: ${email}\nTéléphone: ${phone}\n\nModifications souhaitées:\n${mods}`
+                        : `Customization request for ${currentPlan.titre}\n\nClient: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nDesired modifications:\n${mods}`;
+
+                    await emailjs.send('service_kwivmyg', 'template_k6pwdx9', {
+                        to_email: 'archiclick@gmail.com',
+                        client_name: name,
+                        client_email: email,
+                        client_phone: phone,
+                        plan_name: currentPlan.titre,
+                        modifications: mods,
+                        message: msgText
+                    });
+
+                    alert(currentLang === 'fr' ? 'Demande envoyée ! L\'architecte vous contactera sous peu.' : 'Request sent! The architect will contact you soon.');
+                    document.getElementById('customizeForm').classList.remove('show');
+                    document.getElementById('optPersonnalisation').checked = false;
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    alert(currentLang === 'fr' ? 'Erreur lors de l\'envoi' : 'Error sending request');
+                }
+            };
+
+            window.goToCatalog = function() {
+                window.location.href = 'catalogue.html';
+            };
+
+            /* ---- LANGUE ---- */
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            window.toggleLanguage = function() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            };
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            /* ---- REVEAL ---- */
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            /* ---- INIT ---- */
+            document.addEventListener('DOMContentLoaded', function() {
+                loadPlan();
+            });
+        })();
+    </script>
+
+</body>
+</html>
