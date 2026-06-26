@@ -103,6 +103,9 @@
             font-family:'Cormorant Garamond',serif; font-size:2.5rem;
             font-weight:300; color:var(--ardoise); margin-bottom:2rem; letter-spacing:2px;
         }
+        @media(max-width:480px) {
+            .page-title { font-size:1.8rem; }
+        }
 
         /* ========== ITEMS ========== */
         .panier-items { }
@@ -110,6 +113,15 @@
             background:white; padding:1.5rem; border-radius:8px;
             border:1px solid var(--creme); margin-bottom:1rem;
             display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:center;
+        }
+        @media(max-width:600px) {
+            .panier-item {
+                grid-template-columns:1fr;
+                gap:.8rem;
+            }
+            .item-actions {
+                justify-content:flex-end;
+            }
         }
         .item-info { }
         .item-title {
@@ -145,6 +157,12 @@
             background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
             padding:2rem; border-radius:12px; height:fit-content; position:sticky; top:7rem;
         }
+        @media(max-width:1023px) {
+            .panier-summary { position:relative; top:0; }
+        }
+        @media(max-width:480px) {
+            .panier-summary { padding:1.5rem; }
+        }
         .summary-title {
             font-size:1.2rem; font-weight:500; margin-bottom:1.5rem;
             color:var(--ardoise);
@@ -161,10 +179,16 @@
             padding:1rem; background:white; border-radius:8px;
             border:2px solid var(--or);
         }
+        @media(max-width:480px) {
+            .summary-total { flex-direction:column; gap:.5rem; text-align:center; }
+        }
         .summary-total-label { font-weight:500; }
         .summary-total-price {
             font-family:'Cormorant Garamond',serif; font-size:1.5rem;
             color:var(--or); font-weight:400;
+        }
+        @media(max-width:480px) {
+            .summary-total-price { font-size:1.3rem; }
         }
 
         /* ========== PROMO ========== */
@@ -172,12 +196,23 @@
             padding:1.5rem; background:white; border-radius:8px;
             border:1px solid var(--creme); margin-bottom:1.5rem;
         }
+        @media(max-width:480px) {
+            .promo-section { padding:1rem; }
+        }
         .promo-label {
             font-weight:500; margin-bottom:1rem; font-size:.9rem;
             color:var(--ardoise);
         }
         .promo-input-group {
             display:flex; gap:.5rem;
+        }
+        @media(max-width:480px) {
+            .promo-input-group {
+                flex-direction:column;
+            }
+            .promo-btn {
+                width:100%;
+            }
         }
         .promo-input {
             flex:1; padding:.7rem; border:1px solid var(--creme);
@@ -223,8 +258,51 @@
         .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
         .reveal.visible { opacity:1; transform:translateY(0); }
 
+        /* ========== RESPONSIVE ========== */
+        @media(max-width:1023px) {
+            .panier-container {
+                grid-template-columns:1fr;
+            }
+            .panier-summary {
+                position:relative;
+                top:0;
+            }
+        }
+
         @media(max-width:768px) {
-            .panier-summary { position:relative; top:0; }
+            .navbar { padding:.6rem 0; }
+            .panier-container { padding:0 1rem; }
+            .panier-item { padding:1rem; }
+            .page-title { font-size:2rem; }
+        }
+
+        @media(max-width:600px) {
+            .panier-item {
+                grid-template-columns:1fr;
+                gap:.8rem;
+            }
+            .item-actions {
+                justify-content:flex-end;
+            }
+        }
+
+        @media(max-width:480px) {
+            .page-title { font-size:1.6rem; }
+            .panier-summary { padding:1.2rem; }
+            .summary-total { flex-direction:column; gap:.5rem; text-align:center; }
+            .summary-total-price { font-size:1.3rem; }
+            .promo-section { padding:1rem; }
+            .promo-input-group { flex-direction:column; }
+            .promo-btn { width:100%; }
+            .btn-primary, .btn-secondary { font-size:.7rem; padding:12px 20px; }
+        }
+
+        @media(max-width:400px) {
+            .panier-container { padding:0 .8rem; }
+            .panier-item { padding:.8rem; }
+            .item-title { font-size:.95rem; }
+            .item-price { font-size:1rem; }
+            .btn-remove { font-size:.65rem; padding:.4rem .6rem; }
         }
     </style>
 </head>
