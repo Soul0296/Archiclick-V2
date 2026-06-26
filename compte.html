@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Compte - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        /* ========== MOBILE DRAWER ========== */
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE ========== */
+        .page-header {
+            padding:10rem 0 4rem;
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:3rem;
+            font-weight:300; color:var(--ardoise); letter-spacing:2px;
+        }
+        .page-subtitle {
+            font-size:1rem; color:var(--gris-doux); font-weight:300;
+            letter-spacing:2px; text-transform:uppercase;
+        }
+        .content-section {
+            padding:4rem 0;
+        }
+
+        /* ========== FORMULAIRE ========== */
+        .auth-card {
+            max-width:480px; margin:0 auto; background:#fff;
+            padding:2.5rem; border-radius:12px; border:1px solid var(--creme);
+        }
+        .auth-card .form-group {
+            margin-bottom:1.5rem;
+        }
+        .auth-card label {
+            display:block; font-size:.85rem; font-weight:500;
+            color:var(--ardoise); margin-bottom:.5rem; letter-spacing:.5px;
+        }
+        .auth-card input {
+            width:100%; padding:.9rem 1rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem; transition:border .3s ease;
+            color:var(--ardoise); background:#fff;
+        }
+        .auth-card input:focus {
+            outline:none; border-color:var(--or);
+        }
+        .auth-card .btn-submit {
+            width:100%; padding:14px; background:var(--or); color:var(--noir);
+            border:none; font-weight:500; letter-spacing:2px; text-transform:uppercase;
+            font-size:.8rem; cursor:pointer; transition:all .4s ease;
+        }
+        .auth-card .btn-submit:hover {
+            background:var(--or-clair); transform:translateY(-2px);
+        }
+        .auth-card .auth-link {
+            color:var(--or); text-decoration:none; font-weight:400;
+            transition:color .3s ease;
+        }
+        .auth-card .auth-link:hover { color:var(--or-clair); }
+        .auth-card .divider {
+            border-top:1px solid var(--creme); margin:1.5rem 0;
+        }
+
+        .tab-buttons {
+            display:flex; gap:0; margin-bottom:2rem; border-bottom:2px solid var(--creme);
+        }
+        .tab-btn {
+            flex:1; padding:1rem; background:transparent; border:none;
+            font-family:'Inter',sans-serif; font-weight:400; font-size:.9rem;
+            letter-spacing:1px; color:var(--gris-doux); cursor:pointer;
+            transition:all .3s ease; border-bottom:2px solid transparent; margin-bottom:-2px;
+        }
+        .tab-btn.active {
+            color:var(--or); border-bottom-color:var(--or);
+        }
+        .tab-btn:hover { color:var(--or); }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .page-title { font-size:2.2rem; }
+            .page-header { padding:8rem 0 3rem; }
+            .auth-card { padding:1.8rem; }
+        }
+
+        @media(max-width:480px) {
+            .page-title { font-size:1.8rem; }
+            .page-header { padding:7rem 0 2rem; }
+            .auth-card { padding:1.5rem; }
+            .auth-card input { padding:.7rem .8rem; font-size:.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== HEADER ==================== -->
+    <section class="page-header">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="page-subtitle reveal" data-fr="Espace client" data-en="Customer area">Espace client</p>
+            <h1 class="page-title reveal reveal-d1" data-fr="Mon Compte" data-en="My Account">Mon Compte</h1>
+            <div class="sep-or mt-6 reveal reveal-d1"></div>
+        </div>
+    </section>
+
+    <!-- ==================== AUTH ==================== -->
+    <section class="content-section">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="auth-card reveal">
+
+                <!-- TABS -->
+                <div class="tab-buttons">
+                    <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')" data-fr="Connexion" data-en="Login">Connexion</button>
+                    <button class="tab-btn" id="tabRegister" onclick="switchTab('register')" data-fr="Inscription" data-en="Register">Inscription</button>
+                </div>
+
+                <!-- LOGIN -->
+                <div class="tab-content active" id="loginTab">
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label data-fr="Adresse email" data-en="Email address">Adresse email</label>
+                            <input type="email" id="loginEmail" placeholder="exemple@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-fr="Mot de passe" data-en="Password">Mot de passe</label>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn-submit" data-fr="Se connecter" data-en="Login">Se connecter</button>
+                    </form>
+                    <div class="divider"></div>
+                    <p class="text-center text-sm text-gris-doux">
+                        <span data-fr="Pas encore de compte ?" data-en="Don't have an account yet?">Pas encore de compte ?</span>
+                        <a href="#" class="auth-link" onclick="switchTab('register');return false;" data-fr="Inscrivez-vous" data-en="Sign up">Inscrivez-vous</a>
+                    </p>
+                </div>
+
+                <!-- REGISTER -->
+                <div class="tab-content" id="registerTab">
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label data-fr="Nom complet" data-en="Full name">Nom complet</label>
+                            <input type="text" id="regName" placeholder="Jean Dupont" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-fr="Adresse email" data-en="Email address">Adresse email</label>
+                            <input type="email" id="regEmail" placeholder="exemple@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-fr="Numéro de téléphone" data-en="Phone number">Numéro de téléphone</label>
+                            <input type="tel" id="regPhone" placeholder="6XX XX XX XX">
+                        </div>
+                        <div class="form-group">
+                            <label data-fr="Mot de passe" data-en="Password">Mot de passe</label>
+                            <input type="password" id="regPassword" placeholder="••••••••" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn-submit" data-fr="Créer un compte" data-en="Create account">Créer un compte</button>
+                    </form>
+                    <div class="divider"></div>
+                    <p class="text-center text-sm text-gris-doux">
+                        <span data-fr="Déjà un compte ?" data-en="Already have an account?">Déjà un compte ?</span>
+                        <a href="#" class="auth-link" onclick="switchTab('login');return false;" data-fr="Connectez-vous" data-en="Log in">Connectez-vous</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            window.toggleLanguage = toggleLanguage;
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            // ===== TAB SWITCH =====
+            function switchTab(tab) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            }
+            window.switchTab = switchTab;
+
+            // ===== LOGIN =====
+            function handleLogin(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                alert(currentLang === 'fr' ? 'Connexion en cours...' : 'Logging in...');
+                // Ici tu peux ajouter la logique Supabase
+            }
+            window.handleLogin = handleLogin;
+
+            // ===== REGISTER =====
+            function handleRegister(e) {
+                e.preventDefault();
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const phone = document.getElementById('regPhone').value;
+                const password = document.getElementById('regPassword').value;
+                alert(currentLang === 'fr' ? 'Inscription en cours...' : 'Registering...');
+                // Ici tu peux ajouter la logique Supabase
+            }
+            window.handleRegister = handleRegister;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                observeReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>

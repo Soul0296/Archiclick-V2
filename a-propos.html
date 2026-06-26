@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>À propos - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        /* ========== MOBILE DRAWER ========== */
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE ========== */
+        .page-header {
+            padding:10rem 0 4rem;
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:3rem;
+            font-weight:300; color:var(--ardoise); letter-spacing:2px;
+        }
+        .page-subtitle {
+            font-size:1rem; color:var(--gris-doux); font-weight:300;
+            letter-spacing:2px; text-transform:uppercase;
+        }
+        .content-section {
+            padding:4rem 0;
+        }
+        .content-section h2 {
+            font-size:2rem; color:var(--ardoise); margin-bottom:1.5rem;
+            letter-spacing:1px;
+        }
+        .content-section p {
+            color:var(--gris-doux); font-size:1rem; line-height:2;
+            margin-bottom:1.5rem;
+        }
+        .content-section ul {
+            list-style:none; padding:0;
+        }
+        .content-section ul li {
+            padding:.8rem 0; border-bottom:1px solid var(--creme);
+            color:var(--ardoise); display:flex; align-items:center; gap:1rem;
+        }
+        .content-section ul li i {
+            color:var(--or); font-size:1.2rem; width:24px; text-align:center;
+        }
+
+        .value-card {
+            background:#fff; padding:2rem; border-radius:12px;
+            border:1px solid var(--creme); transition:all .4s ease;
+        }
+        .value-card:hover {
+            transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,.06);
+        }
+        .value-card .icon {
+            font-size:2rem; color:var(--or); margin-bottom:1rem;
+        }
+        .value-card h3 {
+            font-size:1.2rem; color:var(--ardoise); margin-bottom:.8rem;
+        }
+        .value-card p {
+            color:var(--gris-doux); font-size:.9rem; line-height:1.8;
+        }
+
+        /* ========== FAQ ========== */
+        .faq-item {
+            border-bottom:1px solid var(--creme); padding:1.2rem 0;
+            cursor:pointer; transition:background .3s ease;
+        }
+        .faq-item:hover { background:rgba(201,169,110,.04); }
+        .faq-item .faq-q {
+            display:flex; justify-content:space-between; align-items:center;
+            font-weight:500; color:var(--ardoise); font-size:1.05rem;
+            gap:1rem;
+        }
+        .faq-item .faq-q i {
+            color:var(--or); transition:transform .4s ease; font-size:1rem;
+            flex-shrink:0;
+        }
+        .faq-item.open .faq-q i { transform:rotate(180deg); }
+        .faq-item .faq-a {
+            max-height:0; overflow:hidden; transition:max-height .5s ease, padding .4s ease;
+            color:var(--gris-doux); font-size:.95rem; line-height:1.9;
+        }
+        .faq-item.open .faq-a {
+            max-height:400px; padding-top:1rem;
+        }
+
+        /* ========== IMAGE ========== */
+        .about-image-section {
+            display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;
+        }
+        .about-image-section .image-wrapper {
+            border-radius:12px; overflow:hidden;
+            box-shadow:0 20px 40px rgba(0,0,0,.08);
+        }
+        .about-image-section .image-wrapper img {
+            width:100%; height:400px; object-fit:cover; display:block;
+            transition:transform .6s ease;
+        }
+        .about-image-section .image-wrapper:hover img { transform:scale(1.02); }
+        @media(max-width:1023px) {
+            .about-image-section { grid-template-columns:1fr; }
+            .about-image-section .image-wrapper img { height:300px; }
+        }
+        @media(max-width:480px) {
+            .about-image-section .image-wrapper img { height:220px; }
+        }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        .reveal-d1 { transition-delay:.15s; }
+        .reveal-d2 { transition-delay:.3s; }
+        .reveal-d3 { transition-delay:.45s; }
+        .reveal-d4 { transition-delay:.6s; }
+
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .page-title { font-size:2.2rem; }
+            .page-header { padding:8rem 0 3rem; }
+            .content-section { padding:2.5rem 0; }
+            .content-section h2 { font-size:1.6rem; }
+            .value-card { padding:1.5rem; }
+            .faq-item .faq-q { font-size:.95rem; }
+        }
+
+        @media(max-width:480px) {
+            .page-title { font-size:1.8rem; }
+            .page-header { padding:7rem 0 2rem; }
+            .content-section { padding:2rem 0; }
+            .value-card { padding:1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== HEADER ==================== -->
+    <section class="page-header">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="page-subtitle reveal" data-fr="Notre histoire" data-en="Our story">Notre histoire</p>
+            <h1 class="page-title reveal reveal-d1" data-fr="À propos d'Archiclick" data-en="About Archiclick">À propos d'Archiclick</h1>
+            <div class="sep-or mt-6 reveal reveal-d1"></div>
+        </div>
+    </section>
+
+    <!-- ==================== CONTENU ==================== -->
+    <section class="content-section">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <!-- === IMAGE + TEXTE === -->
+            <div class="about-image-section reveal">
+                <div class="image-wrapper">
+                    <img src="https://images.pexels.com/photos/8134847/pexels-photo-8134847.jpeg" alt="Architecture moderne - Archiclick" loading="lazy">
+                </div>
+                <div>
+                    <h2 data-fr="Notre mission" data-en="Our mission">Notre mission</h2>
+                    <p data-fr="Archiclick est né d'une conviction profonde : chaque Camerounais mérite d'avoir accès à des plans de maison professionnels, adaptés à son budget et à ses contraintes locales. Nous rendons l'architecture accessible, transparente et rapide." data-en="Archiclick was born from a deep conviction: every Cameroonian deserves access to professional house plans, adapted to their budget and local constraints. We make architecture accessible, transparent and fast.">Archiclick est né d'une conviction profonde : chaque Camerounais mérite d'avoir accès à des plans de maison professionnels, adaptés à son budget et à ses contraintes locales. Nous rendons l'architecture accessible, transparente et rapide.</p>
+                    <p data-fr="Avec plus de 50 plans disponibles, une équipe d'architectes expérimentés et une livraison en moins de 2 heures, nous accompagnons les particuliers et les professionnels dans la concrétisation de leurs projets immobiliers." data-en="With over 50 plans available, a team of experienced architects and delivery in under 2 hours, we support individuals and professionals in realizing their real estate projects.">Avec plus de 50 plans disponibles, une équipe d'architectes expérimentés et une livraison en moins de 2 heures, nous accompagnons les particuliers et les professionnels dans la concrétisation de leurs projets immobiliers.</p>
+                </div>
+            </div>
+
+            <!-- === VALEURS === -->
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="value-card reveal reveal-d1">
+                    <div class="icon"><i class="fas fa-eye"></i></div>
+                    <h3 data-fr="Vision" data-en="Vision">Vision</h3>
+                    <p data-fr="Devenir la référence en matière de plans de maison au Cameroun et en Afrique de l'Ouest." data-en="Become the reference for house plans in Cameroon and West Africa.">Devenir la référence en matière de plans de maison au Cameroun et en Afrique de l'Ouest.</p>
+                </div>
+                <div class="value-card reveal reveal-d2">
+                    <div class="icon"><i class="fas fa-heart"></i></div>
+                    <h3 data-fr="Valeur" data-en="Value">Valeur</h3>
+                    <p data-fr="Qualité, transparence, réactivité et accessibilité pour tous." data-en="Quality, transparency, responsiveness and accessibility for all.">Qualité, transparence, réactivité et accessibilité pour tous.</p>
+                </div>
+                <div class="value-card reveal reveal-d3">
+                    <div class="icon"><i class="fas fa-handshake"></i></div>
+                    <h3 data-fr="Engagement" data-en="Commitment">Engagement</h3>
+                    <p data-fr="Accompagner chaque client à chaque étape, du choix du plan à la réalisation." data-en="Support every client at every stage, from plan selection to completion.">Accompagner chaque client à chaque étape, du choix du plan à la réalisation.</p>
+                </div>
+            </div>
+
+            <!-- === POURQUOI NOUS CHOISIR === -->
+            <div class="mt-16 reveal">
+                <h2 data-fr="Pourquoi nous choisir ?" data-en="Why choose us?">Pourquoi nous choisir ?</h2>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Plans certifiés par des architectes diplômés d'État" data-en="Plans certified by state-licensed architects">Plans certifiés par des architectes diplômés d'État</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Livraison express sous 2 heures après paiement" data-en="Express delivery within 2 hours after payment">Livraison express sous 2 heures après paiement</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Personnalisation possible avec suivi d'un architecte" data-en="Customization possible with architect follow-up">Personnalisation possible avec suivi d'un architecte</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Paiement sécurisé via MTN Mobile Money ou Orange Money" data-en="Secure payment via MTN Mobile Money or Orange Money">Paiement sécurisé via MTN Mobile Money ou Orange Money</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="+5 000 clients satisfaits au Cameroun" data-en="+5,000 satisfied customers in Cameroon">+5 000 clients satisfaits au Cameroun</span></li>
+                </ul>
+            </div>
+
+            <!-- === FAQ === -->
+            <div class="mt-16 reveal">
+                <h2 data-fr="Questions fréquentes" data-en="Frequently asked questions">Questions fréquentes</h2>
+                <p style="color:var(--gris-doux); margin-bottom:2rem;" data-fr="Tout ce que vous devez savoir avant de commander votre plan." data-en="Everything you need to know before ordering your plan.">Tout ce que vous devez savoir avant de commander votre plan.</p>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">
+                        <span data-fr="Comment recevrai-je mon plan après paiement ?" data-en="How will I receive my plan after payment?">Comment recevrai-je mon plan après paiement ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-a" data-fr="Dès confirmation du paiement, vous recevez un email avec un lien de téléchargement sécurisé. Le dossier complet (plans, devis, DWG) est accessible en moins de 2 heures." data-en="As soon as payment is confirmed, you receive an email with a secure download link. The complete file (plans, estimate, DWG) is available in under 2 hours.">Dès confirmation du paiement, vous recevez un email avec un lien de téléchargement sécurisé. Le dossier complet (plans, devis, DWG) est accessible en moins de 2 heures.</div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">
+                        <span data-fr="Quels modes de paiement acceptez-vous ?" data-en="What payment methods do you accept?">Quels modes de paiement acceptez-vous ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-a" data-fr="Nous acceptons les paiements via MTN Mobile Money et Orange Money. Le paiement est sécurisé et instantané." data-en="We accept payments via MTN Mobile Money and Orange Money. Payment is secure and instant.">Nous acceptons les paiements via MTN Mobile Money et Orange Money. Le paiement est sécurisé et instantané.</div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">
+                        <span data-fr="Puis-je modifier un plan après l'avoir acheté ?" data-en="Can I modify a plan after purchasing it?">Puis-je modifier un plan après l'avoir acheté ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-a" data-fr="Oui ! Nous proposons un service de personnalisation. Un architecte vous accompagne pour adapter le plan à vos besoins et à vos contraintes topographiques." data-en="Yes! We offer a customization service. An architect will support you in adapting the plan to your needs and site constraints.">Oui ! Nous proposons un service de personnalisation. Un architecte vous accompagne pour adapter le plan à vos besoins et à vos contraintes topographiques.</div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">
+                        <span data-fr="Les plans sont-ils conformes aux normes camerounaises ?" data-en="Are the plans compliant with Cameroonian standards?">Les plans sont-ils conformes aux normes camerounaises ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-a" data-fr="Oui, tous nos plans sont conçus par des architectes locaux et respectent les normes de construction en vigueur au Cameroun." data-en="Yes, all our plans are designed by local architects and comply with current construction standards in Cameroon.">Oui, tous nos plans sont conçus par des architectes locaux et respectent les normes de construction en vigueur au Cameroun.</div>
+                </div>
+
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">
+                        <span data-fr="Que faire si je rencontre un problème avec ma commande ?" data-en="What if I have a problem with my order?">Que faire si je rencontre un problème avec ma commande ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-a" data-fr="Notre support client est disponible 7j/7 par email (contact@archiclick.com) ou via notre formulaire de contact. Nous répondons sous 24h." data-en="Our customer support is available 7 days a week by email (contact@archiclick.com) or via our contact form. We respond within 24h.">Notre support client est disponible 7j/7 par email (contact@archiclick.com) ou via notre formulaire de contact. Nous répondons sous 24h.</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            // ===== FAQ TOGGLE =====
+            function toggleFaq(el) {
+                el.classList.toggle('open');
+            }
+            window.toggleFaq = toggleFaq;
+
+            window.toggleLanguage = toggleLanguage;
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                observeReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>

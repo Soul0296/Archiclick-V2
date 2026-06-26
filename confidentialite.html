@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidentialité - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        /* ========== MOBILE DRAWER ========== */
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE ========== */
+        .page-header {
+            padding:10rem 0 4rem;
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:3rem;
+            font-weight:300; color:var(--ardoise); letter-spacing:2px;
+        }
+        .page-subtitle {
+            font-size:1rem; color:var(--gris-doux); font-weight:300;
+            letter-spacing:2px; text-transform:uppercase;
+        }
+        .content-section {
+            padding:4rem 0;
+        }
+        .content-section h2 {
+            font-size:1.8rem; color:var(--ardoise); margin-top:2.5rem; margin-bottom:1.2rem;
+            letter-spacing:1px;
+        }
+        .content-section h2:first-of-type { margin-top:0; }
+        .content-section p {
+            color:var(--gris-doux); font-size:1rem; line-height:2;
+            margin-bottom:1rem;
+        }
+        .content-section ul {
+            list-style:none; padding:0; margin:1rem 0 1.5rem;
+        }
+        .content-section ul li {
+            padding:.6rem 0; border-bottom:1px solid var(--creme);
+            color:var(--ardoise); display:flex; align-items:flex-start; gap:1rem;
+        }
+        .content-section ul li i {
+            color:var(--or); font-size:1rem; width:20px; text-align:center; margin-top:4px;
+        }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .page-title { font-size:2.2rem; }
+            .page-header { padding:8rem 0 3rem; }
+            .content-section { padding:2.5rem 0; }
+            .content-section h2 { font-size:1.5rem; }
+        }
+
+        @media(max-width:480px) {
+            .page-title { font-size:1.8rem; }
+            .page-header { padding:7rem 0 2rem; }
+            .content-section { padding:2rem 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== HEADER ==================== -->
+    <section class="page-header">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="page-subtitle reveal" data-fr="Protection des données" data-en="Data protection">Protection des données</p>
+            <h1 class="page-title reveal reveal-d1" data-fr="Politique de Confidentialité" data-en="Privacy Policy">Politique de Confidentialité</h1>
+            <div class="sep-or mt-6 reveal reveal-d1"></div>
+        </div>
+    </section>
+
+    <!-- ==================== CONTENU ==================== -->
+    <section class="content-section">
+        <div class="max-w-4xl mx-auto px-6">
+
+            <div class="reveal">
+                <p data-fr="Archiclick accorde une importance particulière à la protection de vos données personnelles. Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations." data-en="Archiclick attaches great importance to the protection of your personal data. This privacy policy informs you about how we collect, use and protect your information.">Archiclick accorde une importance particulière à la protection de vos données personnelles. Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="1. Collecte des données" data-en="1. Data collection">1. Collecte des données</h2>
+                <p data-fr="Nous collectons les données que vous nous fournissez directement lors de :" data-en="We collect data that you provide directly during:">Nous collectons les données que vous nous fournissez directement lors de :</p>
+                <ul>
+                    <li><i class="fas fa-file-signature"></i> <span data-fr="La création de votre compte" data-en="Creating your account">La création de votre compte</span></li>
+                    <li><i class="fas fa-shopping-cart"></i> <span data-fr="La passation d'une commande" data-en="Placing an order">La passation d'une commande</span></li>
+                    <li><i class="fas fa-envelope"></i> <span data-fr="L'inscription à notre newsletter" data-en="Subscribing to our newsletter">L'inscription à notre newsletter</span></li>
+                    <li><i class="fas fa-comment"></i> <span data-fr="Le contact via notre formulaire de contact" data-en="Contacting us via our contact form">Le contact via notre formulaire de contact</span></li>
+                </ul>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="2. Données collectées" data-en="2. Data collected">2. Données collectées</h2>
+                <p data-fr="Les données collectées peuvent inclure :" data-en="Data collected may include:">Les données collectées peuvent inclure :</p>
+                <ul>
+                    <li><i class="fas fa-user"></i> <span data-fr="Nom et prénom" data-en="First and last name">Nom et prénom</span></li>
+                    <li><i class="fas fa-at"></i> <span data-fr="Adresse email" data-en="Email address">Adresse email</span></li>
+                    <li><i class="fas fa-phone"></i> <span data-fr="Numéro de téléphone" data-en="Phone number">Numéro de téléphone</span></li>
+                    <li><i class="fas fa-map-marker-alt"></i> <span data-fr="Adresse de livraison (le cas échéant)" data-en="Delivery address (if applicable)">Adresse de livraison (le cas échéant)</span></li>
+                    <li><i class="fas fa-credit-card"></i> <span data-fr="Données de paiement (via notre partenaire sécurisé)" data-en="Payment data (via our secure partner)">Données de paiement (via notre partenaire sécurisé)</span></li>
+                </ul>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="3. Utilisation des données" data-en="3. Use of data">3. Utilisation des données</h2>
+                <p data-fr="Nous utilisons vos données pour :" data-en="We use your data for:">Nous utilisons vos données pour :</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Traiter vos commandes et vous livrer" data-en="Process your orders and deliver them">Traiter vos commandes et vous livrer</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Vous envoyer des confirmations et suivis de commande" data-en="Send you confirmations and order tracking">Vous envoyer des confirmations et suivis de commande</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Gérer votre compte client" data-en="Manage your customer account">Gérer votre compte client</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Améliorer nos services et notre site" data-en="Improve our services and website">Améliorer nos services et notre site</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Vous envoyer des offres personnalisées (avec votre consentement)" data-en="Send you personalized offers (with your consent)">Vous envoyer des offres personnalisées (avec votre consentement)</span></li>
+                </ul>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="4. Partage des données" data-en="4. Data sharing">4. Partage des données</h2>
+                <p data-fr="Nous ne vendons pas vos données personnelles. Nous pouvons partager vos données avec :" data-en="We do not sell your personal data. We may share your data with:">Nous ne vendons pas vos données personnelles. Nous pouvons partager vos données avec :</p>
+                <ul>
+                    <li><i class="fas fa-lock"></i> <span data-fr="Nos partenaires de paiement sécurisés (MTN Mobile Money, Orange Money)" data-en="Our secure payment partners (MTN Mobile Money, Orange Money)">Nos partenaires de paiement sécurisés (MTN Mobile Money, Orange Money)</span></li>
+                    <li><i class="fas fa-lock"></i> <span data-fr="Nos prestataires techniques (hébergement, email)" data-en="Our technical service providers (hosting, email)">Nos prestataires techniques (hébergement, email)</span></li>
+                </ul>
+                <p data-fr="Ces partenaires sont tenus de respecter la confidentialité de vos données." data-en="These partners are required to respect the confidentiality of your data.">Ces partenaires sont tenus de respecter la confidentialité de vos données.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="5. Sécurité" data-en="5. Security">5. Sécurité</h2>
+                <p data-fr="Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, modification ou destruction." data-en="We implement technical and organizational security measures to protect your data against unauthorized access, modification or destruction.">Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données contre tout accès non autorisé, modification ou destruction.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="6. Vos droits" data-en="6. Your rights">6. Vos droits</h2>
+                <p data-fr="Conformément à la réglementation, vous disposez des droits suivants :" data-en="In accordance with regulations, you have the following rights:">Conformément à la réglementation, vous disposez des droits suivants :</p>
+                <ul>
+                    <li><i class="fas fa-eye"></i> <span data-fr="Droit d'accès à vos données" data-en="Right of access to your data">Droit d'accès à vos données</span></li>
+                    <li><i class="fas fa-pen"></i> <span data-fr="Droit de rectification" data-en="Right of rectification">Droit de rectification</span></li>
+                    <li><i class="fas fa-trash-alt"></i> <span data-fr="Droit de suppression" data-en="Right of deletion">Droit de suppression</span></li>
+                    <li><i class="fas fa-ban"></i> <span data-fr="Droit d'opposition" data-en="Right of objection">Droit d'opposition</span></li>
+                </ul>
+                <p data-fr="Pour exercer ces droits, contactez-nous à : contact@archiclick.com" data-en="To exercise these rights, contact us at: contact@archiclick.com">Pour exercer ces droits, contactez-nous à : contact@archiclick.com</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="7. Cookies" data-en="7. Cookies">7. Cookies</h2>
+                <p data-fr="Notre site utilise des cookies pour améliorer votre expérience de navigation. Vous pouvez paramétrer votre navigateur pour refuser les cookies." data-en="Our site uses cookies to improve your browsing experience. You can set your browser to refuse cookies.">Notre site utilise des cookies pour améliorer votre expérience de navigation. Vous pouvez paramétrer votre navigateur pour refuser les cookies.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="8. Contact" data-en="8. Contact">8. Contact</h2>
+                <p data-fr="Pour toute question relative à cette politique de confidentialité, vous pouvez nous contacter :" data-en="For any questions regarding this privacy policy, you can contact us:">Pour toute question relative à cette politique de confidentialité, vous pouvez nous contacter :</p>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> <span>Email : contact@archiclick.com</span></li>
+                    <li><i class="fas fa-phone"></i> <span>Téléphone : +237 6XX XX XX XX</span></li>
+                    <li><i class="fas fa-map-pin"></i> <span data-fr="Douala, Cameroun" data-en="Douala, Cameroon">Douala, Cameroun</span></li>
+                </ul>
+            </div>
+
+            <div class="text-center mt-12 reveal">
+                <p class="text-sm text-gris-doux" data-fr="Dernière mise à jour : 15 juin 2025" data-en="Last updated: June 15, 2025">Dernière mise à jour : 15 juin 2025</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            window.toggleLanguage = toggleLanguage;
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                observeReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>

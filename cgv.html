@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGV - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+
+        /* ========== MOBILE DRAWER ========== */
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE ========== */
+        .page-header {
+            padding:10rem 0 4rem;
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+        }
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:3rem;
+            font-weight:300; color:var(--ardoise); letter-spacing:2px;
+        }
+        .page-subtitle {
+            font-size:1rem; color:var(--gris-doux); font-weight:300;
+            letter-spacing:2px; text-transform:uppercase;
+        }
+        .content-section {
+            padding:4rem 0;
+        }
+        .content-section h2 {
+            font-size:1.8rem; color:var(--ardoise); margin-top:2.5rem; margin-bottom:1.2rem;
+            letter-spacing:1px;
+        }
+        .content-section h2:first-of-type { margin-top:0; }
+        .content-section p {
+            color:var(--gris-doux); font-size:1rem; line-height:2;
+            margin-bottom:1rem;
+        }
+        .content-section ul {
+            list-style:none; padding:0; margin:1rem 0 1.5rem;
+        }
+        .content-section ul li {
+            padding:.6rem 0; border-bottom:1px solid var(--creme);
+            color:var(--ardoise); display:flex; align-items:flex-start; gap:1rem;
+        }
+        .content-section ul li i {
+            color:var(--or); font-size:1rem; width:20px; text-align:center; margin-top:4px;
+        }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        @media(max-width:768px) {
+            .page-title { font-size:2.2rem; }
+            .page-header { padding:8rem 0 3rem; }
+            .content-section { padding:2.5rem 0; }
+            .content-section h2 { font-size:1.5rem; }
+        }
+
+        @media(max-width:480px) {
+            .page-title { font-size:1.8rem; }
+            .page-header { padding:7rem 0 2rem; }
+            .content-section { padding:2rem 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== HEADER ==================== -->
+    <section class="page-header">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="page-subtitle reveal" data-fr="Conditions générales" data-en="Terms and conditions">Conditions générales</p>
+            <h1 class="page-title reveal reveal-d1" data-fr="Conditions Générales de Vente" data-en="General Terms of Sale">Conditions Générales de Vente</h1>
+            <div class="sep-or mt-6 reveal reveal-d1"></div>
+        </div>
+    </section>
+
+    <!-- ==================== CONTENU ==================== -->
+    <section class="content-section">
+        <div class="max-w-4xl mx-auto px-6">
+
+            <div class="reveal">
+                <p data-fr="Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre Archiclick et ses clients. En passant commande, le client accepte sans réserve les présentes conditions." data-en="These General Terms of Sale govern the contractual relations between Archiclick and its customers. By placing an order, the customer unreservedly accepts these conditions.">Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre Archiclick et ses clients. En passant commande, le client accepte sans réserve les présentes conditions.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 1 - Objet" data-en="Article 1 - Purpose">Article 1 - Objet</h2>
+                <p data-fr="Les présentes CGV ont pour objet de définir les conditions de vente des plans de maison et prestations associées proposés par Archiclick sur son site internet." data-en="These T&Cs define the terms of sale for house plans and related services offered by Archiclick on its website.">Les présentes CGV ont pour objet de définir les conditions de vente des plans de maison et prestations associées proposés par Archiclick sur son site internet.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 2 - Produits" data-en="Article 2 - Products">Article 2 - Produits</h2>
+                <p data-fr="Les plans proposés sont des œuvres originales conçues par des architectes diplômés d'État. Chaque plan est vendu avec :" data-en="The plans offered are original works designed by state-licensed architects. Each plan is sold with:">Les plans proposés sont des œuvres originales conçues par des architectes diplômés d'État. Chaque plan est vendu avec :</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Plans architecturaux complets (vues en plan, coupes, façades)" data-en="Complete architectural plans (floor plans, sections, elevations)">Plans architecturaux complets (vues en plan, coupes, façades)</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Devis descriptif détaillé" data-en="Detailed descriptive estimate">Devis descriptif détaillé</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Fichiers DWG (format modifiable)" data-en="DWG files (editable format)">Fichiers DWG (format modifiable)</span></li>
+                    <li><i class="fas fa-check-circle"></i> <span data-fr="Notice technique de construction" data-en="Construction technical notice">Notice technique de construction</span></li>
+                </ul>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 3 - Prix" data-en="Article 3 - Prices">Article 3 - Prix</h2>
+                <p data-fr="Les prix sont indiqués en Francs CFA (FCFA), toutes taxes comprises (TTC). Archiclick se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix applicable est celui en vigueur au moment de la commande." data-en="Prices are shown in CFA francs (FCFA), all taxes included. Archiclick reserves the right to change its prices at any time, provided that the applicable price is that in force at the time of ordering.">Les prix sont indiqués en Francs CFA (FCFA), toutes taxes comprises (TTC). Archiclick se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix applicable est celui en vigueur au moment de la commande.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 4 - Commandes" data-en="Article 4 - Orders">Article 4 - Commandes</h2>
+                <p data-fr="La commande est validée par le client sur le site internet. Après validation, le client reçoit un email de confirmation récapitulant les éléments de la commande." data-en="The order is validated by the customer on the website. After validation, the customer receives a confirmation email summarizing the order details.">La commande est validée par le client sur le site internet. Après validation, le client reçoit un email de confirmation récapitulant les éléments de la commande.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 5 - Paiement" data-en="Article 5 - Payment">Article 5 - Paiement</h2>
+                <p data-fr="Le paiement s'effectue via :" data-en="Payment is made via:">Le paiement s'effectue via :</p>
+                <ul>
+                    <li><i class="fas fa-mobile-alt"></i> <span data-fr="MTN Mobile Money" data-en="MTN Mobile Money">MTN Mobile Money</span></li>
+                    <li><i class="fas fa-mobile-alt"></i> <span data-fr="Orange Money" data-en="Orange Money">Orange Money</span></li>
+                </ul>
+                <p data-fr="Le paiement est sécurisé et immédiat. La commande est traitée uniquement après confirmation du paiement." data-en="Payment is secure and immediate. The order is processed only after payment confirmation.">Le paiement est sécurisé et immédiat. La commande est traitée uniquement après confirmation du paiement.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 6 - Livraison" data-en="Article 6 - Delivery">Article 6 - Livraison</h2>
+                <p data-fr="Les fichiers sont livrés par email à l'adresse fournie par le client. Le délai de livraison est de 2 heures maximum après confirmation du paiement." data-en="Files are delivered by email to the address provided by the customer. Delivery time is up to 2 hours after payment confirmation.">Les fichiers sont livrés par email à l'adresse fournie par le client. Le délai de livraison est de 2 heures maximum après confirmation du paiement.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 7 - Droit de rétractation" data-en="Article 7 - Right of withdrawal">Article 7 - Droit de rétractation</h2>
+                <p data-fr="Conformément à la législation, les produits numériques (plans, fichiers) ne sont pas soumis au droit de rétractation dès lors qu'ils ont été téléchargés ou livrés par voie dématérialisée." data-en="In accordance with the law, digital products (plans, files) are not subject to the right of withdrawal once they have been downloaded or delivered electronically.">Conformément à la législation, les produits numériques (plans, fichiers) ne sont pas soumis au droit de rétractation dès lors qu'ils ont été téléchargés ou livrés par voie dématérialisée.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 8 - Propriété intellectuelle" data-en="Article 8 - Intellectual property">Article 8 - Propriété intellectuelle</h2>
+                <p data-fr="Les plans et documents fournis sont protégés par le droit d'auteur. Le client s'engage à ne pas reproduire, distribuer ou utiliser les plans à des fins commerciales sans l'accord préalable d'Archiclick." data-en="The plans and documents provided are protected by copyright. The customer agrees not to reproduce, distribute or use the plans for commercial purposes without prior consent from Archiclick.">Les plans et documents fournis sont protégés par le droit d'auteur. Le client s'engage à ne pas reproduire, distribuer ou utiliser les plans à des fins commerciales sans l'accord préalable d'Archiclick.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 9 - Responsabilité" data-en="Article 9 - Liability">Article 9 - Responsabilité</h2>
+                <p data-fr="Les plans sont fournis à titre indicatif. Il appartient au client de faire vérifier les plans par un professionnel local avant toute construction. Archiclick ne saurait être tenue responsable des éventuelles erreurs d'interprétation ou d'adaptation aux normes locales." data-en="The plans are provided for information purposes only. It is the customer's responsibility to have the plans checked by a local professional before any construction. Archiclick cannot be held responsible for any errors of interpretation or adaptation to local standards.">Les plans sont fournis à titre indicatif. Il appartient au client de faire vérifier les plans par un professionnel local avant toute construction. Archiclick ne saurait être tenue responsable des éventuelles erreurs d'interprétation ou d'adaptation aux normes locales.</p>
+            </div>
+
+            <div class="reveal">
+                <h2 data-fr="Article 10 - Loi applicable" data-en="Article 10 - Applicable law">Article 10 - Loi applicable</h2>
+                <p data-fr="Les présentes CGV sont soumises au droit camerounais. Tout litige sera de la compétence exclusive des tribunaux de Douala." data-en="These T&Cs are governed by Cameroonian law. Any dispute shall fall within the exclusive jurisdiction of the courts of Douala.">Les présentes CGV sont soumises au droit camerounais. Tout litige sera de la compétence exclusive des tribunaux de Douala.</p>
+            </div>
+
+            <div class="text-center mt-12 reveal">
+                <p class="text-sm text-gris-doux" data-fr="Dernière mise à jour : 15 juin 2025" data-en="Last updated: June 15, 2025">Dernière mise à jour : 15 juin 2025</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            function toggleLanguage() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            }
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            window.toggleLanguage = toggleLanguage;
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                observeReveals();
+            });
+        })();
+    </script>
+
+</body>
+</html>
