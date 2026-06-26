@@ -4,320 +4,514 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panier - Archiclick</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --dore: #d4af37;
-            --gris-luxe: #4b5563;
-        }
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            color: #1e293b;
-        }
-        
-        h1, h2 {
-            font-family: 'Cormorant Garamond', serif;
-            font-weight: 700;
-        }
-
-        .btn-primary {
-            background: #1e3a8a;
-            color: white;
-            padding: 12px 32px;
-            font-weight: 600;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-primary:hover {
-            background: #1e40af;
-        }
-
-        .mobile-menu {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 80%;
-            max-width: 300px;
-            height: 100%;
-            background: white;
-            z-index: 1000;
-            transition: right 0.3s ease;
-            padding: 80px 20px 20px;
-        }
-        .mobile-menu.open {
-            right: 0;
-        }
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
-        }
-        .menu-overlay.open {
-            display: block;
-        }
-        @media (min-width: 768px) {
-            .mobile-menu, .menu-overlay, .menu-btn {
-                display: none !important;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
             }
         }
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
 
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
         .lang-toggle {
-            background: none;
-            border: none;
-            font-size: 0.75rem;
-            cursor: pointer;
-            color: #999;
-            padding: 4px 8px;
-            font-weight: 600;
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
         }
-        .lang-toggle.active {
-            color: var(--dore);
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE ========== */
+        .panier-container {
+            max-width:7xl; margin:6rem auto; padding:0 1.5rem;
+            display:grid; grid-template-columns:2fr 1fr; gap:2rem;
+        }
+        @media(max-width:1023px) {
+            .panier-container { grid-template-columns:1fr; }
         }
 
+        .page-title {
+            font-family:'Cormorant Garamond',serif; font-size:2.5rem;
+            font-weight:300; color:var(--ardoise); margin-bottom:2rem; letter-spacing:2px;
+        }
+
+        /* ========== ITEMS ========== */
+        .panier-items { }
         .panier-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            margin: 0.5rem 0;
+            background:white; padding:1.5rem; border-radius:8px;
+            border:1px solid var(--creme); margin-bottom:1rem;
+            display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:center;
+        }
+        .item-info { }
+        .item-title {
+            font-weight:500; color:var(--ardoise); margin-bottom:.5rem;
+        }
+        .item-options {
+            font-size:.85rem; color:var(--gris-doux); margin-bottom:.5rem;
+        }
+        .item-option { display:inline-block; margin-right:1rem; }
+        .item-price {
+            font-family:'Cormorant Garamond',serif; font-size:1.2rem;
+            color:var(--or); font-weight:400;
+        }
+        .item-actions {
+            display:flex; gap:.5rem;
+        }
+        .btn-remove {
+            background:transparent; border:1px solid #ef4444; color:#ef4444;
+            padding:.5rem .8rem; font-size:.75rem; cursor:pointer;
+            transition:all .3s ease; border-radius:4px;
+        }
+        .btn-remove:hover { background:#ef4444; color:white; }
+
+        .empty-panier {
+            text-align:center; padding:3rem; color:var(--gris-doux);
+        }
+        .empty-panier i {
+            font-size:3rem; color:var(--creme); margin-bottom:1rem;
         }
 
-        .promo-box {
-            border: 1px solid #ddd;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
+        /* ========== SUMMARY ========== */
+        .panier-summary {
+            background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
+            padding:2rem; border-radius:12px; height:fit-content; position:sticky; top:7rem;
+        }
+        .summary-title {
+            font-size:1.2rem; font-weight:500; margin-bottom:1.5rem;
+            color:var(--ardoise);
+        }
+        .summary-row {
+            display:flex; justify-content:space-between; margin-bottom:1rem;
+            font-size:.95rem; color:var(--gris-doux);
+        }
+        .summary-divider {
+            border-top:1px solid rgba(201,169,110,.3); margin:1.5rem 0;
+        }
+        .summary-total {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:1rem; background:white; border-radius:8px;
+            border:2px solid var(--or);
+        }
+        .summary-total-label { font-weight:500; }
+        .summary-total-price {
+            font-family:'Cormorant Garamond',serif; font-size:1.5rem;
+            color:var(--or); font-weight:400;
+        }
+
+        /* ========== PROMO ========== */
+        .promo-section {
+            padding:1.5rem; background:white; border-radius:8px;
+            border:1px solid var(--creme); margin-bottom:1.5rem;
+        }
+        .promo-label {
+            font-weight:500; margin-bottom:1rem; font-size:.9rem;
+            color:var(--ardoise);
+        }
+        .promo-input-group {
+            display:flex; gap:.5rem;
+        }
+        .promo-input {
+            flex:1; padding:.7rem; border:1px solid var(--creme);
+            font-family:'Inter',sans-serif; font-size:.9rem;
+        }
+        .promo-input:focus { outline:none; border-color:var(--or); }
+        .promo-btn {
+            background:var(--or); color:var(--noir); border:none;
+            padding:.7rem 1.2rem; cursor:pointer; font-weight:500;
+            font-size:.8rem; transition:all .3s ease;
+        }
+        .promo-btn:hover { background:var(--or-clair); }
+
+        /* ========== BUTTONS ========== */
+        .btn-primary {
+            background:var(--or); color:var(--noir); border:none;
+            padding:14px 36px; font-weight:500; letter-spacing:2px;
+            text-transform:uppercase; font-size:.8rem;
+            cursor:pointer; transition:all .4s ease; width:100%;
+            font-family:'Inter',sans-serif; margin-bottom:.8rem;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background:var(--or-clair); transform:translateY(-2px);
+        }
+        .btn-primary:disabled { opacity:.6; cursor:not-allowed; }
+
+        .btn-secondary {
+            background:transparent; border:1.5px solid var(--gris-clair);
+            color:var(--gris-doux); padding:12px 24px; font-weight:500;
+            letter-spacing:1px; text-transform:uppercase; font-size:.75rem;
+            cursor:pointer; transition:all .3s ease; width:100%;
+        }
+        .btn-secondary:hover { border-color:var(--or); color:var(--or); }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        @media(max-width:768px) {
+            .panier-summary { position:relative; top:0; }
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="images/logo.png" alt="Archiclick" class="h-12">
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
             </div>
-            
-            <nav class="hidden md:flex gap-8">
-                <a href="index.html" style="color: var(--gris-luxe);">Accueil</a>
-                <a href="catalogue.html" style="color: var(--gris-luxe);">Catalogue</a>
-                <a href="blog.html" style="color: var(--gris-luxe);">Blog</a>
-                <a href="a-propos.html" style="color: var(--gris-luxe);">À propos</a>
-                <a href="contact.html" style="color: var(--gris-luxe);">Contact</a>
-            </nav>
-            
-            <div class="flex gap-4 items-center">
-                <button class="lang-toggle" id="langFr" onclick="setLanguage('fr')">FR</button>
-                <span style="color: #ccc;">|</span>
-                <button class="lang-toggle" id="langEn" onclick="setLanguage('en')">EN</button>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== PANIER ==================== -->
+    <section class="py-8 pb-24">
+        <div class="max-w-7xl mx-auto px-6 mb-8 reveal">
+            <h1 class="page-title" data-fr="Votre panier" data-en="Your Cart">Votre panier</h1>
+        </div>
+
+        <div class="panier-container">
+            <!-- ITEMS -->
+            <div class="panier-items reveal" id="panierItems">
+                <div class="empty-panier">
+                    <i class="fas fa-shopping-bag"></i>
+                    <p data-fr="Votre panier est vide" data-en="Your cart is empty">Votre panier est vide</p>
+                </div>
+            </div>
+
+            <!-- SUMMARY -->
+            <div class="panier-summary reveal">
+                <h2 class="summary-title" data-fr="Résumé" data-en="Summary">Résumé</h2>
                 
-                <button class="menu-btn md:hidden" onclick="toggleMobileMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <a href="panier.html">
-                    <i class="fas fa-shopping-cart text-xl" style="color: var(--dore);"></i>
-                </a>
-                <a href="compte.html">
-                    <i class="fas fa-user text-xl"></i>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <div class="mobile-menu">
-        <a href="index.html">Accueil</a>
-        <a href="catalogue.html">Catalogue</a>
-        <a href="blog.html">Blog</a>
-        <a href="a-propos.html">À propos</a>
-        <a href="contact.html">Contact</a>
-    </div>
-    <div class="menu-overlay" onclick="toggleMobileMenu()"></div>
-
-    <div class="max-w-7xl mx-auto px-4 py-12">
-        <h1 class="text-4xl font-bold mb-8" style="color: var(--gris-luxe);" data-fr="Mon Panier" data-en="My Cart">Mon Panier</h1>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Panier items -->
-            <div class="lg:col-span-2">
-                <div id="panierItems"></div>
-                <a href="catalogue.html" class="inline-block mt-6 text-blue-600 hover:underline" data-fr="← Continuer vos achats" data-en="← Continue shopping">← Continuer vos achats</a>
-            </div>
-
-            <!-- Résumé -->
-            <div class="bg-white p-6 rounded-lg shadow-lg h-fit sticky top-24">
-                <h3 class="font-bold text-xl mb-6" data-fr="Résumé de commande" data-en="Order summary">Résumé de commande</h3>
-
-                <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
-                    <div class="flex justify-between">
-                        <span data-fr="Sous-total" data-en="Subtotal">Sous-total</span>
-                        <span id="subtotal">0 FCFA</span>
+                <div class="promo-section">
+                    <div class="promo-label" data-fr="Code promo" data-en="Promo code">Code promo</div>
+                    <div class="promo-input-group">
+                        <input type="text" id="promoCode" class="promo-input" placeholder="Entrez votre code" data-fr-placeholder="Entrez votre code" data-en-placeholder="Enter code">
+                        <button class="promo-btn" onclick="applyPromo()" data-fr="Appliquer" data-en="Apply">Appliquer</button>
                     </div>
                 </div>
 
-                <!-- Code promo -->
-                <div class="promo-box">
-                    <input type="text" id="promoCode" placeholder="Code promo" class="w-full p-2 border border-gray-300 rounded mb-2">
-                    <button onclick="appliquerPromo()" class="w-full bg-gray-200 py-2 rounded font-bold hover:bg-gray-300" data-fr="Appliquer" data-en="Apply">Appliquer</button>
-                    <p id="promoMessage" class="text-sm mt-2 text-green-600"></p>
+                <div class="summary-row">
+                    <span data-fr="Sous-total" data-en="Subtotal">Sous-total</span>
+                    <span id="subtotal">0 FCFA</span>
+                </div>
+                <div class="summary-row" id="discountRow" style="display:none;">
+                    <span data-fr="Réduction" data-en="Discount">Réduction</span>
+                    <span id="discount" style="color:#10b981;">-0 FCFA</span>
+                </div>
+                <div class="summary-row">
+                    <span data-fr="Livraison" data-en="Shipping">Livraison</span>
+                    <span data-fr="Gratuite" data-en="Free">Gratuite</span>
+                </div>
+                
+                <div class="summary-divider"></div>
+
+                <div class="summary-total">
+                    <span class="summary-total-label" data-fr="Total" data-en="Total">Total</span>
+                    <span class="summary-total-price" id="totalPrice">0 FCFA</span>
                 </div>
 
-                <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
-                    <div class="flex justify-between font-bold text-lg">
-                        <span data-fr="Total" data-en="Total">Total</span>
-                        <span id="total" style="color: var(--dore);">0 FCFA</span>
-                    </div>
-                </div>
-
-                <button onclick="allerAuCheckout()" class="w-full btn-primary" data-fr="Procéder au paiement" data-en="Proceed to checkout">Procéder au paiement</button>
+                <button class="btn-primary" onclick="goToConfirmation()" id="checkoutBtn" disabled data-fr="Passer la commande" data-en="Checkout">Passer la commande</button>
+                <button class="btn-secondary" onclick="goToCatalog()" data-fr="Continuer vos achats" data-en="Continue shopping">Continuer vos achats</button>
             </div>
         </div>
-    </div>
+    </section>
 
-    <footer class="bg-gray-800 text-gray-300 py-12 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
-            <p data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
         </div>
     </footer>
 
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
+    <script>
+        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
 
     <script>
-        let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
-        let panier = [];
-        let promoDiscount = 0;
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+            let panier = [];
+            let promoDiscount = 0;
+            let promoType = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            setLanguage(currentLang);
-            chargerPanier();
-        });
+            function loadPanier() {
+                panier = JSON.parse(localStorage.getItem('panier') || '[]');
+                renderPanier();
+                updatePlaceholders();
+            }
 
-        function chargerPanier() {
-            panier = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('panier_')) {
-                    panier.push(JSON.parse(localStorage.getItem(key)));
+            function renderPanier() {
+                const container = document.getElementById('panierItems');
+                if (panier.length === 0) {
+                    container.innerHTML = `<div class="empty-panier"><i class="fas fa-shopping-bag"></i><p data-fr="Votre panier est vide" data-en="Your cart is empty">Votre panier est vide</p></div>`;
+                    document.getElementById('checkoutBtn').disabled = true;
+                    updatePrice();
+                    return;
                 }
-            }
-            afficherPanier();
-        }
 
-        function afficherPanier() {
-            const container = document.getElementById('panierItems');
+                document.getElementById('checkoutBtn').disabled = false;
+                container.innerHTML = panier.map((item, idx) => {
+                    const options = [];
+                    if (item.options.dwg) options.push('DWG');
+                    if (item.options.physique) options.push(currentLang === 'fr' ? 'Dossier physique' : 'Physical folder');
+                    if (item.options.region) options.push(item.options.region);
 
-            if (panier.length === 0) {
-                container.innerHTML = '<div class="text-gray-500" data-fr="Votre panier est vide" data-en="Your cart is empty">Votre panier est vide</div>';
-                return;
-            }
-
-            container.innerHTML = panier.map((item, idx) => `
-                <div class="panier-item bg-white">
-                    <div>
-                        <h4 class="font-bold">${item.titre}</h4>
-                        <p class="text-sm text-gray-600">${Object.keys(item.options).length > 0 ? Object.keys(item.options).join(', ') : 'Plan seul'}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold" style="color: var(--dore);">${item.total.toLocaleString()} FCFA</p>
-                        <button onclick="supprimerPanier(${idx})" class="text-red-600 text-sm hover:underline" data-fr="Supprimer" data-en="Remove">Supprimer</button>
-                    </div>
-                </div>
-            `).join('');
-
-            calculerTotal();
-        }
-
-        function supprimerPanier(idx) {
-            const key = 'panier_' + panier[idx].planId;
-            localStorage.removeItem(key);
-            chargerPanier();
-        }
-
-        function calculerTotal() {
-            let total = panier.reduce((sum, item) => sum + item.total, 0);
-            promoDiscount = 0;
-            document.getElementById('subtotal').textContent = total.toLocaleString() + ' FCFA';
-            document.getElementById('total').textContent = total.toLocaleString() + ' FCFA';
-        }
-
-        async function appliquerPromo() {
-            const code = document.getElementById('promoCode').value.toUpperCase();
-            const messageEl = document.getElementById('promoMessage');
-
-            if (!code) {
-                messageEl.textContent = currentLang === 'fr' ? 'Entrez un code' : 'Enter a code';
-                return;
+                    return `<div class="panier-item reveal">
+                        <div class="item-info">
+                            <div class="item-title">${item.titre}</div>
+                            ${options.length > 0 ? `<div class="item-options">${options.map(o => `<span class="item-option">+ ${o}</span>`).join('')}</div>` : ''}
+                            <div class="item-price">${item.prix.toLocaleString('fr-FR')} FCFA</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-remove" onclick="removeItem(${idx})" data-fr="Supprimer" data-en="Remove">Supprimer</button>
+                        </div>
+                    </div>`;
+                }).join('');
+                updatePrice();
+                observeReveals();
             }
 
-            try {
-                const { data, error } = await supabase
-                    .from('promos')
-                    .select('*')
-                    .eq('code', code)
-                    .eq('actif', true)
-                    .single();
+            window.removeItem = function(idx) {
+                panier.splice(idx, 1);
+                localStorage.setItem('panier', JSON.stringify(panier));
+                renderPanier();
+            };
 
-                if (error) throw error;
+            function updatePrice() {
+                let subtotal = panier.reduce((sum, item) => sum + item.prix, 0);
+                let total = subtotal;
 
-                if (data) {
-                    promoDiscount = data.type === '%' ? Math.round(panier.reduce((sum, item) => sum + item.total, 0) * data.reduction / 100) : data.reduction;
-                    const newTotal = panier.reduce((sum, item) => sum + item.total, 0) - promoDiscount;
-                    document.getElementById('total').textContent = newTotal.toLocaleString() + ' FCFA';
-                    messageEl.textContent = currentLang === 'fr' ? 'Code appliqué !' : 'Code applied!';
-                    messageEl.className = 'text-sm mt-2 text-green-600';
+                if (promoDiscount > 0) {
+                    if (promoType === '%') {
+                        total = subtotal - (subtotal * promoDiscount / 100);
+                    } else {
+                        total = subtotal - promoDiscount;
+                    }
+                    document.getElementById('discountRow').style.display = 'flex';
+                    document.getElementById('discount').textContent = '- ' + (subtotal - total).toLocaleString('fr-FR') + ' FCFA';
                 } else {
-                    messageEl.textContent = currentLang === 'fr' ? 'Code invalide' : 'Invalid code';
-                    messageEl.className = 'text-sm mt-2 text-red-600';
+                    document.getElementById('discountRow').style.display = 'none';
                 }
-            } catch (err) {
-                messageEl.textContent = currentLang === 'fr' ? 'Erreur' : 'Error';
-                messageEl.className = 'text-sm mt-2 text-red-600';
-            }
-        }
 
-        function allerAuCheckout() {
-            if (panier.length === 0) {
-                alert(currentLang === 'fr' ? 'Panier vide' : 'Empty cart');
-                return;
+                document.getElementById('subtotal').textContent = subtotal.toLocaleString('fr-FR') + ' FCFA';
+                document.getElementById('totalPrice').textContent = Math.max(0, total).toLocaleString('fr-FR') + ' FCFA';
             }
-            sessionStorage.setItem('panier_items', JSON.stringify(panier));
-            sessionStorage.setItem('panier_discount', promoDiscount);
-            window.location.href = 'confirmation.html';
-        }
 
-        window.setLanguage = function(lang) {
-            currentLang = lang;
-            localStorage.setItem('archiclick_lang', lang);
-            document.querySelectorAll('[data-fr]').forEach(el => {
-                el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+            window.applyPromo = async function() {
+                const code = document.getElementById('promoCode').value.trim().toUpperCase();
+                if (!code) return;
+
+                try {
+                    const { data, error } = await supabase.from('promos').select('*').eq('code', code).eq('actif', true).single();
+                    if (error || !data) {
+                        alert(currentLang === 'fr' ? 'Code invalide' : 'Invalid code');
+                        promoDiscount = 0;
+                        return;
+                    }
+
+                    if (data.date_expiration && new Date() > new Date(data.date_expiration)) {
+                        alert(currentLang === 'fr' ? 'Code expiré' : 'Code expired');
+                        promoDiscount = 0;
+                        return;
+                    }
+
+                    promoDiscount = data.reduction || 0;
+                    promoType = data.type || '%';
+                    alert(currentLang === 'fr' ? 'Code appliqué !' : 'Code applied!');
+                    updatePrice();
+                } catch (err) {
+                    console.error('Erreur:', err);
+                }
+            };
+
+            window.goToConfirmation = function() {
+                sessionStorage.setItem('panier', JSON.stringify(panier));
+                window.location.href = 'confirmation.html';
+            };
+
+            window.goToCatalog = function() {
+                window.location.href = 'catalogue.html';
+            };
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+                updatePlaceholders();
+            }
+
+            function updatePlaceholders() {
+                document.querySelectorAll('[data-fr-placeholder]').forEach(el => {
+                    el.placeholder = currentLang === 'fr' ? el.dataset.frPlaceholder : el.dataset.enPlaceholder;
+                });
+            }
+
+            window.toggleLanguage = function() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            };
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                loadPanier();
+                observeReveals();
             });
-            document.getElementById('langFr').classList.toggle('active', lang === 'fr');
-            document.getElementById('langEn').classList.toggle('active', lang === 'en');
-        };
-
-        function toggleMobileMenu() {
-            document.querySelector('.mobile-menu').classList.toggle('open');
-            document.querySelector('.menu-overlay').classList.toggle('open');
-        }
+        })();
     </script>
 
 </body>

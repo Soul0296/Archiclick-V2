@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; font-weight:300;
+            color:var(--ardoise); background:var(--blanc);
+            line-height:1.7; overflow-x:hidden;
+        }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+        }
+        .nav-link-item {
+            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
+            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
+            text-decoration:none; transition:color .4s ease; color:var(--ardoise);
+        }
+        .nav-link-item::after {
+            content:''; position:absolute; bottom:-4px; left:0;
+            width:0; height:1px; background:var(--or); transition:width .4s ease;
+        }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle {
+            width:36px; height:36px; border:1px solid rgba(45,45,45,.3);
+            background:transparent; font-family:'Inter',sans-serif;
+            font-size:.7rem; font-weight:500; letter-spacing:1px;
+            cursor:pointer; transition:all .4s ease; color:var(--ardoise);
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn {
+            display:none; background:none; border:none;
+            font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise);
+        }
+        @media(max-width:768px) {
+            .burger-btn { display:block; }
+            .desktop-nav { display:none !important; }
+        }
+        .mobile-drawer {
+            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
+            height:100%; background:var(--noir); z-index:1000;
+            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
+        }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a {
+            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
+            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
+            transition:color .3s ease; letter-spacing:2px;
+        }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
+            opacity:0; pointer-events:none; transition:opacity .4s ease;
+        }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== HEADER IMAGE ========== */
+        .article-header {
+            width:100%; height:500px; object-fit:cover;
+            margin-top:5rem; display:block;
+        }
+        @media(max-width:768px) {
+            .article-header { height:300px; }
+        }
+
+        /* ========== ARTICLE CONTENT ========== */
+        .article-container {
+            max-width:800px; margin:0 auto; padding:3rem 1.5rem;
+        }
+        .article-meta {
+            display:flex; flex-wrap:wrap; gap:2rem; margin-bottom:2rem;
+            font-size:.9rem; color:var(--gris-doux); justify-content:center;
+        }
+        .article-meta-item {
+            display:flex; align-items:center; gap:.5rem;
+        }
+        .article-meta-icon { color:var(--or); }
+
+        .article-title {
+            font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3rem);
+            font-weight:300; color:var(--ardoise); text-align:center;
+            margin-bottom:1.5rem; letter-spacing:1px;
+        }
+        .article-sep {
+            width:60px; height:1px; background:var(--or);
+            margin:0 auto 2rem;
+        }
+
+        .article-body {
+            color:var(--ardoise); line-height:2;
+            font-size:1rem;
+        }
+        .article-body h2 {
+            font-family:'Cormorant Garamond',serif; font-size:1.8rem;
+            font-weight:400; margin:2rem 0 1rem; color:var(--ardoise);
+            letter-spacing:.5px;
+        }
+        .article-body h3 {
+            font-family:'Cormorant Garamond',serif; font-size:1.4rem;
+            font-weight:400; margin:1.5rem 0 .8rem; color:var(--ardoise);
+        }
+        .article-body p {
+            margin-bottom:1.5rem; color:var(--gris-doux);
+        }
+        .article-body ul, .article-body ol {
+            margin:1.5rem 0 1.5rem 2rem; color:var(--gris-doux);
+        }
+        .article-body li {
+            margin-bottom:.8rem;
+        }
+        .article-body img {
+            max-width:100%; height:auto; border-radius:8px;
+            margin:2rem 0; box-shadow:0 10px 30px rgba(0,0,0,.08);
+        }
+        .article-body blockquote {
+            border-left:4px solid var(--or); padding:1.5rem;
+            margin:2rem 0; background:rgba(245,240,235,.5);
+            font-style:italic; color:var(--gris-doux);
+        }
+        .article-body a {
+            color:var(--or); text-decoration:none; transition:color .3s ease;
+        }
+        .article-body a:hover { color:var(--noir); }
+
+        /* ========== ARTICLE FOOTER ========== */
+        .article-footer {
+            padding:2rem; border-top:1px solid var(--creme);
+            border-bottom:1px solid var(--creme); margin:3rem 0;
+            display:flex; justify-content:space-between; align-items:center; gap:2rem;
+            background:rgba(245,240,235,.3); border-radius:8px;
+        }
+        .article-author-info { flex:1; }
+        .author-name {
+            font-weight:500; color:var(--ardoise);
+        }
+        .author-bio {
+            font-size:.9rem; color:var(--gris-doux); margin-top:.3rem;
+        }
+        .article-share {
+            display:flex; gap:1rem;
+        }
+        .share-btn {
+            width:40px; height:40px; border-radius:50%;
+            background:var(--beige); border:1px solid var(--creme);
+            display:flex; align-items:center; justify-content:center;
+            color:var(--or); text-decoration:none;
+            transition:all .3s ease;
+        }
+        .share-btn:hover {
+            background:var(--or); color:var(--noir); transform:translateY(-2px);
+        }
+
+        /* ========== ARTICLES SIMILAIRES ========== */
+        .related-section {
+            max-width:7xl; margin:4rem auto; padding:0 1.5rem;
+        }
+        .related-title {
+            font-family:'Cormorant Garamond',serif; font-size:2rem;
+            font-weight:300; color:var(--ardoise); margin-bottom:2rem;
+            text-align:center; letter-spacing:1px;
+        }
+        .related-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+            gap:2rem;
+        }
+        .related-card {
+            background:white; border-radius:8px; overflow:hidden;
+            box-shadow:0 10px 30px rgba(0,0,0,.06);
+            transition:transform .5s ease, box-shadow .5s ease;
+            cursor:pointer;
+        }
+        .related-card:hover {
+            transform:translateY(-6px);
+            box-shadow:0 20px 50px rgba(201,169,110,.15);
+        }
+        .related-img {
+            width:100%; height:200px; object-fit:cover;
+            transition:transform .6s ease;
+        }
+        .related-card:hover .related-img { transform:scale(1.08); }
+        .related-body {
+            padding:1.5rem;
+        }
+        .related-date {
+            font-size:.8rem; color:var(--or); letter-spacing:1px;
+            text-transform:uppercase; margin-bottom:.5rem;
+        }
+        .related-title-small {
+            font-family:'Cormorant Garamond',serif; font-size:1.2rem;
+            font-weight:400; color:var(--ardoise); margin-bottom:.8rem;
+        }
+        .related-link {
+            color:var(--or); font-size:.85rem; font-weight:500;
+            letter-spacing:1px; text-transform:uppercase;
+            text-decoration:none; transition:color .3s ease;
+        }
+        .related-link:hover { color:var(--noir); }
+
+        /* ========== REVEAL ========== */
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+
+        /* ========== FOOTER ========== */
+        .footer-link {
+            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
+            color:rgba(255,255,255,.5); text-decoration:none;
+            transition:color .3s ease;
+        }
+        .footer-link:hover { color:var(--or); }
+
+        .loading { text-align:center; padding:3rem; color:var(--gris-doux); }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- ==================== ARTICLE ==================== -->
+    <img id="articleImage" class="article-header" alt="Article">
+
+    <article class="article-container reveal">
+        <div class="article-meta">
+            <div class="article-meta-item">
+                <i class="fas fa-calendar-alt article-meta-icon"></i>
+                <span id="articleDate"></span>
+            </div>
+            <div class="article-meta-item">
+                <i class="fas fa-user article-meta-icon"></i>
+                <strong id="articleAuthor"></strong>
+            </div>
+        </div>
+
+        <h1 class="article-title" id="articleTitle"></h1>
+        <div class="article-sep"></div>
+
+        <div class="article-body" id="articleBody"></div>
+
+        <div class="article-footer">
+            <div class="article-author-info">
+                <div class="author-name" data-fr="Par" data-en="By">Par <strong id="footerAuthor"></strong></div>
+                <div class="author-bio" data-fr="Architecte et expert en construction au Cameroun" data-en="Architect and construction expert in Cameroon">Architecte et expert en construction au Cameroun</div>
+            </div>
+            <div class="article-share">
+                <a href="#" class="share-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="share-btn" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="share-btn" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </article>
+
+    <!-- ==================== ARTICLES SIMILAIRES ==================== -->
+    <section class="related-section">
+        <h2 class="related-title" data-fr="Articles similaires" data-en="Related articles">Articles similaires</h2>
+        <div class="related-grid" id="relatedGrid">
+            <div class="loading" data-fr="Chargement..." data-en="Loading...">Chargement...</div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+            let currentArticle = null;
+
+            /* ---- CHARGER ARTICLE ---- */
+            async function loadArticle() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const articleId = urlParams.get('id');
+
+                if (!articleId) {
+                    document.querySelector('.article-container').innerHTML = '<div class="loading" style="color:red;">Erreur: Article non trouvé</div>';
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.from('blog').select('*').eq('id', articleId).eq('actif', true).single();
+                    if (error || !data) throw error;
+
+                    currentArticle = data;
+                    renderArticle();
+                    loadRelated();
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    document.querySelector('.article-container').innerHTML = '<div class="loading" style="color:red;">Erreur au chargement</div>';
+                }
+            }
+
+            function renderArticle() {
+                if (!currentArticle) return;
+
+                const img = currentArticle.image || 'https://via.placeholder.com/1200x500';
+                const date = new Date(currentArticle.date_publication);
+                const dateStr = currentLang === 'fr'
+                    ? date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+                    : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                document.getElementById('articleImage').src = img;
+                document.getElementById('articleTitle').textContent = currentArticle.titre;
+                document.getElementById('articleDate').textContent = dateStr;
+                document.getElementById('articleAuthor').textContent = currentArticle.auteur || 'Archiclick';
+                document.getElementById('footerAuthor').textContent = currentArticle.auteur || 'Archiclick';
+                document.getElementById('articleBody').innerHTML = currentArticle.contenu || '';
+
+                observeReveals();
+            }
+
+            /* ---- CHARGER ARTICLES SIMILAIRES ---- */
+            async function loadRelated() {
+                try {
+                    const { data, error } = await supabase
+                        .from('blog')
+                        .select('*')
+                        .eq('actif', true)
+                        .neq('id', currentArticle.id)
+                        .order('date_publication', { ascending: false })
+                        .limit(3);
+
+                    if (error) throw error;
+                    renderRelated(data || []);
+                } catch (err) {
+                    console.error('Erreur:', err);
+                }
+            }
+
+            function renderRelated(articles) {
+                const grid = document.getElementById('relatedGrid');
+                const delayClasses = ['reveal-d1', 'reveal-d2', 'reveal-d3'];
+
+                if (articles.length === 0) {
+                    grid.innerHTML = '<div class="loading" data-fr="Aucun article similaire" data-en="No related articles">Aucun article similaire</div>';
+                    return;
+                }
+
+                grid.innerHTML = articles.map((article, index) => {
+                    const img = article.image || 'https://via.placeholder.com/400x250';
+                    const date = new Date(article.date_publication);
+                    const dateStr = currentLang === 'fr'
+                        ? date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    return `<div class="related-card reveal ${delayClasses[index % delayClasses.length]}" onclick="window.location.href='article.html?id=${article.id}'">
+                        <img src="${img}" alt="${article.titre}" class="related-img" loading="lazy">
+                        <div class="related-body">
+                            <div class="related-date">${dateStr}</div>
+                            <h3 class="related-title-small">${article.titre}</h3>
+                            <a href="article.html?id=${article.id}" class="related-link" data-fr="Lire plus" data-en="Read more">Lire plus</a>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                observeReveals();
+            }
+
+            /* ---- LANGUE ---- */
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => {
+                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
+                });
+            }
+
+            window.toggleLanguage = function() {
+                setLang(currentLang === 'fr' ? 'en' : 'fr');
+            };
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            /* ---- REVEAL ---- */
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
+            }
+
+            /* ---- INIT ---- */
+            document.addEventListener('DOMContentLoaded', function() {
+                setLang(currentLang);
+                loadArticle();
+            });
+        })();
+    </script>
+
+</body>
+</html>
