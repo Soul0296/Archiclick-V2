@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion Admin — Archiclick</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --gold: #C9A961;
+    --gold-light: #E5D4A8;
+    --black: #0D0D0D;
+    --black-soft: #1A1A1A;
+    --grey-text: #B0B0B0;
+    --error: #D96C6C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--black);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(201,169,97,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(201,169,97,0.06) 0%, transparent 50%);
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--black-soft);
+    border: 1px solid rgba(201,169,97,0.25);
+    border-radius: 4px;
+    padding: 48px 40px;
+    position: relative;
+  }
+
+  .login-card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .logo h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--gold-light);
+  }
+
+  .logo span { color: var(--gold); }
+
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--grey-text);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .form-group { margin-bottom: 22px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 13px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    border-radius: 2px;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--gold);
+    color: var(--black);
+    border: none;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .btn-login:hover { background: var(--gold-light); }
+  .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .message {
+    margin-top: 18px;
+    font-size: 13px;
+    text-align: center;
+    padding: 10px;
+    border-radius: 2px;
+    display: none;
+  }
+
+  .message.error {
+    display: block;
+    background: rgba(217,108,108,0.1);
+    border: 1px solid rgba(217,108,108,0.3);
+    color: var(--error);
+  }
+
+  .message.info {
+    display: block;
+    background: rgba(201,169,97,0.08);
+    border: 1px solid rgba(201,169,97,0.2);
+    color: var(--gold-light);
+  }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 28px;
+    font-size: 12px;
+    color: var(--grey-text);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+
+  .back-link:hover { color: var(--gold-light); }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo"><h1>Archi<span>click</span></h1></div>
+  <div class="subtitle">Espace Administration</div>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="email">Adresse email</label>
+      <input type="email" id="email" required autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" required autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="btn-login" id="submitBtn">Se connecter</button>
+
+    <div class="message" id="messageBox"></div>
+  </form>
+
+  <a href="../index.html" class="back-link">← Retour au site public</a>
+</div>
+
+<script src="../js/supabase.js"></script>
+<script>
+const form = document.getElementById('loginForm');
+const submitBtn = document.getElementById('submitBtn');
+const messageBox = document.getElementById('messageBox');
+
+function showMessage(text, type) {
+  messageBox.textContent = text;
+  messageBox.className = 'message ' + type;
+}
+
+// Si déjà connecté et admin valide, redirection directe
+(async function checkExistingSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    const isAdmin = await verifyAdmin(session.user.email);
+    if (isAdmin) {
+      window.location.href = 'dashboard.html';
+    } else {
+      await supabase.auth.signOut();
+    }
+  }
+})();
+
+async function verifyAdmin(email) {
+  const { data, error } = await supabase
+    .from('admins')
+    .select('id, email, roles')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Erreur vérification admin :', error);
+    return false;
+  }
+  return !!(data && data.roles && data.roles.length > 0);
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Connexion...';
+  messageBox.className = 'message';
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    showMessage("Identifiants incorrects. Vérifiez votre email et mot de passe.", 'error');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Se connecter';
+    return;
+  }
+
+  const isAdmin = await verifyAdmin(email);
+
+  if (!isAdmin) {
+    await supabase.auth.signOut();
+    showMessage("Ce compte n'a pas les droits d'accès à l'administration.", 'error');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Se connecter';
+    return;
+  }
+
+  showMessage("Connexion réussie. Redirection...", 'info');
+  window.location.href = 'dashboard.html';
+});
+</script>
+
+</body>
+</html>

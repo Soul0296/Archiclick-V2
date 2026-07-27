@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Commandes — Admin Archiclick</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --gold: #C9A961;
+    --gold-light: #E5D4A8;
+    --black: #0D0D0D;
+    --black-soft: #1A1A1A;
+    --black-card: #161616;
+    --grey-text: #A8A8A8;
+    --error: #D96C6C;
+    --success: #7FB88A;
+    --warning: #D9B76C;
+    --border: rgba(201,169,97,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--black);
+    color: #fff;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 240px;
+    background: var(--black-soft);
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 1px;
+    color: var(--gold-light);
+    margin-bottom: 32px;
+    padding: 0 20px;
+  }
+  .sidebar .logo span { color: var(--gold); }
+
+  .nav-item {
+    display: block;
+    padding: 12px 24px;
+    color: var(--grey-text);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: rgba(201,169,97,0.06); color: var(--gold-light); }
+  .nav-item.active {
+    color: var(--gold);
+    border-left-color: var(--gold);
+    background: rgba(201,169,97,0.08);
+  }
+
+  .main { margin-left: 240px; flex: 1; padding: 32px 40px; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .page-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    font-weight: 600;
+  }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: var(--black-card);
+    border: 1px solid var(--border);
+    color: var(--grey-text);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .filter-btn.active { background: var(--gold); color: var(--black); border-color: var(--gold); font-weight: 600; }
+  .filter-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold-light); }
+
+  .table-wrap {
+    background: var(--black-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    border-bottom: 1px solid var(--border);
+    background: rgba(201,169,97,0.04);
+  }
+
+  td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #ddd;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+  .badge.payee { background: rgba(127,184,138,0.15); color: var(--success); }
+  .badge.en_attente { background: rgba(217,183,108,0.15); color: var(--warning); }
+  .badge.livree { background: rgba(108,160,217,0.15); color: #6CA0D9; }
+  .badge.annulee { background: rgba(217,108,108,0.15); color: var(--error); }
+
+  .icon-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--grey-text); padding: 6px 10px;
+    border-radius: 2px; cursor: pointer; font-size: 12px;
+  }
+  .icon-btn:hover { color: var(--gold-light); border-color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--grey-text); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--black-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+  }
+
+  .modal h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+  }
+  .detail-row .label { color: var(--grey-text); }
+  .detail-row .value { color: #fff; font-weight: 500; text-align: right; }
+
+  .plans-list { margin: 14px 0; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 3px; }
+  .plans-list-item { font-size: 13px; padding: 4px 0; color: #ddd; }
+
+  .form-group { margin: 18px 0; }
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+  select {
+    width: 100%;
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 10px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    border-radius: 2px;
+  }
+  select:focus { outline: none; border-color: var(--gold); }
+
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+  .btn {
+    padding: 11px 22px;
+    border-radius: 2px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-gold { background: var(--gold); color: var(--black); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--grey-text); }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold-light); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .readonly-note {
+    font-size: 12px;
+    color: var(--grey-text);
+    font-style: italic;
+    margin-top: 10px;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--black-soft); border: 1px solid var(--border);
+    padding: 14px 20px; border-radius: 4px; font-size: 13px;
+    z-index: 200; display: none;
+  }
+  .toast.success { border-color: var(--success); color: var(--success); }
+  .toast.error { border-color: var(--error); color: var(--error); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Archi<span>click</span></div>
+  <a href="dashboard.html" class="nav-item" data-page="dashboard">Tableau de bord</a>
+  <a href="db-plans.html" class="nav-item" data-page="plans">Plans</a>
+  <a href="db-commandes.html" class="nav-item active" data-page="commandes">Commandes</a>
+  <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
+  <a href="db-avis.html" class="nav-item" data-page="avis">Avis clients</a>
+  <a href="db-demandes.html" class="nav-item" data-page="demandes">Demandes sur mesure</a>
+  <a href="db-promos.html" class="nav-item" data-page="promos">Codes Promo</a>
+  <a href="db-blog.html" class="nav-item" data-page="blog">Blog</a>
+  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
+  <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
+  <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
+  <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="margin-top: 20px; color: var(--error);">Déconnexion</a>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Gestion des Commandes</h1>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="toutes">Toutes</button>
+    <button class="filter-btn" data-filter="en_attente">En attente</button>
+    <button class="filter-btn" data-filter="payee">Payées</button>
+    <button class="filter-btn" data-filter="livree">Livrées</button>
+    <button class="filter-btn" data-filter="annulee">Annulées</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Client</th>
+          <th>Montant</th>
+          <th>Paiement</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="commandesTableBody">
+        <tr><td colspan="6" class="empty-state">Chargement des commandes...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <h2>Détail de la commande</h2>
+
+    <div class="detail-row"><span class="label">Client</span><span class="value" id="dClient">—</span></div>
+    <div class="detail-row"><span class="label">Email</span><span class="value" id="dEmail">—</span></div>
+    <div class="detail-row"><span class="label">Téléphone</span><span class="value" id="dTelephone">—</span></div>
+    <div class="detail-row"><span class="label">Date</span><span class="value" id="dDate">—</span></div>
+    <div class="detail-row"><span class="label">Mode de paiement</span><span class="value" id="dPaiement">—</span></div>
+    <div class="detail-row"><span class="label">Code promo</span><span class="value" id="dPromo">—</span></div>
+    <div class="detail-row"><span class="label">Montant total</span><span class="value" id="dMontant">—</span></div>
+
+    <div class="plans-list" id="dPlansList"></div>
+
+    <div class="form-group" id="statutFormGroup">
+      <label>Modifier le statut</label>
+      <select id="statutSelect">
+        <option value="en_attente">En attente de paiement</option>
+        <option value="payee">Payée</option>
+        <option value="livree">Livrée</option>
+        <option value="annulee">Annulée</option>
+      </select>
+      <p class="readonly-note">Passer en "Payée" déclenche l'envoi du lien de téléchargement au client (via ton flux EmailJS existant, à connecter côté confirmation).</p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="closeDetailBtn">Fermer</button>
+      <button type="button" class="btn btn-gold" id="saveStatutBtn">Enregistrer le statut</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/supabase.js"></script>
+<script src="../js/permissions.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>
+let allCommandes = [];
+let currentFilter = 'toutes';
+let isReadOnly = false;
+let activeCommandeId = null;
+
+document.addEventListener('adminReady', () => {
+  isReadOnly = window.ADMIN.access('commandes') === 'read';
+
+  if (isReadOnly) {
+    document.getElementById('statutFormGroup').style.display = 'none';
+    document.getElementById('saveStatutBtn').style.display = 'none';
+  }
+
+  loadCommandes();
+});
+
+function showToast(text, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.className = 'toast ' + type;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 3500);
+}
+
+// ---------- FILTRES ----------
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderCommandes();
+  });
+});
+
+// ---------- CHARGEMENT ----------
+async function loadCommandes() {
+  const tbody = document.getElementById('commandesTableBody');
+
+  const { data, error } = await supabase
+    .from('commandes')
+    .select('*, clients(nom, email, telephone), commande_plans(plans(titre))')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur de chargement : ${error.message}</td></tr>`;
+    return;
+  }
+
+  allCommandes = data || [];
+  renderCommandes();
+}
+
+function renderCommandes() {
+  const tbody = document.getElementById('commandesTableBody');
+
+  const filtered = currentFilter === 'toutes'
+    ? allCommandes
+    : allCommandes.filter(c => c.statut_paiement === currentFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune commande pour ce filtre.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(cmd => {
+    const client = cmd.clients || {};
+    const dateStr = new Date(cmd.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const statutLabel = {
+      en_attente: 'En attente',
+      payee: 'Payée',
+      livree: 'Livrée',
+      annulee: 'Annulée'
+    }[cmd.statut_paiement] || cmd.statut_paiement;
+
+    return `
+      <tr>
+        <td>${dateStr}</td>
+        <td>${escapeHtml(client.nom || 'Client inconnu')}</td>
+        <td>${Number(cmd.montant_total).toLocaleString('fr-FR')} FCFA</td>
+        <td>${escapeHtml(cmd.mode_paiement || '—')}</td>
+        <td><span class="badge ${cmd.statut_paiement}">${statutLabel}</span></td>
+        <td><button class="icon-btn view-btn" data-id="${cmd.id}">Voir détail</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  document.querySelectorAll('.view-btn').forEach(btn =>
+    btn.addEventListener('click', () => openDetailModal(btn.dataset.id))
+  );
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------- MODAL DETAIL ----------
+function openDetailModal(id) {
+  const cmd = allCommandes.find(c => c.id == id);
+  if (!cmd) return;
+
+  activeCommandeId = cmd.id;
+  const client = cmd.clients || {};
+
+  document.getElementById('dClient').textContent = client.nom || '—';
+  document.getElementById('dEmail').textContent = client.email || '—';
+  document.getElementById('dTelephone').textContent = client.telephone || '—';
+  document.getElementById('dDate').textContent = new Date(cmd.created_at).toLocaleString('fr-FR');
+  document.getElementById('dPaiement').textContent = cmd.mode_paiement || '—';
+  document.getElementById('dPromo').textContent = cmd.code_promo_id ? 'Oui (ID ' + cmd.code_promo_id + ')' : 'Aucun';
+  document.getElementById('dMontant').textContent = Number(cmd.montant_total).toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('statutSelect').value = cmd.statut_paiement;
+
+  const plans = (cmd.commande_plans || []).map(cp => cp.plans?.titre).filter(Boolean);
+  document.getElementById('dPlansList').innerHTML = plans.length
+    ? plans.map(p => `<div class="plans-list-item">• ${escapeHtml(p)}</div>`).join('')
+    : '<div class="plans-list-item">Aucun plan associé trouvé.</div>';
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+document.getElementById('closeDetailBtn').addEventListener('click', () => {
+  document.getElementById('detailModal').classList.remove('open');
+});
+
+document.getElementById('saveStatutBtn').addEventListener('click', async () => {
+  const newStatut = document.getElementById('statutSelect').value;
+  const btn = document.getElementById('saveStatutBtn');
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+
+  const { error } = await supabase
+    .from('commandes')
+    .update({ statut_paiement: newStatut })
+    .eq('id', activeCommandeId);
+
+  btn.disabled = false;
+  btn.textContent = 'Enregistrer le statut';
+
+  if (error) {
+    showToast("Erreur : " + error.message, 'error');
+    return;
+  }
+
+  showToast('Statut mis à jour.', 'success');
+  document.getElementById('detailModal').classList.remove('open');
+  loadCommandes();
+});
+</script>
+
+</body>
+</html>
