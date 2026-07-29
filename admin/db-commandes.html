@@ -11,250 +11,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <style>
   :root {
-    --gold: #C9A961;
-    --gold-light: #E5D4A8;
-    --black: #0D0D0D;
-    --black-soft: #1A1A1A;
-    --black-card: #161616;
-    --grey-text: #A8A8A8;
-    --error: #D96C6C;
-    --success: #7FB88A;
-    --warning: #D9B76C;
+    --gold: #C9A961; --gold-light: #E5D4A8; --black: #0D0D0D;
+    --black-soft: #1A1A1A; --black-card: #161616; --grey-text: #A8A8A8;
+    --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --info: #6CA0D9;
     --border: rgba(201,169,97,0.2);
   }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
+  .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
+  .sidebar .logo span { color:var(--gold); }
+  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; position:relative; }
+  .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--black);
-    color: #fff;
-    display: flex;
-    min-height: 100vh;
-  }
+  .main { margin-left:240px; flex:1; padding:32px 40px; }
+  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
+  .page-note { font-size:12px; color:var(--grey-text); margin-bottom:20px; }
 
-  .sidebar {
-    width: 240px;
-    background: var(--black-soft);
-    border-right: 1px solid var(--border);
-    padding: 28px 0;
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    overflow-y: auto;
-  }
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filter-btn { background:var(--black-card); border:1px solid var(--border); color:var(--grey-text); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; letter-spacing:0.3px; }
+  .filter-btn.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
+  .filter-btn:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
 
-  .sidebar .logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px;
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 1px;
-    color: var(--gold-light);
-    margin-bottom: 32px;
-    padding: 0 20px;
-  }
-  .sidebar .logo span { color: var(--gold); }
+  .btn { padding:10px 18px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.4px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-gold { background:var(--gold); color:var(--black); }
+  .btn-gold:hover { background:var(--gold-light); }
+  .btn-info { background:var(--info); color:#fff; }
+  .btn-info:hover { opacity:0.9; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--grey-text); }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold-light); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-  .nav-item {
-    display: block;
-    padding: 12px 24px;
-    color: var(--grey-text);
-    text-decoration: none;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    border-left: 2px solid transparent;
-    transition: all 0.15s;
-  }
-  .nav-item:hover { background: rgba(201,169,97,0.06); color: var(--gold-light); }
-  .nav-item.active {
-    color: var(--gold);
-    border-left-color: var(--gold);
-    background: rgba(201,169,97,0.08);
-  }
+  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; padding:14px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
+  td { padding:14px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,0.02); }
 
-  .main { margin-left: 240px; flex: 1; padding: 32px 40px; }
+  .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; letter-spacing:0.3px; }
+  .badge.en_attente { background:rgba(217,183,108,0.15); color:var(--warning); }
+  .badge.payee { background:rgba(108,160,217,0.15); color:var(--info); }
+  .badge.livree { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.annulee { background:rgba(217,108,108,0.15); color:var(--error); }
 
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-  .page-header h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 30px;
-    font-weight: 600;
-  }
+  .urgent-flag { display:inline-flex; align-items:center; gap:4px; font-size:10px; color:var(--error); margin-left:6px; font-weight:600; }
 
-  .filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:6px 10px; border-radius:2px; cursor:pointer; font-size:12px; }
+  .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
+  .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
 
-  .filter-btn {
-    background: var(--black-card);
-    border: 1px solid var(--border);
-    color: var(--grey-text);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    letter-spacing: 0.3px;
-  }
-  .filter-btn.active { background: var(--gold); color: var(--black); border-color: var(--gold); font-weight: 600; }
-  .filter-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold-light); }
+  /* MODAL DETAIL */
+  .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:600px; max-height:92vh; overflow-y:auto; padding:32px; }
+  .modal h2 { font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--gold-light); margin-bottom:6px; }
+  .modal .sub-id { font-size:11px; color:var(--grey-text); margin-bottom:20px; }
 
-  .table-wrap {
-    background: var(--black-card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+  /* STEPPER */
+  .stepper { display:flex; align-items:center; margin-bottom:24px; }
+  .step { flex:1; text-align:center; position:relative; }
+  .step .dot { width:26px; height:26px; border-radius:50%; background:var(--black-card); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:11px; color:var(--grey-text); }
+  .step.done .dot { background:var(--success); border-color:var(--success); color:#fff; }
+  .step.current .dot { background:var(--gold); border-color:var(--gold); color:var(--black); font-weight:700; }
+  .step .label { font-size:10px; color:var(--grey-text); letter-spacing:0.3px; }
+  .step.done .label, .step.current .label { color:var(--gold-light); }
+  .step::after { content:''; position:absolute; top:13px; left:50%; width:100%; height:2px; background:var(--border); z-index:-1; }
+  .step:last-child::after { display:none; }
+  .step.done::after { background:var(--success); }
 
-  table { width: 100%; border-collapse: collapse; }
+  .detail-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px; }
+  .detail-row .label { color:var(--grey-text); }
+  .detail-row .value { color:#fff; font-weight:500; text-align:right; }
 
-  th {
-    text-align: left;
-    padding: 14px 16px;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--gold-light);
-    border-bottom: 1px solid var(--border);
-    background: rgba(201,169,97,0.04);
-  }
+  .plans-list { margin:14px 0; padding:12px; background:rgba(255,255,255,0.02); border-radius:3px; }
+  .plans-list-item { font-size:13px; padding:4px 0; color:#ddd; }
 
-  td {
-    padding: 14px 16px;
-    font-size: 13px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: #ddd;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
+  .note-box { margin-top:18px; }
+  .note-box label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
+  .note-box textarea { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:10px 12px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; min-height:60px; resize:vertical; }
+  .note-box textarea:focus { outline:none; border-color:var(--gold); }
 
-  .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    letter-spacing: 0.3px;
-  }
-  .badge.payee { background: rgba(127,184,138,0.15); color: var(--success); }
-  .badge.en_attente { background: rgba(217,183,108,0.15); color: var(--warning); }
-  .badge.livree { background: rgba(108,160,217,0.15); color: #6CA0D9; }
-  .badge.annulee { background: rgba(217,108,108,0.15); color: var(--error); }
+  .action-zone { margin-top:22px; padding-top:18px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:10px; }
+  .email-log { font-size:11px; color:var(--grey-text); margin-top:4px; }
 
-  .icon-btn {
-    background: none; border: 1px solid var(--border);
-    color: var(--grey-text); padding: 6px 10px;
-    border-radius: 2px; cursor: pointer; font-size: 12px;
-  }
-  .icon-btn:hover { color: var(--gold-light); border-color: var(--gold); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
-  .empty-state { text-align: center; padding: 50px 20px; color: var(--grey-text); }
+  /* POPUP CONFIRMATION ENVOI PLANS */
+  .confirm-popup { background:var(--black-soft); border:1px solid var(--error); border-radius:4px; padding:26px; max-width:420px; }
+  .confirm-popup h3 { font-family:'Cormorant Garamond',serif; color:var(--error); font-size:20px; margin-bottom:12px; }
+  .confirm-popup p { font-size:13px; color:#ddd; line-height:1.6; margin-bottom:18px; }
+  .confirm-popup .warning-icon { font-size:28px; margin-bottom:10px; }
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--black-soft);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    width: 100%;
-    max-width: 560px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 32px;
-  }
-
-  .modal h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px;
-    color: var(--gold-light);
-    margin-bottom: 20px;
-  }
-
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-size: 13px;
-  }
-  .detail-row .label { color: var(--grey-text); }
-  .detail-row .value { color: #fff; font-weight: 500; text-align: right; }
-
-  .plans-list { margin: 14px 0; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 3px; }
-  .plans-list-item { font-size: 13px; padding: 4px 0; color: #ddd; }
-
-  .form-group { margin: 18px 0; }
-  label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--gold-light);
-    margin-bottom: 6px;
-  }
-  select {
-    width: 100%;
-    background: #000;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #fff;
-    padding: 10px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    border-radius: 2px;
-  }
-  select:focus { outline: none; border-color: var(--gold); }
-
-  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-
-  .btn {
-    padding: 11px 22px;
-    border-radius: 2px;
-    border: none;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-  }
-  .btn-gold { background: var(--gold); color: var(--black); }
-  .btn-gold:hover { background: var(--gold-light); }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--grey-text); }
-  .btn-outline:hover { border-color: var(--gold); color: var(--gold-light); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .readonly-note {
-    font-size: 12px;
-    color: var(--grey-text);
-    font-style: italic;
-    margin-top: 10px;
-  }
-
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--black-soft); border: 1px solid var(--border);
-    padding: 14px 20px; border-radius: 4px; font-size: 13px;
-    z-index: 200; display: none;
-  }
-  .toast.success { border-color: var(--success); color: var(--success); }
-  .toast.error { border-color: var(--error); color: var(--error); }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; max-width:340px; }
+  .toast.success { border-color:var(--success); color:var(--success); }
+  .toast.error { border-color:var(--error); color:var(--error); }
 </style>
 </head>
 <body>
@@ -273,33 +131,28 @@
   <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
   <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
   <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
-  <a href="#" id="logoutBtn" class="nav-item" style="margin-top: 20px; color: var(--error);">Déconnexion</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="margin-top:20px; color:var(--error);">Déconnexion</a>
 </div>
 
 <div class="main">
   <div class="page-header">
     <h1>Gestion des Commandes</h1>
+    <button class="btn btn-outline" id="exportBtn">Exporter (CSV)</button>
   </div>
+  <p class="page-note">Chaque commande suit 3 étapes : Nouvelle → Paiement confirmé (facture envoyée) → Plans envoyés.</p>
 
   <div class="filters">
     <button class="filter-btn active" data-filter="toutes">Toutes</button>
-    <button class="filter-btn" data-filter="en_attente">En attente</button>
-    <button class="filter-btn" data-filter="payee">Payées</button>
-    <button class="filter-btn" data-filter="livree">Livrées</button>
+    <button class="filter-btn" data-filter="en_attente">Nouvelles</button>
+    <button class="filter-btn" data-filter="payee">Paiement confirmé</button>
+    <button class="filter-btn" data-filter="livree">Plans envoyés</button>
     <button class="filter-btn" data-filter="annulee">Annulées</button>
   </div>
 
   <div class="table-wrap">
     <table>
       <thead>
-        <tr>
-          <th>Date</th>
-          <th>Client</th>
-          <th>Montant</th>
-          <th>Paiement</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </tr>
+        <tr><th>Date</th><th>Client</th><th>Montant</th><th>Paiement</th><th>Statut</th><th>Actions</th></tr>
       </thead>
       <tbody id="commandesTableBody">
         <tr><td colspan="6" class="empty-state">Chargement des commandes...</td></tr>
@@ -312,31 +165,46 @@
 <div class="modal-overlay" id="detailModal">
   <div class="modal">
     <h2>Détail de la commande</h2>
+    <div class="sub-id" id="dFacture">—</div>
+
+    <div class="stepper" id="stepper"></div>
 
     <div class="detail-row"><span class="label">Client</span><span class="value" id="dClient">—</span></div>
     <div class="detail-row"><span class="label">Email</span><span class="value" id="dEmail">—</span></div>
     <div class="detail-row"><span class="label">Téléphone</span><span class="value" id="dTelephone">—</span></div>
-    <div class="detail-row"><span class="label">Date</span><span class="value" id="dDate">—</span></div>
+    <div class="detail-row"><span class="label">Date de commande</span><span class="value" id="dDate">—</span></div>
     <div class="detail-row"><span class="label">Mode de paiement</span><span class="value" id="dPaiement">—</span></div>
-    <div class="detail-row"><span class="label">Code promo</span><span class="value" id="dPromo">—</span></div>
     <div class="detail-row"><span class="label">Montant total</span><span class="value" id="dMontant">—</span></div>
 
     <div class="plans-list" id="dPlansList"></div>
 
-    <div class="form-group" id="statutFormGroup">
-      <label>Modifier le statut</label>
-      <select id="statutSelect">
-        <option value="en_attente">En attente de paiement</option>
-        <option value="payee">Payée</option>
-        <option value="livree">Livrée</option>
-        <option value="annulee">Annulée</option>
-      </select>
-      <p class="readonly-note">Passer en "Payée" déclenche l'envoi du lien de téléchargement au client (via ton flux EmailJS existant, à connecter côté confirmation).</p>
+    <div class="note-box">
+      <label>Note interne (visible équipe uniquement)</label>
+      <textarea id="noteInterne" placeholder="Ex : client a confirmé le virement par téléphone le..."></textarea>
     </div>
+
+    <div class="action-zone" id="actionZone"></div>
 
     <div class="modal-actions">
       <button type="button" class="btn btn-outline" id="closeDetailBtn">Fermer</button>
-      <button type="button" class="btn btn-gold" id="saveStatutBtn">Enregistrer le statut</button>
+      <button type="button" class="btn btn-gold" id="saveNoteBtn">Enregistrer la note</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP CONFIRMATION ENVOI PLANS -->
+<div class="modal-overlay" id="confirmPlansModal">
+  <div class="confirm-popup">
+    <div class="warning-icon">⚠️</div>
+    <h3>Confirmer l'envoi des plans ?</h3>
+    <p>
+      Assure-toi impérativement que <strong>le paiement a bien été reçu et vérifié</strong> sur ton compte
+      MTN/Orange Money avant de continuer. Une fois validé, le client recevra immédiatement le lien de
+      téléchargement de ses plans. Cette action est difficile à annuler.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="cancelSendPlansBtn">Annuler</button>
+      <button type="button" class="btn btn-gold" id="confirmSendPlansBtn">Oui, j'ai vérifié — Envoyer</button>
     </div>
   </div>
 </div>
@@ -347,29 +215,34 @@
 <script src="../js/permissions.js"></script>
 <script src="../js/auth-guard.js"></script>
 <script>
+// ============================================================
+// CONFIGURATION EMAILJS — À COMPLÉTER avec tes vrais identifiants
+// (Dashboard EmailJS → Account → API Keys / Email Services / Templates)
+// ============================================================
+const EMAILJS_PUBLIC_KEY = 'TA_CLE_PUBLIQUE_EMAILJS';
+const EMAILJS_SERVICE_ID = 'TON_SERVICE_ID';
+const EMAILJS_TEMPLATE_CONFIRMATION = 'TEMPLATE_CONFIRMATION_PAIEMENT';
+const EMAILJS_TEMPLATE_PLANS = 'TEMPLATE_ENVOI_PLANS';
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
 let allCommandes = [];
 let currentFilter = 'toutes';
 let isReadOnly = false;
-let activeCommandeId = null;
+let activeCommande = null;
 
 document.addEventListener('adminReady', () => {
-  isReadOnly = window.ADMIN.access('commandes') === 'read';
-
-  if (isReadOnly) {
-    document.getElementById('statutFormGroup').style.display = 'none';
-    document.getElementById('saveStatutBtn').style.display = 'none';
-  }
-
+  isReadOnly = window.ADMIN.access('commandes') !== 'full';
   loadCommandes();
 });
 
 function showToast(text, type) {
-  const toast = document.getElementById('toast');
-  toast.textContent = text;
-  toast.className = 'toast ' + type;
-  toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 3500);
+  const t = document.getElementById('toast');
+  t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 4500);
 }
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+function fmtMoney(n) { return Number(n || 0).toLocaleString('fr-FR') + ' FCFA'; }
 
 // ---------- FILTRES ----------
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -384,117 +257,307 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 // ---------- CHARGEMENT ----------
 async function loadCommandes() {
   const tbody = document.getElementById('commandesTableBody');
-
   const { data, error } = await supabase
     .from('commandes')
-    .select('*, clients(nom, email, telephone), commande_plans(plans(titre))')
+    .select('*, clients(nom, email, telephone), commande_plans(plans(titre, reference))')
     .order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur de chargement : ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
-
   allCommandes = data || [];
   renderCommandes();
 }
 
+function hoursSince(dateStr) {
+  return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
+}
+
 function renderCommandes() {
   const tbody = document.getElementById('commandesTableBody');
-
-  const filtered = currentFilter === 'toutes'
-    ? allCommandes
-    : allCommandes.filter(c => c.statut_paiement === currentFilter);
+  const filtered = currentFilter === 'toutes' ? allCommandes : allCommandes.filter(c => c.statut_paiement === currentFilter);
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune commande pour ce filtre.</td></tr>`;
     return;
   }
 
+  const statutLabels = { en_attente: 'Nouvelle', payee: 'Paiement confirmé', livree: 'Plans envoyés', annulee: 'Annulée' };
+
   tbody.innerHTML = filtered.map(cmd => {
     const client = cmd.clients || {};
-    const dateStr = new Date(cmd.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const statutLabel = {
-      en_attente: 'En attente',
-      payee: 'Payée',
-      livree: 'Livrée',
-      annulee: 'Annulée'
-    }[cmd.statut_paiement] || cmd.statut_paiement;
+    const dateStr = new Date(cmd.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const isUrgent = cmd.statut_paiement === 'en_attente' && hoursSince(cmd.created_at) > 24;
 
     return `
       <tr>
         <td>${dateStr}</td>
         <td>${escapeHtml(client.nom || 'Client inconnu')}</td>
-        <td>${Number(cmd.montant_total).toLocaleString('fr-FR')} FCFA</td>
+        <td>${fmtMoney(cmd.montant_total)}</td>
         <td>${escapeHtml(cmd.mode_paiement || '—')}</td>
-        <td><span class="badge ${cmd.statut_paiement}">${statutLabel}</span></td>
+        <td>
+          <span class="badge ${cmd.statut_paiement}">${statutLabels[cmd.statut_paiement] || cmd.statut_paiement}</span>
+          ${isUrgent ? '<span class="urgent-flag">⏱ +24h</span>' : ''}
+        </td>
         <td><button class="icon-btn view-btn" data-id="${cmd.id}">Voir détail</button></td>
       </tr>
     `;
   }).join('');
 
-  document.querySelectorAll('.view-btn').forEach(btn =>
-    btn.addEventListener('click', () => openDetailModal(btn.dataset.id))
-  );
+  document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => openDetailModal(btn.dataset.id)));
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+// ---------- GENERATION NUMERO DE FACTURE ----------
+async function generateInvoiceNumber() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const prefix = `FAC-${yy}${mm}-`;
+
+  const { data } = await supabase
+    .from('commandes')
+    .select('numero_facture')
+    .like('numero_facture', `${prefix}%`)
+    .order('numero_facture', { ascending: false })
+    .limit(1);
+
+  let nextSeq = 1;
+  if (data && data.length > 0 && data[0].numero_facture) {
+    const lastSeq = parseInt(data[0].numero_facture.split('-')[2], 10);
+    if (!isNaN(lastSeq)) nextSeq = lastSeq + 1;
+  }
+  return `${prefix}${String(nextSeq).padStart(3, '0')}`;
 }
 
 // ---------- MODAL DETAIL ----------
 function openDetailModal(id) {
   const cmd = allCommandes.find(c => c.id == id);
   if (!cmd) return;
-
-  activeCommandeId = cmd.id;
+  activeCommande = cmd;
   const client = cmd.clients || {};
 
+  document.getElementById('dFacture').textContent = cmd.numero_facture ? `Facture N° ${cmd.numero_facture}` : 'Facture non générée';
   document.getElementById('dClient').textContent = client.nom || '—';
   document.getElementById('dEmail').textContent = client.email || '—';
   document.getElementById('dTelephone').textContent = client.telephone || '—';
   document.getElementById('dDate').textContent = new Date(cmd.created_at).toLocaleString('fr-FR');
   document.getElementById('dPaiement').textContent = cmd.mode_paiement || '—';
-  document.getElementById('dPromo').textContent = cmd.code_promo_id ? 'Oui (ID ' + cmd.code_promo_id + ')' : 'Aucun';
-  document.getElementById('dMontant').textContent = Number(cmd.montant_total).toLocaleString('fr-FR') + ' FCFA';
-  document.getElementById('statutSelect').value = cmd.statut_paiement;
+  document.getElementById('dMontant').textContent = fmtMoney(cmd.montant_total);
+  document.getElementById('noteInterne').value = cmd.note_interne || '';
 
-  const plans = (cmd.commande_plans || []).map(cp => cp.plans?.titre).filter(Boolean);
+  const plans = (cmd.commande_plans || []).map(cp => cp.plans).filter(Boolean);
   document.getElementById('dPlansList').innerHTML = plans.length
-    ? plans.map(p => `<div class="plans-list-item">• ${escapeHtml(p)}</div>`).join('')
+    ? plans.map(p => `<div class="plans-list-item">• ${escapeHtml(p.titre)} ${p.reference ? `(${escapeHtml(p.reference)})` : ''}</div>`).join('')
     : '<div class="plans-list-item">Aucun plan associé trouvé.</div>';
+
+  renderStepper(cmd.statut_paiement);
+  renderActionZone(cmd);
 
   document.getElementById('detailModal').classList.add('open');
 }
 
-document.getElementById('closeDetailBtn').addEventListener('click', () => {
-  document.getElementById('detailModal').classList.remove('open');
-});
+function renderStepper(statut) {
+  const steps = [
+    { key: 'en_attente', label: 'Nouvelle' },
+    { key: 'payee', label: 'Paiement confirmé' },
+    { key: 'livree', label: 'Plans envoyés' }
+  ];
+  const order = { en_attente: 0, payee: 1, livree: 2, annulee: -1 };
+  const currentIdx = order[statut];
 
-document.getElementById('saveStatutBtn').addEventListener('click', async () => {
-  const newStatut = document.getElementById('statutSelect').value;
-  const btn = document.getElementById('saveStatutBtn');
-  btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  document.getElementById('stepper').innerHTML = steps.map((s, i) => {
+    let cls = '';
+    if (statut === 'annulee') cls = '';
+    else if (i < currentIdx) cls = 'done';
+    else if (i === currentIdx) cls = 'current';
+    return `<div class="step ${cls}"><div class="dot">${i + 1}</div><div class="label">${s.label}</div></div>`;
+  }).join('');
+}
 
-  const { error } = await supabase
-    .from('commandes')
-    .update({ statut_paiement: newStatut })
-    .eq('id', activeCommandeId);
+function renderActionZone(cmd) {
+  const zone = document.getElementById('actionZone');
 
-  btn.disabled = false;
-  btn.textContent = 'Enregistrer le statut';
-
-  if (error) {
-    showToast("Erreur : " + error.message, 'error');
+  if (isReadOnly) {
+    zone.innerHTML = `<p style="font-size:12px; color:var(--grey-text);">Lecture seule — tu n'as pas les droits pour modifier cette commande.</p>`;
     return;
   }
 
-  showToast('Statut mis à jour.', 'success');
+  if (cmd.statut_paiement === 'annulee') {
+    zone.innerHTML = `<p style="font-size:12px; color:var(--error);">Cette commande a été annulée.</p>`;
+    return;
+  }
+
+  let html = '';
+
+  if (cmd.statut_paiement === 'en_attente') {
+    html += `<button class="btn btn-gold" id="confirmPaiementBtn">1. Confirmer le paiement & envoyer la facture</button>`;
+    html += `<button class="btn btn-outline" id="cancelCommandeBtn" style="color:var(--error);">Annuler la commande</button>`;
+  }
+
+  if (cmd.statut_paiement === 'payee') {
+    if (cmd.email_confirmation_envoye_at) {
+      html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
+    }
+    html += `<button class="btn btn-info" id="sendPlansBtn">2. Envoyer les plans</button>`;
+  }
+
+  if (cmd.statut_paiement === 'livree') {
+    if (cmd.email_confirmation_envoye_at) {
+      html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
+    }
+    if (cmd.email_plans_envoye_at) {
+      html += `<div class="email-log">✓ Plans envoyés le ${new Date(cmd.email_plans_envoye_at).toLocaleString('fr-FR')}</div>`;
+    }
+    html += `<p style="font-size:12px; color:var(--success);">Commande terminée avec succès.</p>`;
+  }
+
+  zone.innerHTML = html;
+
+  const confirmBtn = document.getElementById('confirmPaiementBtn');
+  if (confirmBtn) confirmBtn.addEventListener('click', () => confirmerPaiement(cmd));
+
+  const sendPlansBtn = document.getElementById('sendPlansBtn');
+  if (sendPlansBtn) sendPlansBtn.addEventListener('click', () => document.getElementById('confirmPlansModal').classList.add('open'));
+
+  const cancelBtn = document.getElementById('cancelCommandeBtn');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => annulerCommande(cmd));
+}
+
+document.getElementById('closeDetailBtn').addEventListener('click', () => document.getElementById('detailModal').classList.remove('open'));
+
+// ---------- ETAPE 1 : CONFIRMER LE PAIEMENT + ENVOYER LA FACTURE ----------
+async function confirmerPaiement(cmd) {
+  const btn = document.getElementById('confirmPaiementBtn');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
+
+  try {
+    const numeroFacture = cmd.numero_facture || await generateInvoiceNumber();
+    const client = cmd.clients || {};
+
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
+      to_email: client.email,
+      to_name: client.nom,
+      numero_facture: numeroFacture,
+      montant: fmtMoney(cmd.montant_total),
+      date_commande: new Date(cmd.created_at).toLocaleDateString('fr-FR'),
+      mode_paiement: cmd.mode_paiement
+    });
+
+    const { error } = await supabase.from('commandes').update({
+      statut_paiement: 'payee',
+      numero_facture: numeroFacture,
+      email_confirmation_envoye_at: new Date().toISOString()
+    }).eq('id', cmd.id);
+
+    if (error) throw error;
+
+    showToast('Facture envoyée et paiement confirmé.', 'success');
+    document.getElementById('detailModal').classList.remove('open');
+    loadCommandes();
+
+  } catch (err) {
+    console.error(err);
+    showToast("Erreur lors de l'envoi : " + (err.text || err.message || 'inconnue'), 'error');
+    btn.disabled = false;
+    btn.textContent = '1. Confirmer le paiement & envoyer la facture';
+  }
+}
+
+// ---------- ETAPE 2 : ENVOYER LES PLANS (avec popup de confirmation) ----------
+document.getElementById('cancelSendPlansBtn').addEventListener('click', () => {
+  document.getElementById('confirmPlansModal').classList.remove('open');
+});
+
+document.getElementById('confirmSendPlansBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('confirmSendPlansBtn');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
+
+  try {
+    const cmd = activeCommande;
+    const client = cmd.clients || {};
+    const plans = (cmd.commande_plans || []).map(cp => cp.plans).filter(Boolean);
+
+    // Liste des liens de téléchargement — nécessite que chaque plan ait un fichier
+    // livrable stocké (PDF/DWG), à ajouter dans db-plans.html si pas encore fait.
+    const plansListText = plans.map(p => `${p.titre} (${p.reference || ''})`).join(', ');
+
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PLANS, {
+      to_email: client.email,
+      to_name: client.nom,
+      numero_facture: cmd.numero_facture,
+      plans_liste: plansListText
+    });
+
+    const { error } = await supabase.from('commandes').update({
+      statut_paiement: 'livree',
+      email_plans_envoye_at: new Date().toISOString()
+    }).eq('id', cmd.id);
+
+    if (error) throw error;
+
+    showToast('Plans envoyés au client avec succès.', 'success');
+    document.getElementById('confirmPlansModal').classList.remove('open');
+    document.getElementById('detailModal').classList.remove('open');
+    loadCommandes();
+
+  } catch (err) {
+    console.error(err);
+    showToast("Erreur lors de l'envoi : " + (err.text || err.message || 'inconnue'), 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Oui, j'ai vérifié — Envoyer";
+  }
+});
+
+// ---------- ANNULER UNE COMMANDE ----------
+async function annulerCommande(cmd) {
+  if (!confirm('Annuler définitivement cette commande ?')) return;
+
+  const { error } = await supabase.from('commandes').update({ statut_paiement: 'annulee' }).eq('id', cmd.id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+
+  showToast('Commande annulée.', 'success');
   document.getElementById('detailModal').classList.remove('open');
   loadCommandes();
+}
+
+// ---------- NOTE INTERNE ----------
+document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+  if (!activeCommande) return;
+  const note = document.getElementById('noteInterne').value.trim();
+
+  const { error } = await supabase.from('commandes').update({ note_interne: note }).eq('id', activeCommande.id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+
+  showToast('Note enregistrée.', 'success');
+  loadCommandes();
+});
+
+// ---------- EXPORT CSV ----------
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const rows = [['Date', 'Client', 'Email', 'Montant', 'Mode de paiement', 'Statut', 'N° Facture']];
+  allCommandes.forEach(c => {
+    rows.push([
+      new Date(c.created_at).toLocaleDateString('fr-FR'),
+      c.clients?.nom || '',
+      c.clients?.email || '',
+      c.montant_total,
+      c.mode_paiement || '',
+      c.statut_paiement,
+      c.numero_facture || ''
+    ]);
+  });
+  const csvContent = rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'commandes_archiclick.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 });
 </script>
 

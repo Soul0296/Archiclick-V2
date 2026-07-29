@@ -301,6 +301,7 @@
     <table>
       <thead>
         <tr>
+          <th>Réf.</th>
           <th>Image</th>
           <th>Titre</th>
           <th>Catégorie</th>
@@ -311,7 +312,7 @@
         </tr>
       </thead>
       <tbody id="plansTableBody">
-        <tr><td colspan="7" class="loader">Chargement des plans...</td></tr>
+        <tr><td colspan="8" class="loader">Chargement des plans...</td></tr>
       </tbody>
     </table>
   </div>
@@ -323,6 +324,11 @@
     <h2 id="modalTitle">Ajouter un plan</h2>
     <form id="planForm">
       <input type="hidden" id="planId">
+
+      <div class="form-group full" id="referenceGroup" style="display:none;">
+        <label>Référence (générée automatiquement)</label>
+        <input type="text" id="reference" disabled style="opacity:0.7; letter-spacing:1px; font-weight:600;">
+      </div>
 
       <div class="form-group full">
         <label>Titre du plan</label>
@@ -403,6 +409,38 @@ let currentImages = []; // URLs déjà enregistrées pour le plan en cours d'éd
 let newFiles = [];      // Nouveaux fichiers à uploader
 let isReadOnly = false; // true si le rôle de l'admin n'a que la lecture sur "plans"
 
+const CATEGORIE_ABBR = {
+  villa: 'VIL',
+  duplex: 'DUP',
+  appartement: 'APP',
+  studio: 'STU',
+  immeuble: 'IMM'
+};
+
+// Génère une référence du type VIL-2607-001 (catégorie - année/mois - séquence)
+async function generateReference(categorie) {
+  const abbr = CATEGORIE_ABBR[categorie] || 'PLN';
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const prefix = `${abbr}-${yy}${mm}-`;
+
+  const { data, error } = await supabase
+    .from('plans')
+    .select('reference')
+    .like('reference', `${prefix}%`)
+    .order('reference', { ascending: false })
+    .limit(1);
+
+  let nextSeq = 1;
+  if (!error && data && data.length > 0 && data[0].reference) {
+    const lastSeq = parseInt(data[0].reference.split('-')[2], 10);
+    if (!isNaN(lastSeq)) nextSeq = lastSeq + 1;
+  }
+
+  return `${prefix}${String(nextSeq).padStart(3, '0')}`;
+}
+
 document.addEventListener('adminReady', () => {
   isReadOnly = window.ADMIN.access('plans') === 'read';
 
@@ -431,12 +469,12 @@ async function loadPlans() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Erreur de chargement : ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Erreur de chargement : ${error.message}</td></tr>`;
     return;
   }
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aucun plan pour l'instant. Cliquez sur "Ajouter un plan".</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Aucun plan pour l'instant. Cliquez sur "Ajouter un plan".</td></tr>`;
     return;
   }
 
@@ -444,6 +482,7 @@ async function loadPlans() {
     const img = (plan.images && plan.images.length > 0) ? plan.images[0] : '';
     return `
       <tr data-id="${plan.id}">
+        <td style="font-weight:600; letter-spacing:0.5px; color:var(--gold-light);">${escapeHtml(plan.reference || '—')}</td>
         <td>${img ? `<img src="${img}" class="thumb">` : '—'}</td>
         <td>${escapeHtml(plan.titre)}</td>
         <td>${escapeHtml(plan.categorie || '')}</td>
@@ -487,6 +526,8 @@ function openAddModal() {
   form.reset();
   document.getElementById('modalTitle').textContent = 'Ajouter un plan';
   document.getElementById('planId').value = '';
+  document.getElementById('referenceGroup').style.display = 'none';
+  document.getElementById('reference').value = '';
   currentImages = [];
   newFiles = [];
   renderImagePreviews();
@@ -499,6 +540,8 @@ function openEditModal(id, plans) {
 
   document.getElementById('modalTitle').textContent = 'Modifier le plan';
   document.getElementById('planId').value = plan.id;
+  document.getElementById('referenceGroup').style.display = 'block';
+  document.getElementById('reference').value = plan.reference || 'Non générée (ancien plan)';
   document.getElementById('titre').value = plan.titre;
   document.getElementById('description').value = plan.description;
   document.getElementById('prix').value = plan.prix;
@@ -611,6 +654,7 @@ form.addEventListener('submit', async (e) => {
     if (planId) {
       ({ error } = await supabase.from('plans').update(planData).eq('id', planId));
     } else {
+      planData.reference = await generateReference(planData.categorie);
       planData.created_at = new Date().toISOString();
       ({ error } = await supabase.from('plans').insert([planData]));
     }
