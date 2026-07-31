@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comptabilité — Admin Archiclick</title>
+<title>Codes Promo — Admin Archiclick</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 
 <style>
   :root {
@@ -30,16 +29,13 @@
   .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
 
   .main { margin-left:240px; flex:1; padding:32px 40px; }
-
-  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
 
-  .period-filter { display:flex; gap:10px; align-items:center; }
-  .period-filter select {
-    background:var(--black-card); border:1px solid var(--border); color:#fff;
-    padding:9px 14px; border-radius:2px; font-size:13px; font-family:'Inter',sans-serif;
-  }
-  .period-filter select:focus { outline:none; border-color:var(--gold); }
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .filter-btn { background:var(--black-card); border:1px solid var(--border); color:var(--grey-text); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; }
+  .filter-btn.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
+  .filter-btn:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
 
   .btn { padding:10px 18px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.5px; cursor:pointer; font-family:'Inter',sans-serif; }
   .btn-gold { background:var(--gold); color:var(--black); }
@@ -48,56 +44,49 @@
   .btn-outline:hover { border-color:var(--gold); color:var(--gold-light); }
   .btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px; }
-  .stat-card { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:20px; position:relative; overflow:hidden; }
-  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
-  .stat-card .label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--grey-text); margin-bottom:8px; }
-  .stat-card .value { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; color:var(--gold-light); }
-  .stat-card.negative .value { color:var(--error); }
-  .stat-card.positive .value { color:var(--success); }
-
-  .chart-section { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:24px; margin-bottom:28px; }
-  .chart-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); margin-bottom:18px; }
-  .chart-canvas-wrap { height:280px; position:relative; }
-
-  .section-block { margin-bottom:32px; }
-  .section-block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-  .section-block-header h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); }
-  .section-actions { display:flex; gap:8px; }
-
   .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
   table { width:100%; border-collapse:collapse; }
-  th { text-align:left; padding:12px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
-  td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; }
+  th { text-align:left; padding:14px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
+  td { padding:14px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; vertical-align:middle; }
   tr:last-child td { border-bottom:none; }
   tr:hover td { background:rgba(255,255,255,0.02); }
 
-  .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
-  .badge.paye, .badge.payee { background:rgba(127,184,138,0.15); color:var(--success); }
-  .badge.a_payer, .badge.en_attente { background:rgba(217,183,108,0.15); color:var(--warning); }
-  .badge.en_retard { background:rgba(217,108,108,0.15); color:var(--error); }
+  .code-cell { display:flex; align-items:center; gap:8px; font-weight:600; letter-spacing:1px; color:var(--gold-light); }
+  .copy-btn { background:none; border:none; color:var(--grey-text); cursor:pointer; font-size:13px; }
+  .copy-btn:hover { color:var(--gold); }
 
-  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:5px 9px; border-radius:2px; cursor:pointer; font-size:11px; }
+  .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
+  .badge.actif { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.inactif { background:rgba(217,183,108,0.15); color:var(--warning); }
+  .badge.expire { background:rgba(217,108,108,0.15); color:var(--error); }
+
+  .usage-bar-wrap { width:100px; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:4px; }
+  .usage-bar-fill { height:100%; background:var(--gold); }
+  .usage-text { font-size:11px; color:var(--grey-text); }
+
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:6px 10px; border-radius:2px; cursor:pointer; font-size:12px; margin-right:4px; }
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
-  .empty-state { text-align:center; padding:40px 20px; color:var(--grey-text); font-size:13px; }
+  .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
 
   .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:28px; }
   .modal h2 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold-light); margin-bottom:18px; }
 
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .form-group { margin-bottom:14px; }
   label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
-  input, select, textarea { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; }
-  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+  input, select { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; }
+  input:focus, select:focus { outline:none; border-color:var(--gold); }
+  input#codeInput { text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+
+  .toggle-row { display:flex; align-items:center; gap:10px; }
 
   .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
   .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; }
   .toast.success { border-color:var(--success); color:var(--success); }
   .toast.error { border-color:var(--error); color:var(--error); }
-
-  @media (max-width: 1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
 
   /* ==================== RESPONSIVE MOBILE/TABLETTE ==================== */
   .mobile-topbar { display:none; }
@@ -177,9 +166,9 @@ document.addEventListener('DOMContentLoaded', function() {
   <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
   <a href="db-avis.html" class="nav-item" data-page="avis">Avis clients</a>
   <a href="db-demandes.html" class="nav-item" data-page="demandes">Demandes sur mesure</a>
-  <a href="db-promos.html" class="nav-item" data-page="promos">Codes Promo</a>
+  <a href="db-promos.html" class="nav-item active" data-page="promos">Codes Promo</a>
   <a href="db-blog.html" class="nav-item" data-page="blog">Blog</a>
-  <a href="db-comptabilite.html" class="nav-item active" data-page="comptabilite">Comptabilité</a>
+  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
   <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
   <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
   <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
@@ -188,153 +177,81 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <div class="main">
   <div class="page-header">
-    <h1>Comptabilité</h1>
-    <div class="period-filter">
-      <select id="periodSelect">
-        <option value="mois">Ce mois</option>
-        <option value="annee" selected>Cette année</option>
-        <option value="tout">Depuis le début</option>
-      </select>
-      <button class="btn btn-outline" id="exportGlobalBtn">Exporter le résumé (CSV)</button>
-    </div>
+    <h1>Codes Promo</h1>
+    <button class="btn btn-gold" id="addPromoBtn">+ Créer un code</button>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="label">Chiffre d'affaires</div>
-      <div class="value" id="statCA">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Total dépenses</div>
-      <div class="value" id="statDepenses">—</div>
-    </div>
-    <div class="stat-card" id="statBeneficeCard">
-      <div class="label">Bénéfice net</div>
-      <div class="value" id="statBenefice">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Taxes en attente</div>
-      <div class="value" id="statTaxes">—</div>
-    </div>
+  <div class="filters">
+    <button class="filter-btn active" data-filter="tous">Tous</button>
+    <button class="filter-btn" data-filter="actif">Actifs</button>
+    <button class="filter-btn" data-filter="inactif">Inactifs</button>
+    <button class="filter-btn" data-filter="expire">Expirés</button>
   </div>
 
-  <div class="chart-section">
-    <h2>Évolution du chiffre d'affaires (12 derniers mois)</h2>
-    <div class="chart-canvas-wrap">
-      <canvas id="caChart"></canvas>
-    </div>
-  </div>
-
-  <!-- VENTES -->
-  <div class="section-block">
-    <div class="section-block-header">
-      <h2>Ventes enregistrées</h2>
-      <div class="section-actions">
-        <button class="btn btn-outline" id="exportVentesBtn">Exporter (CSV)</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Date</th><th>Client</th><th>Montant</th><th>Statut</th></tr></thead>
-        <tbody id="ventesTableBody"><tr><td colspan="4" class="empty-state">Chargement...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DEPENSES -->
-  <div class="section-block">
-    <div class="section-block-header">
-      <h2>Dépenses</h2>
-      <div class="section-actions">
-        <button class="btn btn-outline" id="exportDepensesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addDepenseBtn">+ Ajouter une dépense</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Montant</th><th>Actions</th></tr></thead>
-        <tbody id="depensesTableBody"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAXES -->
-  <div class="section-block">
-    <div class="section-block-header">
-      <h2>Obligations fiscales</h2>
-      <div class="section-actions">
-        <button class="btn btn-outline" id="exportTaxesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addTaxeBtn">+ Ajouter une obligation</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Type</th><th>Période</th><th>Montant</th><th>Échéance</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody id="taxesTableBody"><tr><td colspan="6" class="empty-state">Chargement...</td></tr></tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Code</th><th>Réduction</th><th>Validité</th><th>Utilisation</th><th>Statut</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="promosTableBody">
+        <tr><td colspan="6" class="empty-state">Chargement...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- MODAL DEPENSE -->
-<div class="modal-overlay" id="depenseModal">
+<div class="modal-overlay" id="promoModal">
   <div class="modal">
-    <h2 id="depenseModalTitle">Ajouter une dépense</h2>
-    <form id="depenseForm">
-      <input type="hidden" id="depenseId">
-      <div class="form-group"><label>Description</label><input type="text" id="depDescription" required></div>
-      <div class="form-group">
-        <label>Catégorie</label>
-        <select id="depCategorie" required>
-          <option value="loyer">Loyer</option>
-          <option value="salaires">Salaires</option>
-          <option value="marketing">Marketing</option>
-          <option value="fournitures">Fournitures</option>
-          <option value="hebergement">Hébergement / Outils numériques</option>
-          <option value="transport">Transport</option>
-          <option value="autres">Autres</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="depMontant" min="0" required></div>
-      <div class="form-group"><label>Date</label><input type="date" id="depDate" required></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline" id="cancelDepenseBtn">Annuler</button>
-        <button type="submit" class="btn btn-gold" id="saveDepenseBtn">Enregistrer</button>
-      </div>
-    </form>
-  </div>
-</div>
+    <h2 id="modalTitle">Créer un code promo</h2>
+    <form id="promoForm">
+      <input type="hidden" id="promoId">
 
-<!-- MODAL TAXE -->
-<div class="modal-overlay" id="taxeModal">
-  <div class="modal">
-    <h2 id="taxeModalTitle">Ajouter une obligation fiscale</h2>
-    <form id="taxeForm">
-      <input type="hidden" id="taxeId">
       <div class="form-group">
-        <label>Type</label>
-        <select id="taxeType" required>
-          <option value="IRPP">IRPP</option>
-          <option value="TVA">TVA</option>
-          <option value="Patente">Patente</option>
-          <option value="CAC">Centimes Additionnels Communaux (CAC)</option>
-          <option value="Autre">Autre</option>
+        <label>Code</label>
+        <input type="text" id="codeInput" placeholder="EX: BIENVENUE10" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type de réduction</label>
+          <select id="typeReduction" required>
+            <option value="pourcentage">Pourcentage (%)</option>
+            <option value="montant_fixe">Montant fixe (FCFA)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valeur</label>
+          <input type="number" id="valeur" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date de début</label>
+          <input type="date" id="dateDebut" required>
+        </div>
+        <div class="form-group">
+          <label>Date de fin</label>
+          <input type="date" id="dateFin" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre d'utilisations max (laisser vide = illimité)</label>
+        <input type="number" id="usageMax" min="1">
+      </div>
+
+      <div class="form-group toggle-row">
+        <label style="margin-bottom:0;">Statut</label>
+        <select id="actif" style="width:auto;">
+          <option value="true">Actif</option>
+          <option value="false">Inactif</option>
         </select>
       </div>
-      <div class="form-group"><label>Période concernée</label><input type="text" id="taxePeriode" placeholder="ex: Juillet 2026" required></div>
-      <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="taxeMontant" min="0" required></div>
-      <div class="form-group"><label>Date d'échéance</label><input type="date" id="taxeEcheance"></div>
-      <div class="form-group">
-        <label>Statut</label>
-        <select id="taxeStatut">
-          <option value="a_payer">À payer</option>
-          <option value="paye">Payé</option>
-          <option value="en_retard">En retard</option>
-        </select>
-      </div>
+
       <div class="modal-actions">
-        <button type="button" class="btn btn-outline" id="cancelTaxeBtn">Annuler</button>
-        <button type="submit" class="btn btn-gold" id="saveTaxeBtn">Enregistrer</button>
+        <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="saveBtn">Enregistrer</button>
       </div>
     </form>
   </div>
@@ -346,387 +263,205 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../js/permissions.js"></script>
 <script src="../js/auth-guard.js"></script>
 <script>
-let allCommandes = [];
-let allDepenses = [];
-let allTaxes = [];
+let allPromos = [];
+let currentFilter = 'tous';
 let isReadOnly = false;
-let caChartInstance = null;
 
 document.addEventListener('adminReady', () => {
-  isReadOnly = window.ADMIN.access('comptabilite') !== 'full';
-  if (isReadOnly) {
-    document.getElementById('addDepenseBtn').style.display = 'none';
-    document.getElementById('addTaxeBtn').style.display = 'none';
-  }
-  loadAllData();
+  isReadOnly = window.ADMIN.access('promos') !== 'full';
+  if (isReadOnly) document.getElementById('addPromoBtn').style.display = 'none';
+  loadPromos();
 });
-
-document.getElementById('periodSelect').addEventListener('change', () => renderStatsAndTables());
 
 function showToast(text, type) {
   const t = document.getElementById('toast');
   t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
-function escapeHtml(str) {
-  const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML;
-}
-function fmtMoney(n) { return Number(n || 0).toLocaleString('fr-FR') + ' FCFA'; }
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
 
-// ---------- CHARGEMENT GLOBAL ----------
-async function loadAllData() {
-  const [{ data: commandes }, { data: depenses }, { data: taxes }] = await Promise.all([
-    supabase.from('commandes').select('*, clients(nom)').order('created_at', { ascending: false }),
-    supabase.from('depenses').select('*').order('date_depense', { ascending: false }),
-    supabase.from('taxes').select('*').order('date_echeance', { ascending: true })
-  ]);
-
-  allCommandes = commandes || [];
-  allDepenses = depenses || [];
-  allTaxes = taxes || [];
-
-  renderStatsAndTables();
-  renderChart();
+// ---------- STATUT CALCULE (tient compte de la date de fin) ----------
+function getComputedStatus(promo) {
+  const today = new Date().toISOString().split('T')[0];
+  if (promo.date_fin && promo.date_fin < today) return 'expire';
+  return promo.actif ? 'actif' : 'inactif';
 }
 
-// ---------- FILTRAGE PAR PERIODE ----------
-function getPeriodBounds() {
-  const period = document.getElementById('periodSelect').value;
-  const now = new Date();
-  if (period === 'mois') {
-    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: null };
-  } else if (period === 'annee') {
-    return { start: new Date(now.getFullYear(), 0, 1), end: null };
-  }
-  return { start: null, end: null };
-}
+// ---------- FILTRES ----------
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderPromos();
+  });
+});
 
-function filterByPeriod(items, dateField) {
-  const { start } = getPeriodBounds();
-  if (!start) return items;
-  return items.filter(item => new Date(item[dateField]) >= start);
-}
-
-// ---------- STATS + TABLEAUX ----------
-function renderStatsAndTables() {
-  const ventesFiltered = filterByPeriod(allCommandes.filter(c => c.statut_paiement === 'payee'), 'created_at');
-  const depensesFiltered = filterByPeriod(allDepenses, 'date_depense');
-
-  const totalCA = ventesFiltered.reduce((s, c) => s + Number(c.montant_total || 0), 0);
-  const totalDepenses = depensesFiltered.reduce((s, d) => s + Number(d.montant || 0), 0);
-  const benefice = totalCA - totalDepenses;
-  const taxesEnAttente = allTaxes.filter(t => t.statut !== 'paye').reduce((s, t) => s + Number(t.montant || 0), 0);
-
-  document.getElementById('statCA').textContent = fmtMoney(totalCA);
-  document.getElementById('statDepenses').textContent = fmtMoney(totalDepenses);
-  document.getElementById('statBenefice').textContent = fmtMoney(benefice);
-  document.getElementById('statTaxes').textContent = fmtMoney(taxesEnAttente);
-
-  const beneficeCard = document.getElementById('statBeneficeCard');
-  beneficeCard.classList.remove('positive', 'negative');
-  beneficeCard.classList.add(benefice >= 0 ? 'positive' : 'negative');
-
-  renderVentesTable(filterByPeriod(allCommandes, 'created_at'));
-  renderDepensesTable(depensesFiltered);
-  renderTaxesTable(allTaxes);
-}
-
-function renderVentesTable(ventes) {
-  const tbody = document.getElementById('ventesTableBody');
-  if (ventes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Aucune vente sur cette période.</td></tr>`;
+// ---------- CHARGEMENT ----------
+async function loadPromos() {
+  const { data, error } = await supabase.from('promos').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('promosTableBody').innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
-  tbody.innerHTML = ventes.slice(0, 50).map(c => `
-    <tr>
-      <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(c.clients?.nom || 'Client inconnu')}</td>
-      <td>${fmtMoney(c.montant_total)}</td>
-      <td><span class="badge ${c.statut_paiement}">${c.statut_paiement}</span></td>
-    </tr>
-  `).join('');
+  allPromos = data || [];
+  renderPromos();
 }
 
-function renderDepensesTable(depenses) {
-  const tbody = document.getElementById('depensesTableBody');
-  if (depenses.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucune dépense enregistrée.</td></tr>`;
+function renderPromos() {
+  const tbody = document.getElementById('promosTableBody');
+  const filtered = currentFilter === 'tous' ? allPromos : allPromos.filter(p => getComputedStatus(p) === currentFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucun code promo pour ce filtre.</td></tr>`;
     return;
   }
-  tbody.innerHTML = depenses.map(d => `
-    <tr>
-      <td>${new Date(d.date_depense).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(d.description)}</td>
-      <td>${escapeHtml(d.categorie)}</td>
-      <td>${fmtMoney(d.montant)}</td>
-      <td>
-        ${!isReadOnly ? `
-          <button class="icon-btn edit-dep-btn" data-id="${d.id}">Modifier</button>
-          <button class="icon-btn delete-dep-btn" data-id="${d.id}" style="color:var(--error);">Suppr.</button>
-        ` : '—'}
-      </td>
-    </tr>
-  `).join('');
+
+  const statusLabels = { actif: 'Actif', inactif: 'Inactif', expire: 'Expiré' };
+
+  tbody.innerHTML = filtered.map(p => {
+    const status = getComputedStatus(p);
+    const reduction = p.type === 'pourcentage' ? `${p.valeur}%` : `${Number(p.valeur).toLocaleString('fr-FR')} FCFA`;
+    const usageMax = p.usage_max || null;
+    const usageActuel = p.usage_actuel || 0;
+    const pct = usageMax ? Math.min(100, Math.round((usageActuel / usageMax) * 100)) : 0;
+
+    return `
+      <tr>
+        <td>
+          <div class="code-cell">
+            ${escapeHtml(p.code)}
+            <button class="copy-btn" data-code="${escapeHtml(p.code)}" title="Copier le code">📋</button>
+          </div>
+        </td>
+        <td>${reduction}</td>
+        <td>${new Date(p.date_debut).toLocaleDateString('fr-FR')} → ${new Date(p.date_fin).toLocaleDateString('fr-FR')}</td>
+        <td>
+          ${usageMax ? `
+            <div class="usage-bar-wrap"><div class="usage-bar-fill" style="width:${pct}%"></div></div>
+            <div class="usage-text">${usageActuel} / ${usageMax}</div>
+          ` : `<div class="usage-text">${usageActuel} utilisations (illimité)</div>`}
+        </td>
+        <td><span class="badge ${status}">${statusLabels[status]}</span></td>
+        <td>
+          ${!isReadOnly ? `
+            <button class="icon-btn edit-btn" data-id="${p.id}">Modifier</button>
+            <button class="icon-btn duplicate-btn" data-id="${p.id}">Dupliquer</button>
+            <button class="icon-btn delete-btn" data-id="${p.id}" style="color:var(--error);">Suppr.</button>
+          ` : '—'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', () => {
+    navigator.clipboard.writeText(btn.dataset.code);
+    showToast('Code copié : ' + btn.dataset.code, 'success');
+  }));
 
   if (!isReadOnly) {
-    document.querySelectorAll('.edit-dep-btn').forEach(b => b.addEventListener('click', () => openDepenseModal(b.dataset.id)));
-    document.querySelectorAll('.delete-dep-btn').forEach(b => b.addEventListener('click', () => deleteDepense(b.dataset.id)));
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.id)));
+    document.querySelectorAll('.duplicate-btn').forEach(btn => btn.addEventListener('click', () => duplicatePromo(btn.dataset.id)));
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deletePromo(btn.dataset.id)));
   }
 }
 
-function renderTaxesTable(taxes) {
-  const tbody = document.getElementById('taxesTableBody');
-  if (taxes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune obligation fiscale enregistrée.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = taxes.map(t => `
-    <tr>
-      <td>${escapeHtml(t.type)}</td>
-      <td>${escapeHtml(t.periode)}</td>
-      <td>${fmtMoney(t.montant)}</td>
-      <td>${t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge ${t.statut}">${t.statut.replace('_',' ')}</span></td>
-      <td>
-        ${!isReadOnly ? `
-          <button class="icon-btn edit-taxe-btn" data-id="${t.id}">Modifier</button>
-          <button class="icon-btn delete-taxe-btn" data-id="${t.id}" style="color:var(--error);">Suppr.</button>
-        ` : '—'}
-      </td>
-    </tr>
-  `).join('');
+// ---------- MODAL ----------
+const modal = document.getElementById('promoModal');
+const form = document.getElementById('promoForm');
 
-  if (!isReadOnly) {
-    document.querySelectorAll('.edit-taxe-btn').forEach(b => b.addEventListener('click', () => openTaxeModal(b.dataset.id)));
-    document.querySelectorAll('.delete-taxe-btn').forEach(b => b.addEventListener('click', () => deleteTaxe(b.dataset.id)));
-  }
+document.getElementById('addPromoBtn').addEventListener('click', () => {
+  form.reset();
+  document.getElementById('modalTitle').textContent = 'Créer un code promo';
+  document.getElementById('promoId').value = '';
+  modal.classList.add('open');
+});
+
+document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('open'));
+
+function openModal(id) {
+  const p = allPromos.find(x => x.id == id);
+  if (!p) return;
+
+  document.getElementById('modalTitle').textContent = 'Modifier le code promo';
+  document.getElementById('promoId').value = p.id;
+  document.getElementById('codeInput').value = p.code;
+  document.getElementById('typeReduction').value = p.type;
+  document.getElementById('valeur').value = p.valeur;
+  document.getElementById('dateDebut').value = p.date_debut;
+  document.getElementById('dateFin').value = p.date_fin;
+  document.getElementById('usageMax').value = p.usage_max || '';
+  document.getElementById('actif').value = String(p.actif);
+
+  modal.classList.add('open');
 }
 
-// ---------- GRAPHIQUE ----------
-function renderChart() {
-  const now = new Date();
-  const months = [];
-  const caByMonth = [];
+function duplicatePromo(id) {
+  const p = allPromos.find(x => x.id == id);
+  if (!p) return;
 
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const label = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-    months.push(label);
+  form.reset();
+  document.getElementById('modalTitle').textContent = 'Dupliquer le code promo';
+  document.getElementById('promoId').value = ''; // nouvelle entrée
+  document.getElementById('codeInput').value = p.code + '-COPIE';
+  document.getElementById('typeReduction').value = p.type;
+  document.getElementById('valeur').value = p.valeur;
+  document.getElementById('dateDebut').value = p.date_debut;
+  document.getElementById('dateFin').value = p.date_fin;
+  document.getElementById('usageMax').value = p.usage_max || '';
+  document.getElementById('actif').value = 'true';
 
-    const total = allCommandes
-      .filter(c => c.statut_paiement === 'payee')
-      .filter(c => {
-        const cd = new Date(c.created_at);
-        return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth();
-      })
-      .reduce((s, c) => s + Number(c.montant_total || 0), 0);
+  modal.classList.add('open');
+}
 
-    caByMonth.push(total);
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+
+  const data = {
+    code: document.getElementById('codeInput').value.trim().toUpperCase(),
+    type: document.getElementById('typeReduction').value,
+    valeur: parseFloat(document.getElementById('valeur').value),
+    date_debut: document.getElementById('dateDebut').value,
+    date_fin: document.getElementById('dateFin').value,
+    usage_max: document.getElementById('usageMax').value ? parseInt(document.getElementById('usageMax').value) : null,
+    actif: document.getElementById('actif').value === 'true'
+  };
+
+  const id = document.getElementById('promoId').value;
+  let error;
+  if (id) {
+    ({ error } = await supabase.from('promos').update(data).eq('id', id));
+  } else {
+    data.usage_actuel = 0;
+    data.created_at = new Date().toISOString();
+    ({ error } = await supabase.from('promos').insert([data]));
   }
 
-  const ctx = document.getElementById('caChart').getContext('2d');
-  if (caChartInstance) caChartInstance.destroy();
+  btn.disabled = false; btn.textContent = 'Enregistrer';
 
-  caChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [{
-        label: 'Chiffre d\'affaires (FCFA)',
-        data: caByMonth,
-        borderColor: '#C9A961',
-        backgroundColor: 'rgba(201,169,97,0.12)',
-        tension: 0.3,
-        fill: true,
-        pointBackgroundColor: '#E5D4A8'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#ddd' } } },
-      scales: {
-        x: { ticks: { color: '#A8A8A8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: { ticks: { color: '#A8A8A8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      }
+  if (error) {
+    if (error.message.includes('duplicate') || error.message.includes('unique')) {
+      showToast("Ce code existe déjà. Choisis-en un autre.", 'error');
+    } else {
+      showToast("Erreur : " + error.message, 'error');
     }
-  });
+    return;
+  }
+
+  showToast(id ? 'Code promo modifié.' : 'Code promo créé.', 'success');
+  modal.classList.remove('open');
+  loadPromos();
+});
+
+async function deletePromo(id) {
+  if (!confirm('Supprimer ce code promo définitivement ?')) return;
+  const { error } = await supabase.from('promos').delete().eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast('Code promo supprimé.', 'success');
+  loadPromos();
 }
-
-// ---------- MODAL DEPENSE ----------
-const depenseModal = document.getElementById('depenseModal');
-document.getElementById('addDepenseBtn').addEventListener('click', () => {
-  document.getElementById('depenseForm').reset();
-  document.getElementById('depenseModalTitle').textContent = 'Ajouter une dépense';
-  document.getElementById('depenseId').value = '';
-  depenseModal.classList.add('open');
-});
-document.getElementById('cancelDepenseBtn').addEventListener('click', () => depenseModal.classList.remove('open'));
-
-function openDepenseModal(id) {
-  const dep = allDepenses.find(d => d.id == id);
-  if (!dep) return;
-  document.getElementById('depenseModalTitle').textContent = 'Modifier la dépense';
-  document.getElementById('depenseId').value = dep.id;
-  document.getElementById('depDescription').value = dep.description;
-  document.getElementById('depCategorie').value = dep.categorie;
-  document.getElementById('depMontant').value = dep.montant;
-  document.getElementById('depDate').value = dep.date_depense;
-  depenseModal.classList.add('open');
-}
-
-document.getElementById('depenseForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('saveDepenseBtn');
-  btn.disabled = true; btn.textContent = 'Enregistrement...';
-
-  const data = {
-    description: document.getElementById('depDescription').value.trim(),
-    categorie: document.getElementById('depCategorie').value,
-    montant: parseFloat(document.getElementById('depMontant').value),
-    date_depense: document.getElementById('depDate').value
-  };
-
-  const id = document.getElementById('depenseId').value;
-  let error;
-  if (id) ({ error } = await supabase.from('depenses').update(data).eq('id', id));
-  else ({ error } = await supabase.from('depenses').insert([data]));
-
-  btn.disabled = false; btn.textContent = 'Enregistrer';
-
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
-  showToast(id ? 'Dépense modifiée.' : 'Dépense ajoutée.', 'success');
-  depenseModal.classList.remove('open');
-  loadAllData();
-});
-
-async function deleteDepense(id) {
-  if (!confirm('Supprimer cette dépense ?')) return;
-  const { error } = await supabase.from('depenses').delete().eq('id', id);
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
-  showToast('Dépense supprimée.', 'success');
-  loadAllData();
-}
-
-// ---------- MODAL TAXE ----------
-const taxeModal = document.getElementById('taxeModal');
-document.getElementById('addTaxeBtn').addEventListener('click', () => {
-  document.getElementById('taxeForm').reset();
-  document.getElementById('taxeModalTitle').textContent = 'Ajouter une obligation fiscale';
-  document.getElementById('taxeId').value = '';
-  taxeModal.classList.add('open');
-});
-document.getElementById('cancelTaxeBtn').addEventListener('click', () => taxeModal.classList.remove('open'));
-
-function openTaxeModal(id) {
-  const taxe = allTaxes.find(t => t.id == id);
-  if (!taxe) return;
-  document.getElementById('taxeModalTitle').textContent = 'Modifier l\'obligation fiscale';
-  document.getElementById('taxeId').value = taxe.id;
-  document.getElementById('taxeType').value = taxe.type;
-  document.getElementById('taxePeriode').value = taxe.periode;
-  document.getElementById('taxeMontant').value = taxe.montant;
-  document.getElementById('taxeEcheance').value = taxe.date_echeance || '';
-  document.getElementById('taxeStatut').value = taxe.statut;
-  taxeModal.classList.add('open');
-}
-
-document.getElementById('taxeForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('saveTaxeBtn');
-  btn.disabled = true; btn.textContent = 'Enregistrement...';
-
-  const data = {
-    type: document.getElementById('taxeType').value,
-    periode: document.getElementById('taxePeriode').value.trim(),
-    montant: parseFloat(document.getElementById('taxeMontant').value),
-    date_echeance: document.getElementById('taxeEcheance').value || null,
-    statut: document.getElementById('taxeStatut').value
-  };
-
-  const id = document.getElementById('taxeId').value;
-  let error;
-  if (id) ({ error } = await supabase.from('taxes').update(data).eq('id', id));
-  else ({ error } = await supabase.from('taxes').insert([data]));
-
-  btn.disabled = false; btn.textContent = 'Enregistrer';
-
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
-  showToast(id ? 'Obligation modifiée.' : 'Obligation ajoutée.', 'success');
-  taxeModal.classList.remove('open');
-  loadAllData();
-});
-
-async function deleteTaxe(id) {
-  if (!confirm('Supprimer cette obligation fiscale ?')) return;
-  const { error } = await supabase.from('taxes').delete().eq('id', id);
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
-  showToast('Obligation supprimée.', 'success');
-  loadAllData();
-}
-
-// ---------- EXPORT CSV ----------
-function downloadCSV(filename, rows) {
-  const csvContent = rows.map(row =>
-    row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';')
-  ).join('\n');
-
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-document.getElementById('exportVentesBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Client', 'Montant (FCFA)', 'Statut']];
-  filterByPeriod(allCommandes, 'created_at').forEach(c => {
-    rows.push([
-      new Date(c.created_at).toLocaleDateString('fr-FR'),
-      c.clients?.nom || 'Client inconnu',
-      c.montant_total,
-      c.statut_paiement
-    ]);
-  });
-  downloadCSV('ventes_archiclick.csv', rows);
-});
-
-document.getElementById('exportDepensesBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Description', 'Catégorie', 'Montant (FCFA)']];
-  filterByPeriod(allDepenses, 'date_depense').forEach(d => {
-    rows.push([new Date(d.date_depense).toLocaleDateString('fr-FR'), d.description, d.categorie, d.montant]);
-  });
-  downloadCSV('depenses_archiclick.csv', rows);
-});
-
-document.getElementById('exportTaxesBtn').addEventListener('click', () => {
-  const rows = [['Type', 'Période', 'Montant (FCFA)', 'Échéance', 'Statut']];
-  allTaxes.forEach(t => {
-    rows.push([t.type, t.periode, t.montant, t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '', t.statut]);
-  });
-  downloadCSV('taxes_archiclick.csv', rows);
-});
-
-document.getElementById('exportGlobalBtn').addEventListener('click', () => {
-  const ventesFiltered = filterByPeriod(allCommandes.filter(c => c.statut_paiement === 'payee'), 'created_at');
-  const depensesFiltered = filterByPeriod(allDepenses, 'date_depense');
-  const totalCA = ventesFiltered.reduce((s, c) => s + Number(c.montant_total || 0), 0);
-  const totalDepenses = depensesFiltered.reduce((s, d) => s + Number(d.montant || 0), 0);
-  const taxesEnAttente = allTaxes.filter(t => t.statut !== 'paye').reduce((s, t) => s + Number(t.montant || 0), 0);
-
-  const rows = [
-    ['Résumé comptable Archiclick'],
-    ['Période', document.getElementById('periodSelect').selectedOptions[0].textContent],
-    [],
-    ['Chiffre d\'affaires', totalCA],
-    ['Total dépenses', totalDepenses],
-    ['Bénéfice net', totalCA - totalDepenses],
-    ['Taxes en attente', taxesEnAttente]
-  ];
-  downloadCSV('resume_comptable_archiclick.csv', rows);
-});
 </script>
 
 </body>
