@@ -270,9 +270,76 @@
   }
   .toast.success { border-color: var(--success); color: var(--success); }
   .toast.error { border-color: var(--error); color: var(--error); }
+
+  /* ==================== RESPONSIVE MOBILE/TABLETTE ==================== */
+  .mobile-topbar { display:none; }
+  .sidebar-overlay { display:none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:var(--black-soft); border-bottom:1px solid var(--border);
+      padding:0 16px; z-index:150;
+    }
+    .mobile-topbar .logo-mini { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold-light); }
+    .mobile-topbar .logo-mini span { color:var(--gold); }
+    .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
+
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
+    .sidebar.open { transform:translateX(0); }
+
+    .sidebar-overlay.open {
+      display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); z-index:130;
+    }
+
+    .main { margin-left:0 !important; padding:76px 16px 24px !important; }
+    .stats-grid { grid-template-columns:1fr 1fr !important; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:640px; }
+    .form-row { grid-template-columns:1fr !important; }
+    .page-header { flex-wrap:wrap; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns:1fr !important; }
+  }
+
 </style>
 </head>
 <body>
+
+<div class="mobile-topbar">
+  <div class="logo-mini">Archi<span>click</span></div>
+  <button class="menu-toggle-btn" id="menuToggleBtn">☰ Menu</button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleBtn = document.getElementById('menuToggleBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.querySelector('.sidebar');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  });
+});
+</script>
 
 <div class="sidebar">
   <div class="logo">Archi<span>click</span></div>
@@ -359,17 +426,74 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label>Surface (m²)</label>
+          <label>Superficie habitable (m²)</label>
           <input type="number" id="surface" min="0" required>
         </div>
+        <div class="form-group">
+          <label>Superficie min. du terrain requis (m²)</label>
+          <input type="number" id="surfaceTerrainMin" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
           <label>Nombre de chambres</label>
           <input type="number" id="chambres" min="0" required>
         </div>
+        <div class="form-group">
+          <label>Nombre de séjours</label>
+          <input type="number" id="nombreSejours" min="0" value="1" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Salles de bain / douche</label>
+          <input type="number" id="nombreSallesEau" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>Nombre d'étages</label>
+          <input type="number" id="nombreEtages" min="1" value="1" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Places de garage / parking</label>
+          <input type="number" id="nombreGarages" min="0" value="0">
+        </div>
+        <div class="form-group">
+          <label>Style architectural</label>
+          <select id="styleArchitectural">
+            <option value="moderne">Moderne</option>
+            <option value="contemporain">Contemporain</option>
+            <option value="tropical">Tropical</option>
+            <option value="traditionnel">Traditionnel</option>
+            <option value="minimaliste">Minimaliste</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group full">
-        <label>Formats disponibles</label>
+        <label>Équipements & aménagements</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="piscine"> Piscine</label>
+          <label><input type="checkbox" id="buanderie"> Buanderie</label>
+          <label><input type="checkbox" id="terrasseBalcon"> Terrasse / Balcon</label>
+        </div>
+      </div>
+
+      <div class="form-group full" style="background:rgba(201,169,97,0.05); padding:14px; border-radius:3px; border:1px solid var(--border);">
+        <label style="margin-bottom:10px;">Option livraison du dossier physique</label>
+        <div class="checkbox-row" style="margin-bottom:10px;">
+          <label><input type="checkbox" id="livraisonPhysiqueDisponible"> Proposer cette option au client sur le catalogue</label>
+        </div>
+        <label>Frais d'impression & livraison (FCFA, ajoutés au prix de base)</label>
+        <input type="number" id="fraisLivraisonPhysique" min="0" value="0">
+      </div>
+
+      <div class="form-group full">
+        <label>Formats numériques disponibles</label>
         <div class="checkbox-row">
           <label><input type="checkbox" id="formatPdf" value="PDF"> PDF</label>
           <label><input type="checkbox" id="formatDwg" value="DWG"> DWG</label>
@@ -528,6 +652,10 @@ function openAddModal() {
   document.getElementById('planId').value = '';
   document.getElementById('referenceGroup').style.display = 'none';
   document.getElementById('reference').value = '';
+  document.getElementById('nombreSejours').value = 1;
+  document.getElementById('nombreEtages').value = 1;
+  document.getElementById('nombreGarages').value = 0;
+  document.getElementById('fraisLivraisonPhysique').value = 0;
   currentImages = [];
   newFiles = [];
   renderImagePreviews();
@@ -547,7 +675,18 @@ function openEditModal(id, plans) {
   document.getElementById('prix').value = plan.prix;
   document.getElementById('categorie').value = plan.categorie;
   document.getElementById('surface').value = plan.surface;
+  document.getElementById('surfaceTerrainMin').value = plan.surface_terrain_min || '';
   document.getElementById('chambres').value = plan.chambres;
+  document.getElementById('nombreSejours').value = plan.nombre_sejours ?? 1;
+  document.getElementById('nombreSallesEau').value = plan.nombre_salles_eau ?? '';
+  document.getElementById('nombreEtages').value = plan.nombre_etages ?? 1;
+  document.getElementById('nombreGarages').value = plan.nombre_garages ?? 0;
+  document.getElementById('styleArchitectural').value = plan.style_architectural || 'moderne';
+  document.getElementById('piscine').checked = !!plan.piscine;
+  document.getElementById('buanderie').checked = !!plan.buanderie;
+  document.getElementById('terrasseBalcon').checked = !!plan.terrasse_balcon;
+  document.getElementById('livraisonPhysiqueDisponible').checked = !!plan.livraison_physique_disponible;
+  document.getElementById('fraisLivraisonPhysique').value = plan.frais_livraison_physique || 0;
   document.getElementById('statut').value = plan.statut;
 
   const formats = plan.formats || [];
@@ -642,7 +781,18 @@ form.addEventListener('submit', async (e) => {
       prix: parseFloat(document.getElementById('prix').value),
       categorie: document.getElementById('categorie').value,
       surface: parseFloat(document.getElementById('surface').value),
+      surface_terrain_min: parseFloat(document.getElementById('surfaceTerrainMin').value),
       chambres: parseInt(document.getElementById('chambres').value),
+      nombre_sejours: parseInt(document.getElementById('nombreSejours').value),
+      nombre_salles_eau: parseInt(document.getElementById('nombreSallesEau').value),
+      nombre_etages: parseInt(document.getElementById('nombreEtages').value),
+      nombre_garages: parseInt(document.getElementById('nombreGarages').value) || 0,
+      style_architectural: document.getElementById('styleArchitectural').value,
+      piscine: document.getElementById('piscine').checked,
+      buanderie: document.getElementById('buanderie').checked,
+      terrasse_balcon: document.getElementById('terrasseBalcon').checked,
+      livraison_physique_disponible: document.getElementById('livraisonPhysiqueDisponible').checked,
+      frais_livraison_physique: parseFloat(document.getElementById('fraisLivraisonPhysique').value) || 0,
       formats: formats,
       images: allImages,
       statut: document.getElementById('statut').value

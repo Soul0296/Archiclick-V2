@@ -74,9 +74,76 @@
   .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; }
   .toast.success { border-color:var(--success); color:var(--success); }
   .toast.error { border-color:var(--error); color:var(--error); }
+
+  /* ==================== RESPONSIVE MOBILE/TABLETTE ==================== */
+  .mobile-topbar { display:none; }
+  .sidebar-overlay { display:none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:var(--black-soft); border-bottom:1px solid var(--border);
+      padding:0 16px; z-index:150;
+    }
+    .mobile-topbar .logo-mini { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold-light); }
+    .mobile-topbar .logo-mini span { color:var(--gold); }
+    .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
+
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
+    .sidebar.open { transform:translateX(0); }
+
+    .sidebar-overlay.open {
+      display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); z-index:130;
+    }
+
+    .main { margin-left:0 !important; padding:76px 16px 24px !important; }
+    .stats-grid { grid-template-columns:1fr 1fr !important; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:640px; }
+    .form-row { grid-template-columns:1fr !important; }
+    .page-header { flex-wrap:wrap; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns:1fr !important; }
+  }
+
 </style>
 </head>
 <body>
+
+<div class="mobile-topbar">
+  <div class="logo-mini">Archi<span>click</span></div>
+  <button class="menu-toggle-btn" id="menuToggleBtn">☰ Menu</button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleBtn = document.getElementById('menuToggleBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.querySelector('.sidebar');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  });
+});
+</script>
 
 <div class="sidebar">
   <div class="logo">Archi<span>click</span></div>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Admin Archiclick</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --gold: #C9A961; --gold-light: #E5D4A8; --black: #0D0D0D;
+    --black-soft: #1A1A1A; --black-card: #161616; --grey-text: #A8A8A8;
+    --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --border: rgba(201,169,97,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
+
+  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
+  .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
+  .sidebar .logo span { color:var(--gold); }
+  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; }
+  .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
+
+  .main { margin-left:240px; flex:1; padding:32px 40px; }
+  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
+
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filter-btn { background:var(--black-card); border:1px solid var(--border); color:var(--grey-text); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; }
+  .filter-btn.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
+  .filter-btn:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
+  .search-input { background:var(--black-card); border:1px solid var(--border); color:#fff; padding:9px 14px; border-radius:20px; font-size:13px; margin-left:auto; min-width:220px; }
+  .search-input:focus { outline:none; border-color:var(--gold); }
+
+  .btn { padding:10px 18px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.5px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-gold { background:var(--gold); color:var(--black); }
+  .btn-gold:hover { background:var(--gold-light); }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--grey-text); }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold-light); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; padding:14px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
+  td { padding:14px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,0.02); }
+
+  .thumb { width:56px; height:40px; object-fit:cover; border-radius:3px; border:1px solid var(--border); }
+  .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
+  .badge.publie { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.brouillon { background:rgba(217,183,108,0.15); color:var(--warning); }
+
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:6px 10px; border-radius:2px; cursor:pointer; font-size:12px; margin-right:4px; }
+  .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
+  .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
+
+  .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:680px; max-height:92vh; overflow-y:auto; padding:32px; }
+  .modal h2 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold-light); margin-bottom:18px; }
+
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-group { margin-bottom:14px; }
+  .form-group.full { grid-column:1/-1; }
+  label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
+  input, select, textarea { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+  textarea { resize:vertical; }
+  #contenu { min-height:220px; font-family:'Consolas',monospace; font-size:12.5px; line-height:1.6; }
+  #extrait { min-height:60px; }
+
+  .slug-preview { font-size:11px; color:var(--grey-text); margin-top:4px; }
+  .slug-preview span { color:var(--gold-light); }
+
+  .word-count { font-size:11px; color:var(--grey-text); margin-top:4px; }
+
+  .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; }
+  .toast.success { border-color:var(--success); color:var(--success); }
+  .toast.error { border-color:var(--error); color:var(--error); }
+
+  /* ==================== RESPONSIVE MOBILE/TABLETTE ==================== */
+  .mobile-topbar { display:none; }
+  .sidebar-overlay { display:none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:var(--black-soft); border-bottom:1px solid var(--border);
+      padding:0 16px; z-index:150;
+    }
+    .mobile-topbar .logo-mini { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold-light); }
+    .mobile-topbar .logo-mini span { color:var(--gold); }
+    .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
+
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
+    .sidebar.open { transform:translateX(0); }
+
+    .sidebar-overlay.open {
+      display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); z-index:130;
+    }
+
+    .main { margin-left:0 !important; padding:76px 16px 24px !important; }
+    .stats-grid { grid-template-columns:1fr 1fr !important; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:640px; }
+    .form-row { grid-template-columns:1fr !important; }
+    .page-header { flex-wrap:wrap; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns:1fr !important; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <div class="logo-mini">Archi<span>click</span></div>
+  <button class="menu-toggle-btn" id="menuToggleBtn">☰ Menu</button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleBtn = document.getElementById('menuToggleBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.querySelector('.sidebar');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  });
+});
+</script>
+
+<div class="sidebar">
+  <div class="logo">Archi<span>click</span></div>
+  <a href="dashboard.html" class="nav-item" data-page="dashboard">Tableau de bord</a>
+  <a href="db-plans.html" class="nav-item" data-page="plans">Plans</a>
+  <a href="db-commandes.html" class="nav-item" data-page="commandes">Commandes</a>
+  <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
+  <a href="db-avis.html" class="nav-item" data-page="avis">Avis clients</a>
+  <a href="db-demandes.html" class="nav-item" data-page="demandes">Demandes sur mesure</a>
+  <a href="db-promos.html" class="nav-item" data-page="promos">Codes Promo</a>
+  <a href="db-blog.html" class="nav-item active" data-page="blog">Blog</a>
+  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
+  <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
+  <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
+  <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="margin-top:20px; color:var(--error);">Déconnexion</a>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Blog</h1>
+    <button class="btn btn-gold" id="addArticleBtn">+ Nouvel article</button>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="tous">Tous</button>
+    <button class="filter-btn" data-filter="publie">Publiés</button>
+    <button class="filter-btn" data-filter="brouillon">Brouillons</button>
+    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un titre...">
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Image</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="blogTableBody">
+        <tr><td colspan="7" class="empty-state">Chargement...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="articleModal">
+  <div class="modal">
+    <h2 id="modalTitle">Nouvel article</h2>
+    <form id="articleForm">
+      <input type="hidden" id="articleId">
+
+      <div class="form-group full">
+        <label>Titre</label>
+        <input type="text" id="titre" required>
+        <div class="slug-preview">URL : /article.html?slug=<span id="slugPreview">—</span></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Catégorie</label>
+          <select id="categorie">
+            <option value="conseils">Conseils</option>
+            <option value="tendances">Tendances architecture</option>
+            <option value="actualites">Actualités Archiclick</option>
+            <option value="guides">Guides pratiques</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Auteur</label>
+          <input type="text" id="auteur">
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>Image de couverture</label>
+        <input type="file" id="imageInput" accept="image/*">
+        <img id="imagePreview" style="display:none; max-width:180px; margin-top:10px; border-radius:4px; border:1px solid var(--border);">
+      </div>
+
+      <div class="form-group full">
+        <label>Extrait (résumé court affiché dans la liste)</label>
+        <textarea id="extrait" required></textarea>
+      </div>
+
+      <div class="form-group full">
+        <label>Contenu de l'article (HTML simple accepté : &lt;p&gt;, &lt;h2&gt;, &lt;strong&gt;, &lt;ul&gt;...)</label>
+        <textarea id="contenu" required></textarea>
+        <div class="word-count" id="wordCount">0 mots — temps de lecture estimé : 0 min</div>
+      </div>
+
+      <div class="form-group full" style="display:flex; align-items:center; gap:12px;">
+        <label style="margin-bottom:0;">Statut</label>
+        <select id="statut" style="width:auto;">
+          <option value="brouillon">Brouillon</option>
+          <option value="publie">Publié</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="saveBtn">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/supabase.js"></script>
+<script src="../js/permissions.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>
+const BUCKET = 'blog-images';
+let allArticles = [];
+let currentFilter = 'tous';
+let currentSearch = '';
+let isReadOnly = false;
+let newImageFile = null;
+let existingImageUrl = '';
+
+document.addEventListener('adminReady', () => {
+  isReadOnly = window.ADMIN.access('blog') !== 'full';
+  if (isReadOnly) document.getElementById('addArticleBtn').style.display = 'none';
+  document.getElementById('auteur').value = window.ADMIN.nom || '';
+  loadArticles();
+});
+
+function showToast(text, type) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+
+function generateSlug(titre) {
+  return titre
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retire les accents
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+document.getElementById('titre').addEventListener('input', (e) => {
+  document.getElementById('slugPreview').textContent = generateSlug(e.target.value) || '—';
+});
+
+document.getElementById('contenu').addEventListener('input', updateWordCount);
+function updateWordCount() {
+  const text = document.getElementById('contenu').value.replace(/<[^>]*>/g, ' ');
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  document.getElementById('wordCount').textContent = `${words} mots — temps de lecture estimé : ${minutes} min`;
+}
+
+// ---------- FILTRES + RECHERCHE ----------
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderArticles();
+  });
+});
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value.toLowerCase();
+  renderArticles();
+});
+
+// ---------- CHARGEMENT ----------
+async function loadArticles() {
+  const { data, error } = await supabase.from('blog').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('blogTableBody').innerHTML = `<tr><td colspan="7" class="empty-state">Erreur : ${error.message}</td></tr>`;
+    return;
+  }
+  allArticles = data || [];
+  renderArticles();
+}
+
+function renderArticles() {
+  const tbody = document.getElementById('blogTableBody');
+  let filtered = currentFilter === 'tous' ? allArticles : allArticles.filter(a => a.statut === currentFilter);
+  if (currentSearch) filtered = filtered.filter(a => (a.titre || '').toLowerCase().includes(currentSearch));
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aucun article trouvé.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(a => `
+    <tr>
+      <td>${a.image ? `<img src="${a.image}" class="thumb">` : '—'}</td>
+      <td>${escapeHtml(a.titre)}</td>
+      <td>${escapeHtml(a.categorie || '')}</td>
+      <td>${escapeHtml(a.auteur || '')}</td>
+      <td>${a.created_at ? new Date(a.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+      <td><span class="badge ${a.statut}">${a.statut === 'publie' ? 'Publié' : 'Brouillon'}</span></td>
+      <td>
+        ${!isReadOnly ? `
+          <button class="icon-btn edit-btn" data-id="${a.id}">Modifier</button>
+          <button class="icon-btn delete-btn" data-id="${a.id}" style="color:var(--error);">Suppr.</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+
+  if (!isReadOnly) {
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id)));
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteArticle(btn.dataset.id)));
+  }
+}
+
+// ---------- MODAL ----------
+const modal = document.getElementById('articleModal');
+const form = document.getElementById('articleForm');
+
+document.getElementById('addArticleBtn').addEventListener('click', () => {
+  form.reset();
+  document.getElementById('modalTitle').textContent = 'Nouvel article';
+  document.getElementById('articleId').value = '';
+  document.getElementById('slugPreview').textContent = '—';
+  document.getElementById('auteur').value = window.ADMIN.nom || '';
+  document.getElementById('imagePreview').style.display = 'none';
+  newImageFile = null;
+  existingImageUrl = '';
+  updateWordCount();
+  modal.classList.add('open');
+});
+
+document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('open'));
+
+function openEditModal(id) {
+  const a = allArticles.find(x => x.id == id);
+  if (!a) return;
+
+  document.getElementById('modalTitle').textContent = 'Modifier l\'article';
+  document.getElementById('articleId').value = a.id;
+  document.getElementById('titre').value = a.titre;
+  document.getElementById('slugPreview').textContent = a.slug || generateSlug(a.titre);
+  document.getElementById('categorie').value = a.categorie || 'conseils';
+  document.getElementById('auteur').value = a.auteur || '';
+  document.getElementById('extrait').value = a.extrait || '';
+  document.getElementById('contenu').value = a.contenu || '';
+  document.getElementById('statut').value = a.statut || 'brouillon';
+
+  existingImageUrl = a.image || '';
+  newImageFile = null;
+  const preview = document.getElementById('imagePreview');
+  if (existingImageUrl) {
+    preview.src = existingImageUrl;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+
+  updateWordCount();
+  modal.classList.add('open');
+}
+
+document.getElementById('imageInput').addEventListener('change', (e) => {
+  newImageFile = e.target.files[0];
+  if (newImageFile) {
+    const preview = document.getElementById('imagePreview');
+    preview.src = URL.createObjectURL(newImageFile);
+    preview.style.display = 'block';
+  }
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+
+  try {
+    let imageUrl = existingImageUrl;
+
+    if (newImageFile) {
+      const fileName = `${Date.now()}_${newImageFile.name.replace(/\s+/g, '_')}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, newImageFile);
+      if (uploadError) throw uploadError;
+      const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
+      imageUrl = publicUrlData.publicUrl;
+    }
+
+    const titre = document.getElementById('titre').value.trim();
+    const articleData = {
+      titre,
+      slug: generateSlug(titre),
+      categorie: document.getElementById('categorie').value,
+      auteur: document.getElementById('auteur').value.trim(),
+      extrait: document.getElementById('extrait').value.trim(),
+      contenu: document.getElementById('contenu').value.trim(),
+      image: imageUrl,
+      statut: document.getElementById('statut').value
+    };
+
+    const id = document.getElementById('articleId').value;
+    let error;
+    if (id) {
+      ({ error } = await supabase.from('blog').update(articleData).eq('id', id));
+    } else {
+      articleData.created_at = new Date().toISOString();
+      ({ error } = await supabase.from('blog').insert([articleData]));
+    }
+
+    if (error) throw error;
+
+    showToast(id ? 'Article modifié.' : 'Article créé.', 'success');
+    modal.classList.remove('open');
+    loadArticles();
+
+  } catch (err) {
+    showToast('Erreur : ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enregistrer';
+  }
+});
+
+async function deleteArticle(id) {
+  if (!confirm('Supprimer cet article définitivement ?')) return;
+  const { error } = await supabase.from('blog').delete().eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast('Article supprimé.', 'success');
+  loadArticles();
+}
+</script>
+
+</body>
+</html>

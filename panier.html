@@ -36,7 +36,6 @@
         }
         h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
 
-        /* ========== NAVBAR ========== */
         .navbar {
             position:fixed; top:0; left:0; right:0; z-index:100;
             background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
@@ -90,7 +89,6 @@
         }
         .drawer-overlay.open { opacity:1; pointer-events:auto; }
 
-        /* ========== PAGE ========== */
         .panier-container {
             max-width:7xl; margin:6rem auto; padding:0 1.5rem;
             display:grid; grid-template-columns:2fr 1fr; gap:2rem;
@@ -107,7 +105,6 @@
             .page-title { font-size:1.8rem; }
         }
 
-        /* ========== ITEMS ========== */
         .panier-items { }
         .panier-item {
             background:white; padding:1.5rem; border-radius:8px;
@@ -152,7 +149,6 @@
             font-size:3rem; color:var(--creme); margin-bottom:1rem;
         }
 
-        /* ========== SUMMARY ========== */
         .panier-summary {
             background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
             padding:2rem; border-radius:12px; height:fit-content; position:sticky; top:7rem;
@@ -191,7 +187,6 @@
             .summary-total-price { font-size:1.3rem; }
         }
 
-        /* ========== PROMO ========== */
         .promo-section {
             padding:1.5rem; background:white; border-radius:8px;
             border:1px solid var(--creme); margin-bottom:1.5rem;
@@ -224,9 +219,23 @@
             padding:.7rem 1.2rem; cursor:pointer; font-weight:500;
             font-size:.8rem; transition:all .3s ease;
         }
-        .promo-btn:hover { background:var(--or-clair); }
+        .promo-btn:hover:not(:disabled) { background:var(--or-clair); }
+        .promo-btn:disabled { opacity:.6; cursor:not-allowed; }
+        .promo-message {
+            font-size:.8rem; margin-top:.6rem; display:none;
+        }
+        .promo-message.error { color:#ef4444; display:block; }
+        .promo-message.success { color:#10b981; display:block; }
+        .promo-applied-badge {
+            display:none; align-items:center; justify-content:space-between;
+            background:#f0fdf4; border:1px solid #10b981; border-radius:6px;
+            padding:.6rem .9rem; margin-top:.8rem; font-size:.85rem; color:#10b981;
+        }
+        .promo-remove-btn {
+            background:none; border:none; color:#ef4444; cursor:pointer;
+            font-size:.75rem; text-decoration:underline;
+        }
 
-        /* ========== BUTTONS ========== */
         .btn-primary {
             background:var(--or); color:var(--noir); border:none;
             padding:14px 36px; font-weight:500; letter-spacing:2px;
@@ -247,7 +256,6 @@
         }
         .btn-secondary:hover { border-color:var(--or); color:var(--or); }
 
-        /* ========== FOOTER ========== */
         .footer-link {
             font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
             color:rgba(255,255,255,.5); text-decoration:none;
@@ -258,7 +266,6 @@
         .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
         .reveal.visible { opacity:1; transform:translateY(0); }
 
-        /* ========== RESPONSIVE ========== */
         @media(max-width:1023px) {
             .panier-container {
                 grid-template-columns:1fr;
@@ -358,12 +365,17 @@
             <!-- SUMMARY -->
             <div class="panier-summary reveal">
                 <h2 class="summary-title" data-fr="Résumé" data-en="Summary">Résumé</h2>
-                
+
                 <div class="promo-section">
                     <div class="promo-label" data-fr="Code promo" data-en="Promo code">Code promo</div>
                     <div class="promo-input-group">
                         <input type="text" id="promoCode" class="promo-input" placeholder="Entrez votre code" data-fr-placeholder="Entrez votre code" data-en-placeholder="Enter code">
-                        <button class="promo-btn" onclick="applyPromo()" data-fr="Appliquer" data-en="Apply">Appliquer</button>
+                        <button class="promo-btn" id="promoApplyBtn" onclick="applyPromo()" data-fr="Appliquer" data-en="Apply">Appliquer</button>
+                    </div>
+                    <div class="promo-message" id="promoMessage"></div>
+                    <div class="promo-applied-badge" id="promoAppliedBadge">
+                        <span id="promoAppliedText"></span>
+                        <button class="promo-remove-btn" onclick="removePromo()" data-fr="Retirer" data-en="Remove">Retirer</button>
                     </div>
                 </div>
 
@@ -379,7 +391,7 @@
                     <span data-fr="Livraison" data-en="Shipping">Livraison</span>
                     <span data-fr="Gratuite" data-en="Free">Gratuite</span>
                 </div>
-                
+
                 <div class="summary-divider"></div>
 
                 <div class="summary-total">
@@ -433,18 +445,13 @@
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
+    <script src="js/supabase.js"></script>
 
     <script>
         (function() {
             let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
             let panier = [];
-            let promoDiscount = 0;
-            let promoType = null;
+            let appliedPromo = null; // stocke l'objet promo validé { id, code, type, valeur }
 
             function loadPanier() {
                 panier = JSON.parse(localStorage.getItem('panier') || '[]');
@@ -489,18 +496,22 @@
                 renderPanier();
             };
 
+            function calculateDiscount(subtotal) {
+                if (!appliedPromo) return 0;
+                if (appliedPromo.type === 'pourcentage') {
+                    return subtotal * (appliedPromo.valeur / 100);
+                }
+                return Math.min(appliedPromo.valeur, subtotal); // ne descend jamais sous 0
+            }
+
             function updatePrice() {
                 let subtotal = panier.reduce((sum, item) => sum + item.prix, 0);
-                let total = subtotal;
+                const discountAmount = calculateDiscount(subtotal);
+                const total = subtotal - discountAmount;
 
-                if (promoDiscount > 0) {
-                    if (promoType === '%') {
-                        total = subtotal - (subtotal * promoDiscount / 100);
-                    } else {
-                        total = subtotal - promoDiscount;
-                    }
+                if (appliedPromo) {
                     document.getElementById('discountRow').style.display = 'flex';
-                    document.getElementById('discount').textContent = '- ' + (subtotal - total).toLocaleString('fr-FR') + ' FCFA';
+                    document.getElementById('discount').textContent = '- ' + discountAmount.toLocaleString('fr-FR') + ' FCFA';
                 } else {
                     document.getElementById('discountRow').style.display = 'none';
                 }
@@ -509,35 +520,99 @@
                 document.getElementById('totalPrice').textContent = Math.max(0, total).toLocaleString('fr-FR') + ' FCFA';
             }
 
+            function showPromoMessage(text, type) {
+                const el = document.getElementById('promoMessage');
+                el.textContent = text;
+                el.className = 'promo-message ' + type;
+            }
+
+            // ---------- APPLIQUER UN CODE PROMO ----------
+            // Vérifie : existence, statut actif, période de validité, limite d'utilisation
             window.applyPromo = async function() {
                 const code = document.getElementById('promoCode').value.trim().toUpperCase();
                 if (!code) return;
 
+                const btn = document.getElementById('promoApplyBtn');
+                btn.disabled = true;
+                btn.textContent = '...';
+                document.getElementById('promoMessage').className = 'promo-message';
+
                 try {
-                    const { data, error } = await supabase.from('promos').select('*').eq('code', code).eq('actif', true).single();
+                    const { data, error } = await supabase
+                        .from('promos')
+                        .select('*')
+                        .eq('code', code)
+                        .maybeSingle();
+
                     if (error || !data) {
-                        alert(currentLang === 'fr' ? 'Code invalide' : 'Invalid code');
-                        promoDiscount = 0;
+                        showPromoMessage(currentLang === 'fr' ? 'Code invalide.' : 'Invalid code.', 'error');
                         return;
                     }
 
-                    if (data.date_expiration && new Date() > new Date(data.date_expiration)) {
-                        alert(currentLang === 'fr' ? 'Code expiré' : 'Code expired');
-                        promoDiscount = 0;
+                    if (!data.actif) {
+                        showPromoMessage(currentLang === 'fr' ? 'Ce code n\'est plus actif.' : 'This code is no longer active.', 'error');
                         return;
                     }
 
-                    promoDiscount = data.reduction || 0;
-                    promoType = data.type || '%';
-                    alert(currentLang === 'fr' ? 'Code appliqué !' : 'Code applied!');
+                    const today = new Date().toISOString().split('T')[0];
+                    if (data.date_debut && today < data.date_debut) {
+                        showPromoMessage(currentLang === 'fr' ? 'Ce code n\'est pas encore valide.' : 'This code is not yet valid.', 'error');
+                        return;
+                    }
+                    if (data.date_fin && today > data.date_fin) {
+                        showPromoMessage(currentLang === 'fr' ? 'Ce code a expiré.' : 'This code has expired.', 'error');
+                        return;
+                    }
+
+                    if (data.usage_max !== null && data.usage_max !== undefined && (data.usage_actuel || 0) >= data.usage_max) {
+                        showPromoMessage(currentLang === 'fr' ? 'Ce code a atteint sa limite d\'utilisation.' : 'This code has reached its usage limit.', 'error');
+                        return;
+                    }
+
+                    appliedPromo = { id: data.id, code: data.code, type: data.type, valeur: data.valeur };
+
+                    const badgeText = data.type === 'pourcentage'
+                        ? `${data.code} (-${data.valeur}%)`
+                        : `${data.code} (-${Number(data.valeur).toLocaleString('fr-FR')} FCFA)`;
+
+                    document.getElementById('promoAppliedText').textContent = badgeText;
+                    document.getElementById('promoAppliedBadge').style.display = 'flex';
+                    document.getElementById('promoCode').value = '';
+                    document.getElementById('promoCode').disabled = true;
+                    showPromoMessage(currentLang === 'fr' ? 'Code appliqué avec succès !' : 'Code applied successfully!', 'success');
+
                     updatePrice();
+
                 } catch (err) {
-                    console.error('Erreur:', err);
+                    console.error('Erreur code promo :', err);
+                    showPromoMessage(currentLang === 'fr' ? 'Erreur de vérification. Réessaie.' : 'Verification error. Try again.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = currentLang === 'fr' ? 'Appliquer' : 'Apply';
                 }
             };
 
+            window.removePromo = function() {
+                appliedPromo = null;
+                document.getElementById('promoAppliedBadge').style.display = 'none';
+                document.getElementById('promoCode').disabled = false;
+                document.getElementById('promoMessage').className = 'promo-message';
+                updatePrice();
+            };
+
+            // ---------- PASSAGE A LA CONFIRMATION ----------
+            // Le code promo validé est transmis à confirmation.html, qui doit :
+            // 1. Créer la commande avec le montant réduit
+            // 2. Incrémenter usage_actuel de +1 dans la table promos (jamais fait ici,
+            //    pour éviter qu'un rafraîchissement de page ne compte le code deux fois
+            //    sans commande réelle derrière).
             window.goToConfirmation = function() {
                 sessionStorage.setItem('panier', JSON.stringify(panier));
+                if (appliedPromo) {
+                    sessionStorage.setItem('promo_appliquee', JSON.stringify(appliedPromo));
+                } else {
+                    sessionStorage.removeItem('promo_appliquee');
+                }
                 window.location.href = 'confirmation.html';
             };
 
