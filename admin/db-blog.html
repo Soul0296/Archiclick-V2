@@ -71,16 +71,19 @@
   .form-group { margin-bottom:14px; }
   .form-group.full { grid-column:1/-1; }
   label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
-  input, select, textarea { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; }
-  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+  input, textarea { width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff; padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; }
+  input:focus, textarea:focus { outline:none; border-color:var(--gold); }
   textarea { resize:vertical; }
   #contenu { min-height:220px; font-family:'Consolas',monospace; font-size:12.5px; line-height:1.6; }
   #extrait { min-height:60px; }
 
   .slug-preview { font-size:11px; color:var(--grey-text); margin-top:4px; }
   .slug-preview span { color:var(--gold-light); }
-
   .word-count { font-size:11px; color:var(--grey-text); margin-top:4px; }
+
+  .checkbox-row { display:flex; align-items:center; gap:8px; }
+  .checkbox-row input { width:auto; }
+  .checkbox-row label { margin-bottom:0; text-transform:none; letter-spacing:0; font-size:13px; color:#ddd; }
 
   .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
@@ -191,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Image</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+        <tr><th>Image</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date publication</th><th>Statut</th><th>Actions</th></tr>
       </thead>
       <tbody id="blogTableBody">
         <tr><td colspan="7" class="empty-state">Chargement...</td></tr>
@@ -209,23 +212,23 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="form-group full">
         <label>Titre</label>
         <input type="text" id="titre" required>
-        <div class="slug-preview">URL : /article.html?slug=<span id="slugPreview">—</span></div>
+        <div class="slug-preview">Identifiant interne : <span id="slugPreview">—</span></div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label>Catégorie</label>
-          <select id="categorie">
-            <option value="conseils">Conseils</option>
-            <option value="tendances">Tendances architecture</option>
-            <option value="actualites">Actualités Archiclick</option>
-            <option value="guides">Guides pratiques</option>
-          </select>
+          <input type="text" id="categorie" placeholder="ex: Conseils, Tendances...">
         </div>
         <div class="form-group">
           <label>Auteur</label>
           <input type="text" id="auteur">
         </div>
+      </div>
+
+      <div class="form-group">
+        <label>Date de publication</label>
+        <input type="date" id="datePublication">
       </div>
 
       <div class="form-group full">
@@ -235,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
 
       <div class="form-group full">
-        <label>Extrait (résumé court affiché dans la liste)</label>
-        <textarea id="extrait" required></textarea>
+        <label>Extrait (résumé court, optionnel)</label>
+        <textarea id="extrait"></textarea>
       </div>
 
       <div class="form-group full">
@@ -245,12 +248,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="word-count" id="wordCount">0 mots — temps de lecture estimé : 0 min</div>
       </div>
 
-      <div class="form-group full" style="display:flex; align-items:center; gap:12px;">
-        <label style="margin-bottom:0;">Statut</label>
-        <select id="statut" style="width:auto;">
-          <option value="brouillon">Brouillon</option>
-          <option value="publie">Publié</option>
-        </select>
+      <div class="form-group full checkbox-row">
+        <input type="checkbox" id="actif">
+        <label for="actif" style="margin-bottom:0;">Publier immédiatement (visible sur le site public)</label>
       </div>
 
       <div class="modal-actions">
@@ -292,7 +292,7 @@ function escapeHtml(str) { const d = document.createElement('div'); d.textConten
 function generateSlug(titre) {
   return titre
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retire les accents
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
@@ -311,7 +311,6 @@ function updateWordCount() {
   document.getElementById('wordCount').textContent = `${words} mots — temps de lecture estimé : ${minutes} min`;
 }
 
-// ---------- FILTRES + RECHERCHE ----------
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -325,7 +324,6 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   renderArticles();
 });
 
-// ---------- CHARGEMENT ----------
 async function loadArticles() {
   const { data, error } = await supabase.from('blog').select('*').order('created_at', { ascending: false });
   if (error) {
@@ -338,7 +336,10 @@ async function loadArticles() {
 
 function renderArticles() {
   const tbody = document.getElementById('blogTableBody');
-  let filtered = currentFilter === 'tous' ? allArticles : allArticles.filter(a => a.statut === currentFilter);
+  let filtered = currentFilter === 'tous' ? allArticles
+    : currentFilter === 'publie' ? allArticles.filter(a => a.actif)
+    : allArticles.filter(a => !a.actif);
+
   if (currentSearch) filtered = filtered.filter(a => (a.titre || '').toLowerCase().includes(currentSearch));
 
   if (filtered.length === 0) {
@@ -350,10 +351,10 @@ function renderArticles() {
     <tr>
       <td>${a.image ? `<img src="${a.image}" class="thumb">` : '—'}</td>
       <td>${escapeHtml(a.titre)}</td>
-      <td>${escapeHtml(a.categorie || '')}</td>
+      <td>${escapeHtml(a.categorie || '—')}</td>
       <td>${escapeHtml(a.auteur || '')}</td>
-      <td>${a.created_at ? new Date(a.created_at).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge ${a.statut}">${a.statut === 'publie' ? 'Publié' : 'Brouillon'}</span></td>
+      <td>${a.date_publication ? new Date(a.date_publication).toLocaleDateString('fr-FR') : '—'}</td>
+      <td><span class="badge ${a.actif ? 'publie' : 'brouillon'}">${a.actif ? 'Publié' : 'Brouillon'}</span></td>
       <td>
         ${!isReadOnly ? `
           <button class="icon-btn edit-btn" data-id="${a.id}">Modifier</button>
@@ -369,7 +370,6 @@ function renderArticles() {
   }
 }
 
-// ---------- MODAL ----------
 const modal = document.getElementById('articleModal');
 const form = document.getElementById('articleForm');
 
@@ -379,6 +379,7 @@ document.getElementById('addArticleBtn').addEventListener('click', () => {
   document.getElementById('articleId').value = '';
   document.getElementById('slugPreview').textContent = '—';
   document.getElementById('auteur').value = window.ADMIN.nom || '';
+  document.getElementById('datePublication').value = new Date().toISOString().split('T')[0];
   document.getElementById('imagePreview').style.display = 'none';
   newImageFile = null;
   existingImageUrl = '';
@@ -396,11 +397,12 @@ function openEditModal(id) {
   document.getElementById('articleId').value = a.id;
   document.getElementById('titre').value = a.titre;
   document.getElementById('slugPreview').textContent = a.slug || generateSlug(a.titre);
-  document.getElementById('categorie').value = a.categorie || 'conseils';
+  document.getElementById('categorie').value = a.categorie || '';
   document.getElementById('auteur').value = a.auteur || '';
   document.getElementById('extrait').value = a.extrait || '';
   document.getElementById('contenu').value = a.contenu || '';
-  document.getElementById('statut').value = a.statut || 'brouillon';
+  document.getElementById('datePublication').value = a.date_publication ? a.date_publication.split('T')[0] : '';
+  document.getElementById('actif').checked = !!a.actif;
 
   existingImageUrl = a.image || '';
   newImageFile = null;
@@ -445,12 +447,13 @@ form.addEventListener('submit', async (e) => {
     const articleData = {
       titre,
       slug: generateSlug(titre),
-      categorie: document.getElementById('categorie').value,
+      categorie: document.getElementById('categorie').value.trim(),
       auteur: document.getElementById('auteur').value.trim(),
       extrait: document.getElementById('extrait').value.trim(),
       contenu: document.getElementById('contenu').value.trim(),
       image: imageUrl,
-      statut: document.getElementById('statut').value
+      date_publication: document.getElementById('datePublication').value || null,
+      actif: document.getElementById('actif').checked
     };
 
     const id = document.getElementById('articleId').value;

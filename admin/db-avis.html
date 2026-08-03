@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis Clients — Admin Archiclick</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --gold: #C9A961; --gold-light: #E5D4A8; --black: #0D0D0D;
+    --black-soft: #1A1A1A; --black-card: #161616; --grey-text: #A8A8A8;
+    --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --border: rgba(201,169,97,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
+
+  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
+  .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
+  .sidebar .logo span { color:var(--gold); }
+  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; }
+  .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
+
+  .main { margin-left:240px; flex:1; padding:32px 40px; }
+  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
+
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .filter-btn { background:var(--black-card); border:1px solid var(--border); color:var(--grey-text); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; }
+  .filter-btn.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
+  .filter-btn:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
+
+  .btn { padding:9px 16px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.4px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-gold { background:var(--gold); color:var(--black); }
+  .btn-gold:hover { background:var(--gold-light); }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--grey-text); }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold-light); }
+  .btn-danger { background:transparent; border:1px solid rgba(217,108,108,0.4); color:var(--error); }
+  .btn-danger:hover { background:rgba(217,108,108,0.1); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+  .avis-list { display:flex; flex-direction:column; gap:14px; }
+  .avis-card { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:20px; }
+  .avis-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:10px; }
+  .avis-client { font-weight:600; font-size:14px; color:#fff; }
+  .avis-plan-ref { font-size:11px; color:var(--gold-light); background:rgba(201,169,97,0.1); padding:3px 9px; border-radius:10px; margin-left:8px; }
+  .avis-date { font-size:11px; color:var(--grey-text); }
+  .avis-stars { color:var(--gold); font-size:15px; letter-spacing:2px; margin-bottom:8px; }
+  .avis-comment { font-size:13px; color:#ddd; line-height:1.6; margin-bottom:14px; }
+
+  .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
+  .badge.publie { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.en_attente { background:rgba(217,183,108,0.15); color:var(--warning); }
+
+  .reponse-box { background:rgba(255,255,255,0.02); border-left:2px solid var(--gold); border-radius:3px; padding:12px 14px; margin-top:10px; margin-bottom:14px; }
+  .reponse-box .reponse-label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
+  .reponse-box p { font-size:13px; color:#ddd; }
+
+  .reponse-form { margin-top:12px; }
+  .reponse-form textarea {
+    width:100%; background:#000; border:1px solid rgba(255,255,255,0.15); color:#fff;
+    padding:9px 11px; font-family:'Inter',sans-serif; font-size:13px; border-radius:2px; min-height:60px; resize:vertical;
+  }
+  .reponse-form textarea:focus { outline:none; border-color:var(--gold); }
+
+  .avis-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+
+  .empty-state { text-align:center; padding:60px 20px; color:var(--grey-text); background:var(--black-card); border:1px solid var(--border); border-radius:4px; }
+
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; }
+  .toast.success { border-color:var(--success); color:var(--success); }
+  .toast.error { border-color:var(--error); color:var(--error); }
+
+  /* ==================== RESPONSIVE MOBILE/TABLETTE ==================== */
+  .mobile-topbar { display:none; }
+  .sidebar-overlay { display:none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:var(--black-soft); border-bottom:1px solid var(--border);
+      padding:0 16px; z-index:150;
+    }
+    .mobile-topbar .logo-mini { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold-light); }
+    .mobile-topbar .logo-mini span { color:var(--gold); }
+    .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
+
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
+    .sidebar.open { transform:translateX(0); }
+
+    .sidebar-overlay.open {
+      display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); z-index:130;
+    }
+
+    .main { margin-left:0 !important; padding:76px 16px 24px !important; }
+    .stats-grid { grid-template-columns:1fr 1fr !important; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:640px; }
+    .form-row { grid-template-columns:1fr !important; }
+    .page-header { flex-wrap:wrap; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns:1fr !important; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <div class="logo-mini">Archi<span>click</span></div>
+  <button class="menu-toggle-btn" id="menuToggleBtn">☰ Menu</button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleBtn = document.getElementById('menuToggleBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.querySelector('.sidebar');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  });
+});
+</script>
+
+<div class="sidebar">
+  <div class="logo">Archi<span>click</span></div>
+  <a href="dashboard.html" class="nav-item" data-page="dashboard">Tableau de bord</a>
+  <a href="db-plans.html" class="nav-item" data-page="plans">Plans</a>
+  <a href="db-commandes.html" class="nav-item" data-page="commandes">Commandes</a>
+  <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
+  <a href="db-avis.html" class="nav-item active" data-page="avis">Avis clients</a>
+  <a href="db-demandes.html" class="nav-item" data-page="demandes">Demandes sur mesure</a>
+  <a href="db-promos.html" class="nav-item" data-page="promos">Codes Promo</a>
+  <a href="db-blog.html" class="nav-item" data-page="blog">Blog</a>
+  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
+  <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
+  <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
+  <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
+  <a href="#" id="logoutBtn" class="nav-item" style="margin-top:20px; color:var(--error);">Déconnexion</a>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Avis Clients</h1>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="tous">Tous</button>
+    <button class="filter-btn" data-filter="en_attente">En attente de modération</button>
+    <button class="filter-btn" data-filter="publie">Publiés</button>
+  </div>
+
+  <div class="avis-list" id="avisList">
+    <div class="empty-state">Chargement...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/supabase.js"></script>
+<script src="../js/permissions.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>
+let allAvis = [];
+let currentFilter = 'tous';
+let isReadOnly = false;
+
+document.addEventListener('adminReady', () => {
+  isReadOnly = window.ADMIN.access('avis') !== 'full';
+  loadAvis();
+});
+
+function showToast(text, type) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+function renderStars(note) {
+  const n = Math.round(note || 0);
+  return '★'.repeat(n) + '☆'.repeat(5 - n);
+}
+
+// ---------- FILTRES ----------
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderAvis();
+  });
+});
+
+// ---------- CHARGEMENT ----------
+async function loadAvis() {
+  const { data, error } = await supabase
+    .from('avis')
+    .select('*, plans(titre, reference)')
+    .order('date_avis', { ascending: false });
+
+  if (error) {
+    document.getElementById('avisList').innerHTML = `<div class="empty-state">Erreur : ${error.message}</div>`;
+    return;
+  }
+  allAvis = data || [];
+  renderAvis();
+}
+
+function renderAvis() {
+  const container = document.getElementById('avisList');
+  const filtered = currentFilter === 'tous' ? allAvis : allAvis.filter(a => a.statut === currentFilter);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state">Aucun avis pour ce filtre.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(a => `
+    <div class="avis-card" data-id="${a.id}">
+      <div class="avis-top">
+        <div>
+          <span class="avis-client">${escapeHtml(a.client_nom || 'Client anonyme')}</span>
+          ${a.plans ? `<span class="avis-plan-ref">${escapeHtml(a.plans.reference || a.plans.titre)}</span>` : ''}
+        </div>
+        <div>
+          <span class="badge ${a.statut}">${a.statut === 'publie' ? 'Publié' : 'En attente'}</span>
+          <span class="avis-date">${a.date_avis ? new Date(a.date_avis).toLocaleDateString('fr-FR') : ''}</span>
+        </div>
+      </div>
+      <div class="avis-stars">${renderStars(a.note)}</div>
+      <div class="avis-comment">${escapeHtml(a.commentaire)}</div>
+
+      ${a.reponse ? `
+        <div class="reponse-box">
+          <div class="reponse-label">Réponse de l'équipe Archiclick</div>
+          <p>${escapeHtml(a.reponse)}</p>
+        </div>
+      ` : ''}
+
+      ${!isReadOnly ? `
+        <div class="avis-actions">
+          ${a.statut !== 'publie' ? `<button class="btn btn-gold publish-btn" data-id="${a.id}">Publier</button>` : `<button class="btn btn-outline unpublish-btn" data-id="${a.id}">Dépublier</button>`}
+          <button class="btn btn-outline reply-toggle-btn" data-id="${a.id}">${a.reponse ? 'Modifier la réponse' : 'Répondre'}</button>
+          <button class="btn btn-danger delete-btn" data-id="${a.id}">Supprimer</button>
+        </div>
+        <div class="reponse-form" id="replyForm-${a.id}" style="display:none;">
+          <textarea id="replyInput-${a.id}" placeholder="Votre réponse publique au client...">${escapeHtml(a.reponse || '')}</textarea>
+          <div class="avis-actions">
+            <button class="btn btn-gold save-reply-btn" data-id="${a.id}">Enregistrer la réponse</button>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  if (!isReadOnly) {
+    document.querySelectorAll('.publish-btn').forEach(btn => btn.addEventListener('click', () => setStatut(btn.dataset.id, 'publie')));
+    document.querySelectorAll('.unpublish-btn').forEach(btn => btn.addEventListener('click', () => setStatut(btn.dataset.id, 'en_attente')));
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteAvis(btn.dataset.id)));
+    document.querySelectorAll('.reply-toggle-btn').forEach(btn => btn.addEventListener('click', () => {
+      const form = document.getElementById('replyForm-' + btn.dataset.id);
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }));
+    document.querySelectorAll('.save-reply-btn').forEach(btn => btn.addEventListener('click', () => saveReply(btn.dataset.id)));
+  }
+}
+
+// ---------- PUBLIER / DEPUBLIER ----------
+// Le statut "publie" est ce qui doit être lu par plan-detail.html sur le site public
+// pour décider quels avis afficher sous chaque plan.
+async function setStatut(id, statut) {
+  const { error } = await supabase.from('avis').update({ statut }).eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast(statut === 'publie' ? 'Avis publié sur la fiche du plan.' : 'Avis dépublié.', 'success');
+  loadAvis();
+}
+
+// ---------- REPONSE PUBLIQUE ----------
+async function saveReply(id) {
+  const reponse = document.getElementById('replyInput-' + id).value.trim();
+  const { error } = await supabase.from('avis').update({ reponse }).eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast('Réponse enregistrée.', 'success');
+  loadAvis();
+}
+
+// ---------- SUPPRESSION ----------
+async function deleteAvis(id) {
+  if (!confirm('Supprimer cet avis définitivement ?')) return;
+  const { error } = await supabase.from('avis').delete().eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast('Avis supprimé.', 'success');
+  loadAvis();
+}
+</script>
+
+</body>
+</html>

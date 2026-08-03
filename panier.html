@@ -498,10 +498,10 @@
 
             function calculateDiscount(subtotal) {
                 if (!appliedPromo) return 0;
-                if (appliedPromo.type === 'pourcentage') {
-                    return subtotal * (appliedPromo.valeur / 100);
+                if (appliedPromo.type === '%') {
+                    return subtotal * (appliedPromo.reduction / 100);
                 }
-                return Math.min(appliedPromo.valeur, subtotal); // ne descend jamais sous 0
+                return Math.min(appliedPromo.reduction, subtotal); // ne descend jamais sous 0
             }
 
             function updatePrice() {
@@ -527,7 +527,7 @@
             }
 
             // ---------- APPLIQUER UN CODE PROMO ----------
-            // Vérifie : existence, statut actif, période de validité, limite d'utilisation
+            // Vérifie : existence, statut actif, date d'expiration
             window.applyPromo = async function() {
                 const code = document.getElementById('promoCode').value.trim().toUpperCase();
                 if (!code) return;
@@ -554,26 +554,16 @@
                         return;
                     }
 
-                    const today = new Date().toISOString().split('T')[0];
-                    if (data.date_debut && today < data.date_debut) {
-                        showPromoMessage(currentLang === 'fr' ? 'Ce code n\'est pas encore valide.' : 'This code is not yet valid.', 'error');
-                        return;
-                    }
-                    if (data.date_fin && today > data.date_fin) {
+                    if (data.date_expiration && new Date() > new Date(data.date_expiration)) {
                         showPromoMessage(currentLang === 'fr' ? 'Ce code a expiré.' : 'This code has expired.', 'error');
                         return;
                     }
 
-                    if (data.usage_max !== null && data.usage_max !== undefined && (data.usage_actuel || 0) >= data.usage_max) {
-                        showPromoMessage(currentLang === 'fr' ? 'Ce code a atteint sa limite d\'utilisation.' : 'This code has reached its usage limit.', 'error');
-                        return;
-                    }
+                    appliedPromo = { id: data.id, code: data.code, type: data.type, reduction: data.reduction };
 
-                    appliedPromo = { id: data.id, code: data.code, type: data.type, valeur: data.valeur };
-
-                    const badgeText = data.type === 'pourcentage'
-                        ? `${data.code} (-${data.valeur}%)`
-                        : `${data.code} (-${Number(data.valeur).toLocaleString('fr-FR')} FCFA)`;
+                    const badgeText = data.type === '%'
+                        ? `${data.code} (-${data.reduction}%)`
+                        : `${data.code} (-${Number(data.reduction).toLocaleString('fr-FR')} FCFA)`;
 
                     document.getElementById('promoAppliedText').textContent = badgeText;
                     document.getElementById('promoAppliedBadge').style.display = 'flex';
@@ -601,11 +591,8 @@
             };
 
             // ---------- PASSAGE A LA CONFIRMATION ----------
-            // Le code promo validé est transmis à confirmation.html, qui doit :
-            // 1. Créer la commande avec le montant réduit
-            // 2. Incrémenter usage_actuel de +1 dans la table promos (jamais fait ici,
-            //    pour éviter qu'un rafraîchissement de page ne compte le code deux fois
-            //    sans commande réelle derrière).
+            // Le code promo validé est transmis à confirmation.html, qui doit
+            // créer la commande avec le montant réduit.
             window.goToConfirmation = function() {
                 sessionStorage.setItem('panier', JSON.stringify(panier));
                 if (appliedPromo) {

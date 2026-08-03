@@ -191,10 +191,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Code</th><th>Réduction</th><th>Validité</th><th>Utilisation</th><th>Statut</th><th>Actions</th></tr>
+        <tr><th>Code</th><th>Réduction</th><th>Validité</th><th>Statut</th><th>Actions</th></tr>
       </thead>
       <tbody id="promosTableBody">
-        <tr><td colspan="6" class="empty-state">Chargement...</td></tr>
+        <tr><td colspan="5" class="empty-state">Chargement...</td></tr>
       </tbody>
     </table>
   </div>
@@ -215,30 +215,19 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="form-group">
           <label>Type de réduction</label>
           <select id="typeReduction" required>
-            <option value="pourcentage">Pourcentage (%)</option>
-            <option value="montant_fixe">Montant fixe (FCFA)</option>
+            <option value="%">Pourcentage (%)</option>
+            <option value="fixe">Montant fixe (FCFA)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Valeur</label>
+          <label>Valeur de la réduction</label>
           <input type="number" id="valeur" min="0" required>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Date de début</label>
-          <input type="date" id="dateDebut" required>
-        </div>
-        <div class="form-group">
-          <label>Date de fin</label>
-          <input type="date" id="dateFin" required>
-        </div>
-      </div>
-
       <div class="form-group">
-        <label>Nombre d'utilisations max (laisser vide = illimité)</label>
-        <input type="number" id="usageMax" min="1">
+        <label>Date d'expiration</label>
+        <input type="date" id="dateFin" required>
       </div>
 
       <div class="form-group toggle-row">
@@ -283,7 +272,7 @@ function escapeHtml(str) { const d = document.createElement('div'); d.textConten
 // ---------- STATUT CALCULE (tient compte de la date de fin) ----------
 function getComputedStatus(promo) {
   const today = new Date().toISOString().split('T')[0];
-  if (promo.date_fin && promo.date_fin < today) return 'expire';
+  if (promo.date_expiration && promo.date_expiration < today) return 'expire';
   return promo.actif ? 'actif' : 'inactif';
 }
 
@@ -301,7 +290,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 async function loadPromos() {
   const { data, error } = await supabase.from('promos').select('*').order('created_at', { ascending: false });
   if (error) {
-    document.getElementById('promosTableBody').innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${error.message}</td></tr>`;
+    document.getElementById('promosTableBody').innerHTML = `<tr><td colspan="5" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
   allPromos = data || [];
@@ -313,7 +302,7 @@ function renderPromos() {
   const filtered = currentFilter === 'tous' ? allPromos : allPromos.filter(p => getComputedStatus(p) === currentFilter);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucun code promo pour ce filtre.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucun code promo pour ce filtre.</td></tr>`;
     return;
   }
 
@@ -321,10 +310,7 @@ function renderPromos() {
 
   tbody.innerHTML = filtered.map(p => {
     const status = getComputedStatus(p);
-    const reduction = p.type === 'pourcentage' ? `${p.valeur}%` : `${Number(p.valeur).toLocaleString('fr-FR')} FCFA`;
-    const usageMax = p.usage_max || null;
-    const usageActuel = p.usage_actuel || 0;
-    const pct = usageMax ? Math.min(100, Math.round((usageActuel / usageMax) * 100)) : 0;
+    const reduction = p.type === '%' ? `${p.reduction}%` : `${Number(p.reduction).toLocaleString('fr-FR')} FCFA`;
 
     return `
       <tr>
@@ -335,13 +321,7 @@ function renderPromos() {
           </div>
         </td>
         <td>${reduction}</td>
-        <td>${new Date(p.date_debut).toLocaleDateString('fr-FR')} → ${new Date(p.date_fin).toLocaleDateString('fr-FR')}</td>
-        <td>
-          ${usageMax ? `
-            <div class="usage-bar-wrap"><div class="usage-bar-fill" style="width:${pct}%"></div></div>
-            <div class="usage-text">${usageActuel} / ${usageMax}</div>
-          ` : `<div class="usage-text">${usageActuel} utilisations (illimité)</div>`}
-        </td>
+        <td>Expire le ${new Date(p.date_expiration).toLocaleDateString('fr-FR')}</td>
         <td><span class="badge ${status}">${statusLabels[status]}</span></td>
         <td>
           ${!isReadOnly ? `
@@ -387,10 +367,8 @@ function openModal(id) {
   document.getElementById('promoId').value = p.id;
   document.getElementById('codeInput').value = p.code;
   document.getElementById('typeReduction').value = p.type;
-  document.getElementById('valeur').value = p.valeur;
-  document.getElementById('dateDebut').value = p.date_debut;
-  document.getElementById('dateFin').value = p.date_fin;
-  document.getElementById('usageMax').value = p.usage_max || '';
+  document.getElementById('valeur').value = p.reduction;
+  document.getElementById('dateFin').value = p.date_expiration;
   document.getElementById('actif').value = String(p.actif);
 
   modal.classList.add('open');
@@ -402,13 +380,11 @@ function duplicatePromo(id) {
 
   form.reset();
   document.getElementById('modalTitle').textContent = 'Dupliquer le code promo';
-  document.getElementById('promoId').value = ''; // nouvelle entrée
+  document.getElementById('promoId').value = '';
   document.getElementById('codeInput').value = p.code + '-COPIE';
   document.getElementById('typeReduction').value = p.type;
-  document.getElementById('valeur').value = p.valeur;
-  document.getElementById('dateDebut').value = p.date_debut;
-  document.getElementById('dateFin').value = p.date_fin;
-  document.getElementById('usageMax').value = p.usage_max || '';
+  document.getElementById('valeur').value = p.reduction;
+  document.getElementById('dateFin').value = p.date_expiration;
   document.getElementById('actif').value = 'true';
 
   modal.classList.add('open');
@@ -422,10 +398,8 @@ form.addEventListener('submit', async (e) => {
   const data = {
     code: document.getElementById('codeInput').value.trim().toUpperCase(),
     type: document.getElementById('typeReduction').value,
-    valeur: parseFloat(document.getElementById('valeur').value),
-    date_debut: document.getElementById('dateDebut').value,
-    date_fin: document.getElementById('dateFin').value,
-    usage_max: document.getElementById('usageMax').value ? parseInt(document.getElementById('usageMax').value) : null,
+    reduction: parseFloat(document.getElementById('valeur').value),
+    date_expiration: document.getElementById('dateFin').value,
     actif: document.getElementById('actif').value === 'true'
   };
 
@@ -434,7 +408,6 @@ form.addEventListener('submit', async (e) => {
   if (id) {
     ({ error } = await supabase.from('promos').update(data).eq('id', id));
   } else {
-    data.usage_actuel = 0;
     data.created_at = new Date().toISOString();
     ({ error } = await supabase.from('promos').insert([data]));
   }
