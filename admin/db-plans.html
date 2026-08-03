@@ -529,6 +529,14 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../js/auth-guard.js"></script>
 <script>
 const BUCKET = 'plans-images';
+
+// Nettoie un nom de fichier pour qu'il soit accepté par Supabase Storage :
+// retire les accents, l'apostrophe, et tout caractère non alphanumérique (sauf . et -)
+function sanitizeFileName(name) {
+  return name
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retire les accents
+    .replace(/[^a-zA-Z0-9.\-]/g, '_'); // remplace tout le reste par _
+}
 let currentImages = []; // URLs déjà enregistrées pour le plan en cours d'édition
 let newFiles = [];      // Nouveaux fichiers à uploader
 let isReadOnly = false; // true si le rôle de l'admin n'a que la lecture sur "plans"
@@ -755,7 +763,7 @@ form.addEventListener('submit', async (e) => {
     // 1. Upload des nouvelles images
     const uploadedUrls = [];
     for (const file of newFiles) {
-      const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const fileName = `${Date.now()}_${sanitizeFileName(file.name)}`;
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
         .upload(fileName, file);
