@@ -271,17 +271,30 @@
             100% { background-position:-200% 0; }
         }
 
-        /* ========== CARTES PLANS (coherent avec index.html) ========== */
+        /* ========== CARTES PLANS ========== */
         .plan-card {
             background:var(--blanc); overflow:hidden;
             transition:transform .5s ease, box-shadow .5s ease; cursor:pointer;
         }
         .plan-card:hover { transform:translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,.08); }
-        .plan-card .card-img { position:relative; overflow:hidden; }
-        .plan-card .card-img img {
-            width:100%; height:280px; object-fit:cover; transition:transform .6s ease;
+
+        /* CARROUSEL PHOTO */
+        .card-img { position:relative; overflow:hidden; height:280px; background:var(--creme); }
+        .card-img .carousel-img {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            object-fit:cover; opacity:0; transition:opacity .7s ease;
         }
-        .plan-card:hover .card-img img { transform:scale(1.05); }
+        .card-img .carousel-img.active { opacity:1; }
+        .carousel-dots {
+            position:absolute; bottom:10px; left:0; right:0;
+            display:flex; justify-content:center; gap:5px; z-index:2;
+        }
+        .carousel-dots span {
+            width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.5);
+            transition:background .3s ease;
+        }
+        .carousel-dots span.active { background:#fff; }
+
         .card-body { padding:1.8rem; }
         .card-title {
             font-family:'Cormorant Garamond',serif; font-size:1.35rem;
@@ -291,8 +304,9 @@
         .card-meta span {
             font-family:'Inter',sans-serif; font-size:.75rem;
             font-weight:300; color:var(--gris-doux); letter-spacing:.5px;
+            display:inline-flex; align-items:center;
         }
-        .meta-icon { color:var(--or)!important; font-size:.7rem!important; margin-right:4px!important; }
+        .meta-icon { color:var(--or)!important; font-size:.75rem!important; margin-right:4px!important; }
         .card-footer {
             display:flex; justify-content:space-between; align-items:center;
             padding-top:1.2rem; border-top:1px solid var(--creme);
@@ -555,7 +569,6 @@
 
                 <!-- GRILLE PRODUITS -->
                 <div class="products-grid" id="productsGrid">
-                    <!-- Skeleton shimmer affiche pendant le chargement -->
                     <div class="skeleton-card reveal"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
                     <div class="skeleton-card reveal reveal-d1"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
                     <div class="skeleton-card reveal reveal-d2"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-footer"><div class="skeleton-price"></div><div class="skeleton-btn"></div></div></div></div>
@@ -626,8 +639,9 @@
             let itemsPerPage = 12;
             let currentPage = 1;
             let filterTimeout = null;
+            let carouselInterval = null;
 
-            /* ---- LANGUE (API coherente avec index.html) ---- */
+            /* ---- LANGUE ---- */
             function setLang(lang) {
                 currentLang = lang;
                 localStorage.setItem('archiclick_lang', lang);
@@ -645,14 +659,12 @@
             window.toggleLanguage = toggleLanguage;
             window.getAppLang = () => currentLang;
 
-            /* ---- MOBILE MENU ---- */
             function toggleMobileMenu() {
                 document.getElementById('mobileDrawer').classList.toggle('open');
                 document.getElementById('drawerOverlay').classList.toggle('open');
             }
             window.toggleMobileMenu = toggleMobileMenu;
 
-            /* ---- COLLAPSIBLE FILTER GROUPS ---- */
             function toggleFilterGroup(titleEl) {
                 titleEl.classList.toggle('collapsed');
                 const items = titleEl.nextElementSibling;
@@ -660,16 +672,12 @@
             }
             window.toggleFilterGroup = toggleFilterGroup;
 
-            /* ---- DEBOUNCE FILTRES ---- */
             function queueFilters() {
                 if (filterTimeout) clearTimeout(filterTimeout);
-                filterTimeout = setTimeout(() => {
-                    applyFilters();
-                }, 300);
+                filterTimeout = setTimeout(() => { applyFilters(); }, 300);
             }
             window.queueFilters = queueFilters;
 
-            /* ---- LIRE FILTRES URL ---- */
             function readFiltersFromURL() {
                 const params = new URLSearchParams(window.location.search);
                 const types = params.get('type');
@@ -681,18 +689,9 @@
                 const bMax = params.get('budget_max');
                 const sort = params.get('sort');
 
-                if (types) types.split(',').forEach(t => {
-                    const cb = document.getElementById('type-' + t);
-                    if (cb) cb.checked = true;
-                });
-                if (beds) beds.split(',').forEach(b => {
-                    const cb = document.getElementById('bed-' + b);
-                    if (cb) cb.checked = true;
-                });
-                if (floors) floors.split(',').forEach(f => {
-                    const cb = document.getElementById('etage-' + f);
-                    if (cb) cb.checked = true;
-                });
+                if (types) types.split(',').forEach(t => { const cb = document.getElementById('type-' + t); if (cb) cb.checked = true; });
+                if (beds) beds.split(',').forEach(b => { const cb = document.getElementById('bed-' + b); if (cb) cb.checked = true; });
+                if (floors) floors.split(',').forEach(f => { const cb = document.getElementById('etage-' + f); if (cb) cb.checked = true; });
                 if (sMin) document.getElementById('surfaceMin').value = sMin;
                 if (sMax) document.getElementById('surfaceMax').value = sMax;
                 if (bMin) document.getElementById('budgetMin').value = bMin;
@@ -700,7 +699,6 @@
                 if (sort) document.getElementById('sortSelect').value = sort;
             }
 
-            /* ---- ECRIRE FILTRES URL ---- */
             function writeFiltersToURL() {
                 const params = new URLSearchParams();
                 const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
@@ -725,50 +723,30 @@
                 window.history.replaceState({}, '', newUrl);
             }
 
-            /* ---- COMPTER PAR FILTRE ---- */
+            /* ---- COMPTER PAR FILTRE (utilise nombre_etages, la vraie colonne) ---- */
             function updateFilterCounts() {
-                const countBy = (keyPrefix, attr) => {
-                    for (let i = 1; i <= 5; i++) {
-                        const el = document.getElementById('count-' + keyPrefix + '-' + i);
-                        if (!el) continue;
-                        const count = allPlans.filter(p => {
-                            const val = p[attr];
-                            if (val == null) return false;
-                            if (attr === 'chambres' || attr === 'etages') return val >= i;
-                            return String(val).toLowerCase() === el.id.replace('count-' + keyPrefix + '-', '');
-                        }).length;
-                        el.textContent = '(' + count + ')';
-                    }
-                };
-                // Compte pour types
                 ['villa', 'duplex', 'triplex', 'immeuble'].forEach(type => {
                     const el = document.getElementById('count-' + type);
                     if (el) el.textContent = '(' + allPlans.filter(p => p.type_batiment === type).length + ')';
                 });
-                // Compte pour etages
                 [1, 2, 3].forEach(n => {
                     const el = document.getElementById('count-etage-' + n);
                     if (!el) return;
-                    if (n === 3) {
-                        el.textContent = '(' + allPlans.filter(p => (p.etages || 0) >= 3).length + ')';
-                    } else {
-                        el.textContent = '(' + allPlans.filter(p => (p.etages || 0) === n).length + ')';
-                    }
+                    if (n === 3) el.textContent = '(' + allPlans.filter(p => (p.nombre_etages || 0) >= 3).length + ')';
+                    else el.textContent = '(' + allPlans.filter(p => (p.nombre_etages || 0) === n).length + ')';
                 });
-                // Compte pour chambres
                 [1, 2, 3, 4, 5].forEach(n => {
                     const el = document.getElementById('count-bed-' + n);
                     if (el) el.textContent = '(' + allPlans.filter(p => (p.chambres || 0) >= n).length + ')';
                 });
             }
 
-            /* ---- CHARGER PLANS (colonnes optimisees) ---- */
+            /* ---- CHARGER PLANS (vraies colonnes + critères supplémentaires) ---- */
             async function loadPlans() {
-                showSkeleton();
                 try {
                     const { data, error } = await supabase
                         .from('plans')
-                        .select('id,titre,type_batiment,chambres,sdb,etages,surface_habitable,prix_base,images,created_at')
+                        .select('id,reference,titre,type_batiment,chambres,nombre_salles_eau,nombre_etages,nombre_sejours,nombre_garages,piscine,buanderie,terrasse_balcon,surface_habitable,prix_base,images,created_at')
                         .eq('actif', true)
                         .order('created_at', { ascending: false });
                     if (error) throw error;
@@ -783,11 +761,6 @@
                 }
             }
 
-            /* ---- ETATS UI ---- */
-            function showSkeleton() {
-                // Le skeleton est deja dans le HTML, on le laisse
-            }
-
             function showErrorState() {
                 document.getElementById('productsGrid').innerHTML =
                     '<div class="error-state col-span-full">' +
@@ -798,12 +771,8 @@
                     '</div>';
                 document.getElementById('loadMoreContainer').style.display = 'none';
             }
+            window.loadPlansRetry = function() { loadPlans(); };
 
-            window.loadPlansRetry = function() {
-                loadPlans();
-            };
-
-            /* ---- FILTRES ---- */
             function getSelectedFilters() {
                 const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
                 const beds = Array.from(document.querySelectorAll('input[id^="bed-"]:checked')).map(el => parseInt(el.value));
@@ -812,7 +781,6 @@
                 const surfaceMax = parseInt(document.getElementById('surfaceMax').value) || Infinity;
                 const budgetMin = parseInt(document.getElementById('budgetMin').value) || 0;
                 const budgetMax = parseInt(document.getElementById('budgetMax').value) || Infinity;
-
                 return { types, beds, floors, surfaceMin, surfaceMax, budgetMin, budgetMax };
             }
 
@@ -822,15 +790,14 @@
                     if (filters.types.length > 0 && !filters.types.includes(plan.type_batiment)) return false;
                     if (filters.beds.length > 0 && !filters.beds.some(b => (plan.chambres || 0) >= b)) return false;
                     if (filters.floors.length > 0 && !filters.floors.some(f => {
-                        if (f === 3) return (plan.etages || 0) >= 3;
-                        return (plan.etages || 0) === f;
+                        if (f === 3) return (plan.nombre_etages || 0) >= 3;
+                        return (plan.nombre_etages || 0) === f;
                     })) return false;
                     if ((plan.surface_habitable || 0) < filters.surfaceMin || (plan.surface_habitable || 0) > filters.surfaceMax) return false;
                     if ((plan.prix_base || 0) < filters.budgetMin || (plan.prix_base || 0) > filters.budgetMax) return false;
                     return true;
                 });
 
-                // TRI
                 const sortValue = document.getElementById('sortSelect').value;
                 if (sortValue === 'price-asc') displayedPlans.sort((a, b) => (a.prix_base || 0) - (b.prix_base || 0));
                 else if (sortValue === 'price-desc') displayedPlans.sort((a, b) => (b.prix_base || 0) - (a.prix_base || 0));
@@ -842,10 +809,43 @@
             }
             window.applyFilters = applyFilters;
 
+            /* ---- ICONES DE CRITERES (Font Awesome, pas d'emoji) ---- */
+            function buildIconsRow(p) {
+                const items = [];
+                if (p.chambres) items.push(`<span title="Chambres"><i class="fas fa-bed meta-icon"></i>${p.chambres}</span>`);
+                if (p.nombre_salles_eau) items.push(`<span title="Salles de bain / douche"><i class="fas fa-bath meta-icon"></i>${p.nombre_salles_eau}</span>`);
+                if (p.nombre_etages) items.push(`<span title="Étages"><i class="fas fa-layer-group meta-icon"></i>${p.nombre_etages}</span>`);
+                if (p.nombre_sejours) items.push(`<span title="Séjours"><i class="fas fa-couch meta-icon"></i>${p.nombre_sejours}</span>`);
+                if (p.nombre_garages) items.push(`<span title="Garage"><i class="fas fa-warehouse meta-icon"></i>${p.nombre_garages}</span>`);
+                if (p.surface_habitable) items.push(`<span title="Surface habitable"><i class="fas fa-ruler-combined meta-icon"></i>${p.surface_habitable} m&sup2;</span>`);
+                if (p.piscine) items.push(`<span title="Piscine"><i class="fas fa-water meta-icon"></i></span>`);
+                if (p.buanderie) items.push(`<span title="Buanderie"><i class="fas fa-soap meta-icon"></i></span>`);
+                if (p.terrasse_balcon) items.push(`<span title="Terrasse / Balcon"><i class="fas fa-door-open meta-icon"></i></span>`);
+                return items.join('');
+            }
+
+            /* ---- CARROUSEL PHOTO (change toutes les 3s) ---- */
+            function startCarousels() {
+                if (carouselInterval) clearInterval(carouselInterval);
+                carouselInterval = setInterval(() => {
+                    document.querySelectorAll('.card-img[data-multi="1"]').forEach(container => {
+                        const imgs = container.querySelectorAll('.carousel-img');
+                        const dots = container.querySelectorAll('.carousel-dots span');
+                        if (imgs.length <= 1) return;
+                        let activeIdx = Array.from(imgs).findIndex(img => img.classList.contains('active'));
+                        if (activeIdx === -1) activeIdx = 0;
+                        imgs[activeIdx].classList.remove('active');
+                        if (dots[activeIdx]) dots[activeIdx].classList.remove('active');
+                        const nextIdx = (activeIdx + 1) % imgs.length;
+                        imgs[nextIdx].classList.add('active');
+                        if (dots[nextIdx]) dots[nextIdx].classList.add('active');
+                    });
+                }, 3000);
+            }
+
             function renderPlans() {
-                const start = 0;
                 const end = currentPage * itemsPerPage;
-                const plansToShow = displayedPlans.slice(start, end);
+                const plansToShow = displayedPlans.slice(0, end);
 
                 document.getElementById('planCount').textContent = displayedPlans.length;
 
@@ -858,29 +858,27 @@
                     return;
                 }
 
-                const et = currentLang === 'fr' ? 'et.' : 'fl.';
-                const ch = currentLang === 'fr' ? 'ch.' : 'bdr';
-                const sdb = currentLang === 'fr' ? 'sdb' : 'bath';
                 const voir = currentLang === 'fr' ? 'Voir le plan' : 'View plan';
 
                 document.getElementById('productsGrid').innerHTML = plansToShow.map((p, idx) => {
-                    const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/600x400/eae3db/b0b0b0?text=Plan';
+                    const images = (p.images && p.images.length) ? p.images : ['https://placehold.co/600x400/eae3db/b0b0b0?text=Plan'];
+                    const isMulti = images.length > 1;
+                    const imgsHtml = images.map((img, i) => `<img src="${img}" class="carousel-img ${i === 0 ? 'active' : ''}" alt="${p.titre}" loading="lazy">`).join('');
+                    const dotsHtml = isMulti ? `<div class="carousel-dots">${images.map((_, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')}</div>` : '';
                     const delayClass = idx < 6 ? ' reveal-d' + (idx % 5) : '';
-                    return `<div class="plan-card reveal${delayClass}">
-                        <div class="card-img">
-                            <img src="${img}" alt="${p.titre}" loading="lazy">
+                    const iconsRow = buildIconsRow(p);
+
+                    return `<div class="plan-card reveal${delayClass}" onclick="window.location.href='plan-detail.html?id=${p.id}'">
+                        <div class="card-img" data-multi="${isMulti ? '1' : '0'}">
+                            ${imgsHtml}
+                            ${dotsHtml}
                         </div>
                         <div class="card-body">
                             <h3 class="card-title">${p.titre}</h3>
-                            <div class="card-meta">
-                                <span><i class="fas fa-layer-group meta-icon"></i>${p.etages || '?'} ${et}</span>
-                                <span><i class="fas fa-bed meta-icon"></i>${p.chambres || '?'} ${ch}</span>
-                                <span><i class="fas fa-bath meta-icon"></i>${p.sdb || '?'} ${sdb}</span>
-                                <span><i class="fas fa-ruler-combined meta-icon"></i>${p.surface_habitable || '?'} m&sup2;</span>
-                            </div>
+                            <div class="card-meta">${iconsRow}</div>
                             <div class="card-footer">
                                 <div class="card-price">${(p.prix_base || 0).toLocaleString('fr-FR')} <small>FCFA</small></div>
-                                <a href="plan-detail.html?id=${p.id}" class="btn-outline">${voir}</a>
+                                <a href="plan-detail.html?id=${p.id}" class="btn-outline" onclick="event.stopPropagation()">${voir}</a>
                             </div>
                         </div>
                     </div>`;
@@ -888,6 +886,7 @@
 
                 document.getElementById('loadMoreContainer').style.display = end < displayedPlans.length ? 'block' : 'none';
                 observeReveals();
+                startCarousels();
             }
 
             function loadMorePlans() {
@@ -904,28 +903,19 @@
             }
             window.resetFilters = resetFilters;
 
-            /* ---- REVEAL AU SCROLL ---- */
             function observeReveals() {
                 const reveals = document.querySelectorAll('.reveal:not(.visible)');
                 const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
-                        }
-                    });
+                    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
                 }, { threshold: 0.1 });
                 reveals.forEach(el => observer.observe(el));
             }
             window.observeNewReveals = observeReveals;
 
-            /* ---- CALLBACK i18n ---- */
             window.onLanguageChange = function() {
-                if (allPlans.length) {
-                    applyFilters();
-                }
+                if (allPlans.length) applyFilters();
             };
 
-            /* ---- INIT ---- */
             document.addEventListener('DOMContentLoaded', function() {
                 setLang(currentLang);
                 loadPlans();
