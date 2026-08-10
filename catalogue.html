@@ -461,61 +461,20 @@
                     </div>
                 </fieldset>
 
-                <!-- ETAGES -->
-                <fieldset class="filter-group">
-                    <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Etages" data-en="Floors">
-                        Etages <i class="fas fa-chevron-down"></i>
-                    </legend>
-                    <div class="filter-items">
-                        <div class="filter-item">
-                            <input type="checkbox" id="etage-1" value="1" onchange="queueFilters()">
-                            <label for="etage-1" data-fr="Plain-pied" data-en="Single floor">Plain-pied</label>
-                            <span class="filter-count" id="count-etage-1"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="etage-2" value="2" onchange="queueFilters()">
-                            <label for="etage-2" data-fr="2 etages" data-en="2 floors">2 etages</label>
-                            <span class="filter-count" id="count-etage-2"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="etage-3" value="3" onchange="queueFilters()">
-                            <label for="etage-3" data-fr="3 etages et +" data-en="3 floors+">3 etages et +</label>
-                            <span class="filter-count" id="count-etage-3"></span>
-                        </div>
-                    </div>
-                </fieldset>
-
                 <!-- CHAMBRES -->
                 <fieldset class="filter-group">
                     <legend class="filter-title" onclick="toggleFilterGroup(this)" data-fr="Chambres" data-en="Bedrooms">
                         Chambres <i class="fas fa-chevron-down"></i>
                     </legend>
                     <div class="filter-items">
-                        <div class="filter-item">
-                            <input type="checkbox" id="bed-1" value="1" onchange="queueFilters()">
-                            <label for="bed-1">1+</label>
-                            <span class="filter-count" id="count-bed-1"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="bed-2" value="2" onchange="queueFilters()">
-                            <label for="bed-2">2+</label>
-                            <span class="filter-count" id="count-bed-2"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="bed-3" value="3" onchange="queueFilters()">
-                            <label for="bed-3">3+</label>
-                            <span class="filter-count" id="count-bed-3"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="bed-4" value="4" onchange="queueFilters()">
-                            <label for="bed-4">4+</label>
-                            <span class="filter-count" id="count-bed-4"></span>
-                        </div>
-                        <div class="filter-item">
-                            <input type="checkbox" id="bed-5" value="5" onchange="queueFilters()">
-                            <label for="bed-5">5+</label>
-                            <span class="filter-count" id="count-bed-5"></span>
-                        </div>
+                        <select id="chambresSelect" onchange="applyFilters()" style="width:100%; padding:.6rem; border:1px solid var(--creme); font-family:'Inter',sans-serif; font-size:.85rem; background:white; cursor:pointer;">
+                            <option value="" data-fr="Toutes" data-en="All">Toutes</option>
+                            <option value="1">1 chambre</option>
+                            <option value="2">2 chambres</option>
+                            <option value="3">3 chambres</option>
+                            <option value="4">4 chambres</option>
+                            <option value="5+">5 chambres et +</option>
+                        </select>
                     </div>
                 </fieldset>
 
@@ -682,7 +641,6 @@
                 const params = new URLSearchParams(window.location.search);
                 const types = params.get('type');
                 const beds = params.get('beds');
-                const floors = params.get('floors');
                 const sMin = params.get('surface_min');
                 const sMax = params.get('surface_max');
                 const bMin = params.get('budget_min');
@@ -690,8 +648,7 @@
                 const sort = params.get('sort');
 
                 if (types) types.split(',').forEach(t => { const cb = document.getElementById('type-' + t); if (cb) cb.checked = true; });
-                if (beds) beds.split(',').forEach(b => { const cb = document.getElementById('bed-' + b); if (cb) cb.checked = true; });
-                if (floors) floors.split(',').forEach(f => { const cb = document.getElementById('etage-' + f); if (cb) cb.checked = true; });
+                if (beds) document.getElementById('chambresSelect').value = beds;
                 if (sMin) document.getElementById('surfaceMin').value = sMin;
                 if (sMax) document.getElementById('surfaceMax').value = sMax;
                 if (bMin) document.getElementById('budgetMin').value = bMin;
@@ -702,8 +659,7 @@
             function writeFiltersToURL() {
                 const params = new URLSearchParams();
                 const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
-                const beds = Array.from(document.querySelectorAll('input[id^="bed-"]:checked')).map(el => el.value);
-                const floors = Array.from(document.querySelectorAll('input[id^="etage-"]:checked')).map(el => el.value);
+                const beds = document.getElementById('chambresSelect').value;
                 const sMin = document.getElementById('surfaceMin').value;
                 const sMax = document.getElementById('surfaceMax').value;
                 const bMin = document.getElementById('budgetMin').value;
@@ -711,8 +667,7 @@
                 const sort = document.getElementById('sortSelect').value;
 
                 if (types.length) params.set('type', types.join(','));
-                if (beds.length) params.set('beds', beds.join(','));
-                if (floors.length) params.set('floors', floors.join(','));
+                if (beds) params.set('beds', beds);
                 if (sMin) params.set('surface_min', sMin);
                 if (sMax) params.set('surface_max', sMax);
                 if (bMin) params.set('budget_min', bMin);
@@ -723,21 +678,11 @@
                 window.history.replaceState({}, '', newUrl);
             }
 
-            /* ---- COMPTER PAR FILTRE (utilise nombre_etages, la vraie colonne) ---- */
+            /* ---- COMPTER PAR TYPE (le compteur par chambre est maintenant dans le libellé du menu déroulant) ---- */
             function updateFilterCounts() {
                 ['villa', 'duplex', 'triplex', 'immeuble'].forEach(type => {
                     const el = document.getElementById('count-' + type);
                     if (el) el.textContent = '(' + allPlans.filter(p => p.type_batiment === type).length + ')';
-                });
-                [1, 2, 3].forEach(n => {
-                    const el = document.getElementById('count-etage-' + n);
-                    if (!el) return;
-                    if (n === 3) el.textContent = '(' + allPlans.filter(p => (p.nombre_etages || 0) >= 3).length + ')';
-                    else el.textContent = '(' + allPlans.filter(p => (p.nombre_etages || 0) === n).length + ')';
-                });
-                [1, 2, 3, 4, 5].forEach(n => {
-                    const el = document.getElementById('count-bed-' + n);
-                    if (el) el.textContent = '(' + allPlans.filter(p => (p.chambres || 0) >= n).length + ')';
                 });
             }
 
@@ -775,24 +720,28 @@
 
             function getSelectedFilters() {
                 const types = Array.from(document.querySelectorAll('input[id^="type-"]:checked')).map(el => el.value);
-                const beds = Array.from(document.querySelectorAll('input[id^="bed-"]:checked')).map(el => parseInt(el.value));
-                const floors = Array.from(document.querySelectorAll('input[id^="etage-"]:checked')).map(el => parseInt(el.value));
+                const bedsValue = document.getElementById('chambresSelect').value;
                 const surfaceMin = parseInt(document.getElementById('surfaceMin').value) || 0;
                 const surfaceMax = parseInt(document.getElementById('surfaceMax').value) || Infinity;
                 const budgetMin = parseInt(document.getElementById('budgetMin').value) || 0;
                 const budgetMax = parseInt(document.getElementById('budgetMax').value) || Infinity;
-                return { types, beds, floors, surfaceMin, surfaceMax, budgetMin, budgetMax };
+                return { types, bedsValue, surfaceMin, surfaceMax, budgetMin, budgetMax };
             }
 
             function applyFilters() {
                 const filters = getSelectedFilters();
                 displayedPlans = allPlans.filter(plan => {
                     if (filters.types.length > 0 && !filters.types.includes(plan.type_batiment)) return false;
-                    if (filters.beds.length > 0 && !filters.beds.some(b => (plan.chambres || 0) >= b)) return false;
-                    if (filters.floors.length > 0 && !filters.floors.some(f => {
-                        if (f === 3) return (plan.nombre_etages || 0) >= 3;
-                        return (plan.nombre_etages || 0) === f;
-                    })) return false;
+
+                    if (filters.bedsValue) {
+                        const chambres = plan.chambres || 0;
+                        if (filters.bedsValue === '5+') {
+                            if (chambres < 5) return false;
+                        } else if (chambres !== parseInt(filters.bedsValue)) {
+                            return false;
+                        }
+                    }
+
                     if ((plan.surface_habitable || 0) < filters.surfaceMin || (plan.surface_habitable || 0) > filters.surfaceMax) return false;
                     if ((plan.prix_base || 0) < filters.budgetMin || (plan.prix_base || 0) > filters.budgetMax) return false;
                     return true;
@@ -898,6 +847,7 @@
             function resetFilters() {
                 document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
                 document.querySelectorAll('input[type="number"]').forEach(el => el.value = '');
+                document.getElementById('chambresSelect').value = '';
                 document.getElementById('sortSelect').value = 'default';
                 applyFilters();
             }
