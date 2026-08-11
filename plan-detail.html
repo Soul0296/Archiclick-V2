@@ -435,7 +435,11 @@
             let currentSlide = 0;
             let selectedRating = 0;
 
-            emailjs.init('wAe0yWf88bXZbKdnl');
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init('wAe0yWf88bXZbKdnl');
+            } else {
+                console.warn('EmailJS non chargé — le formulaire de personnalisation sera indisponible, mais le reste de la page fonctionne normalement.');
+            }
 
             const urlParams = new URLSearchParams(window.location.search);
             const planId = urlParams.get('id');
@@ -677,6 +681,10 @@
                     return;
                 }
                 try {
+                    if (typeof emailjs === 'undefined') {
+                        alert(currentLang === 'fr' ? 'Le service d\'envoi est momentanément indisponible. Contacte-nous directement.' : 'Sending service temporarily unavailable. Please contact us directly.');
+                        return;
+                    }
                     await emailjs.send('service_kwivmyg', 'template_k6pwdx9', {
                         to_email: 'archiclick@gmail.com', client_name: name, client_email: email,
                         client_phone: phone, plan_name: currentPlan.titre, modifications: mods
