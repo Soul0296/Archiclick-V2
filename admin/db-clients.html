@@ -124,23 +124,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var toggleBtn = document.getElementById('menuToggleBtn');
   var overlay = document.getElementById('sidebarOverlay');
   var sidebar = document.querySelector('.sidebar');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  if (overlay) {
-    overlay.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
+  if (toggleBtn) toggleBtn.addEventListener('click', function() { sidebar.classList.toggle('open'); overlay.classList.toggle('open'); });
+  if (overlay) overlay.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
-    link.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
+    link.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   });
 });
 </script>
@@ -174,12 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Commandes</th><th>Actions</th></tr>
-      </thead>
-      <tbody id="clientsTableBody">
-        <tr><td colspan="5" class="empty-state">Chargement...</td></tr>
-      </tbody>
+      <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Commandes</th><th>Actions</th></tr></thead>
+      <tbody id="clientsTableBody"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -227,30 +210,30 @@ function showToast(text, type) {
   t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
+function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
-}
+document.getElementById('searchInput').addEventListener('input', (e) => renderClients(e.target.value.toLowerCase()));
 
-document.getElementById('searchInput').addEventListener('input', (e) => {
-  renderClients(e.target.value.toLowerCase());
-});
-
+// ---------- CHARGEMENT : requêtes séparées + jointure manuelle en JS ----------
+// (pas de clé étrangère déclarée entre "clients" et "commandes" dans Supabase)
 async function loadClients() {
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*, commandes(id, montant_total, created_at, statut_paiement)')
-    .order('nom', { ascending: true });
+  const [{ data: clients, error }, { data: commandes }] = await Promise.all([
+    supabase.from('clients').select('*').order('nom', { ascending: true }),
+    supabase.from('commandes').select('id, client_id, montant_total, created_at, statut_paiement')
+  ]);
 
   if (error) {
-    document.getElementById('clientsTableBody').innerHTML =
-      `<tr><td colspan="5" class="empty-state">Erreur : ${error.message}</td></tr>`;
+    document.getElementById('clientsTableBody').innerHTML = `<tr><td colspan="5" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
 
-  allClients = data || [];
+  const commandesByClient = {};
+  (commandes || []).forEach(cmd => {
+    if (!commandesByClient[cmd.client_id]) commandesByClient[cmd.client_id] = [];
+    commandesByClient[cmd.client_id].push(cmd);
+  });
+
+  allClients = (clients || []).map(c => ({ ...c, commandes: commandesByClient[c.id] || [] }));
   renderClients('');
 }
 
@@ -270,7 +253,7 @@ function renderClients(search) {
       <td>${escapeHtml(c.nom)}</td>
       <td>${escapeHtml(c.email)}</td>
       <td>${escapeHtml(c.telephone)}</td>
-      <td>${(c.commandes || []).length}</td>
+      <td>${c.commandes.length}</td>
       <td>
         <button class="icon-btn view-btn" data-id="${c.id}">${isReadOnly ? 'Voir' : 'Modifier'}</button>
         ${!isReadOnly ? `<button class="icon-btn delete-btn" data-id="${c.id}" style="color:var(--error);">Supprimer</button>` : ''}
@@ -290,6 +273,7 @@ document.getElementById('addClientBtn').addEventListener('click', () => {
   document.getElementById('modalTitle').textContent = 'Ajouter un client';
   document.getElementById('clientId').value = '';
   document.getElementById('historyBox').style.display = 'none';
+  [...form.elements].forEach(el => { if (el.tagName !== 'BUTTON') el.disabled = false; });
   modal.classList.add('open');
 });
 
@@ -315,7 +299,7 @@ function openModal(id) {
   if (commandes.length > 0) {
     historyBox.style.display = 'block';
     historyList.innerHTML = commandes
-      .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .map(cmd => `
         <div class="history-item">
           <span>${new Date(cmd.created_at).toLocaleDateString('fr-FR')} — ${cmd.statut_paiement}</span>
@@ -345,11 +329,8 @@ form.addEventListener('submit', async (e) => {
 
   const clientId = document.getElementById('clientId').value;
   let error;
-  if (clientId) {
-    ({ error } = await supabase.from('clients').update(clientData).eq('id', clientId));
-  } else {
-    ({ error } = await supabase.from('clients').insert([clientData]));
-  }
+  if (clientId) ({ error } = await supabase.from('clients').update(clientData).eq('id', clientId));
+  else ({ error } = await supabase.from('clients').insert([clientData]));
 
   saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
 

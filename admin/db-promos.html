@@ -60,10 +60,6 @@
   .badge.inactif { background:rgba(217,183,108,0.15); color:var(--warning); }
   .badge.expire { background:rgba(217,108,108,0.15); color:var(--error); }
 
-  .usage-bar-wrap { width:100px; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:4px; }
-  .usage-bar-fill { height:100%; background:var(--gold); }
-  .usage-text { font-size:11px; color:var(--grey-text); }
-
   .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:6px 10px; border-radius:2px; cursor:pointer; font-size:12px; margin-right:4px; }
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
   .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
@@ -137,23 +133,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var toggleBtn = document.getElementById('menuToggleBtn');
   var overlay = document.getElementById('sidebarOverlay');
   var sidebar = document.querySelector('.sidebar');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  if (overlay) {
-    overlay.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
+  if (toggleBtn) toggleBtn.addEventListener('click', function() { sidebar.classList.toggle('open'); overlay.classList.toggle('open'); });
+  if (overlay) overlay.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
-    link.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
+    link.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   });
 });
 </script>
@@ -269,14 +252,12 @@ function showToast(text, type) {
 }
 function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
 
-// ---------- STATUT CALCULE (tient compte de la date de fin) ----------
 function getComputedStatus(promo) {
   const today = new Date().toISOString().split('T')[0];
   if (promo.date_expiration && promo.date_expiration < today) return 'expire';
   return promo.actif ? 'actif' : 'inactif';
 }
 
-// ---------- FILTRES ----------
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -286,9 +267,9 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-// ---------- CHARGEMENT ----------
+// ---------- CHARGEMENT (tri par id, "created_at" n'existe pas sur cette table) ----------
 async function loadPromos() {
-  const { data, error } = await supabase.from('promos').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('promos').select('*').order('id', { ascending: false });
   if (error) {
     document.getElementById('promosTableBody').innerHTML = `<tr><td colspan="5" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
@@ -300,13 +281,12 @@ async function loadPromos() {
 function renderPromos() {
   const tbody = document.getElementById('promosTableBody');
   const filtered = currentFilter === 'tous' ? allPromos : allPromos.filter(p => getComputedStatus(p) === currentFilter);
+  const statusLabels = { actif: 'Actif', inactif: 'Inactif', expire: 'Expiré' };
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucun code promo pour ce filtre.</td></tr>`;
     return;
   }
-
-  const statusLabels = { actif: 'Actif', inactif: 'Inactif', expire: 'Expiré' };
 
   tbody.innerHTML = filtered.map(p => {
     const status = getComputedStatus(p);
@@ -346,7 +326,6 @@ function renderPromos() {
   }
 }
 
-// ---------- MODAL ----------
 const modal = document.getElementById('promoModal');
 const form = document.getElementById('promoForm');
 
@@ -408,7 +387,6 @@ form.addEventListener('submit', async (e) => {
   if (id) {
     ({ error } = await supabase.from('promos').update(data).eq('id', id));
   } else {
-    data.created_at = new Date().toISOString();
     ({ error } = await supabase.from('promos').insert([data]));
   }
 

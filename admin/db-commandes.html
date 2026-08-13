@@ -26,7 +26,7 @@
   .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
   .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
   .sidebar .logo span { color:var(--gold); }
-  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; position:relative; }
+  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; }
   .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
   .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
 
@@ -68,14 +68,12 @@
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
   .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
 
-  /* MODAL DETAIL */
   .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:600px; max-height:92vh; overflow-y:auto; padding:32px; }
   .modal h2 { font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--gold-light); margin-bottom:6px; }
   .modal .sub-id { font-size:11px; color:var(--grey-text); margin-bottom:20px; }
 
-  /* STEPPER */
   .stepper { display:flex; align-items:center; margin-bottom:24px; }
   .step { flex:1; text-align:center; position:relative; }
   .step .dot { width:26px; height:26px; border-radius:50%; background:var(--black-card); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:11px; color:var(--grey-text); }
@@ -104,7 +102,6 @@
 
   .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
-  /* POPUP CONFIRMATION ENVOI PLANS */
   .confirm-popup { background:var(--black-soft); border:1px solid var(--error); border-radius:4px; padding:26px; max-width:420px; }
   .confirm-popup h3 { font-family:'Cormorant Garamond',serif; color:var(--error); font-size:20px; margin-bottom:12px; }
   .confirm-popup p { font-size:13px; color:#ddd; line-height:1.6; margin-bottom:18px; }
@@ -163,23 +160,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var toggleBtn = document.getElementById('menuToggleBtn');
   var overlay = document.getElementById('sidebarOverlay');
   var sidebar = document.querySelector('.sidebar');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  if (overlay) {
-    overlay.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
+  if (toggleBtn) toggleBtn.addEventListener('click', function() { sidebar.classList.toggle('open'); overlay.classList.toggle('open'); });
+  if (overlay) overlay.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
-    link.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
+    link.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   });
 });
 </script>
@@ -228,12 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<!-- MODAL DETAIL -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal">
     <h2>Détail de la commande</h2>
     <div class="sub-id" id="dFacture">—</div>
-
     <div class="stepper" id="stepper"></div>
 
     <div class="detail-row"><span class="label">Client</span><span class="value" id="dClient">—</span></div>
@@ -259,16 +241,11 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<!-- POPUP CONFIRMATION ENVOI PLANS -->
 <div class="modal-overlay" id="confirmPlansModal">
   <div class="confirm-popup">
     <div class="warning-icon">⚠️</div>
     <h3>Confirmer l'envoi des plans ?</h3>
-    <p>
-      Assure-toi impérativement que <strong>le paiement a bien été reçu et vérifié</strong> sur ton compte
-      MTN/Orange Money avant de continuer. Une fois validé, le client recevra immédiatement le lien de
-      téléchargement de ses plans. Cette action est difficile à annuler.
-    </p>
+    <p>Assure-toi impérativement que <strong>le paiement a bien été reçu et vérifié</strong> avant de continuer. Une fois validé, le client recevra immédiatement le lien de téléchargement de ses plans.</p>
     <div class="modal-actions">
       <button type="button" class="btn btn-outline" id="cancelSendPlansBtn">Annuler</button>
       <button type="button" class="btn btn-gold" id="confirmSendPlansBtn">Oui, j'ai vérifié — Envoyer</button>
@@ -282,18 +259,15 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../js/permissions.js"></script>
 <script src="../js/auth-guard.js"></script>
 <script>
-// ============================================================
-// CONFIGURATION EMAILJS — À COMPLÉTER avec tes vrais identifiants
-// (Dashboard EmailJS → Account → API Keys / Email Services / Templates)
-// ============================================================
 const EMAILJS_PUBLIC_KEY = 'TA_CLE_PUBLIQUE_EMAILJS';
 const EMAILJS_SERVICE_ID = 'TON_SERVICE_ID';
 const EMAILJS_TEMPLATE_CONFIRMATION = 'TEMPLATE_CONFIRMATION_PAIEMENT';
 const EMAILJS_TEMPLATE_PLANS = 'TEMPLATE_ENVOI_PLANS';
-
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
 let allCommandes = [];
+let clientsById = {};
+let plansById = {};
 let currentFilter = 'toutes';
 let isReadOnly = false;
 let activeCommande = null;
@@ -311,7 +285,6 @@ function showToast(text, type) {
 function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
 function fmtMoney(n) { return Number(n || 0).toLocaleString('fr-FR') + ' FCFA'; }
 
-// ---------- FILTRES ----------
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -321,25 +294,46 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-// ---------- CHARGEMENT ----------
+// ---------- CHARGEMENT : requêtes séparées + jointure manuelle en JS ----------
+// (aucune clé étrangère n'est déclarée entre "commandes" et "clients" dans Supabase,
+// donc on ne peut pas utiliser la syntaxe de jointure imbriquée de PostgREST)
 async function loadCommandes() {
   const tbody = document.getElementById('commandesTableBody');
-  const { data, error } = await supabase
-    .from('commandes')
-    .select('*, clients(nom, email, telephone), commande_plans(plans(titre, reference))')
-    .order('created_at', { ascending: false });
 
-  if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${error.message}</td></tr>`;
+  const [{ data: commandes, error: cmdError }, { data: clients }, { data: commandePlans }, { data: plans }] = await Promise.all([
+    supabase.from('commandes').select('*').order('created_at', { ascending: false }),
+    supabase.from('clients').select('*'),
+    supabase.from('commande_plans').select('*'),
+    supabase.from('plans').select('id, titre, reference')
+  ]);
+
+  if (cmdError) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${cmdError.message}</td></tr>`;
     return;
   }
-  allCommandes = data || [];
+
+  clientsById = {};
+  (clients || []).forEach(c => { clientsById[c.id] = c; });
+
+  plansById = {};
+  (plans || []).forEach(p => { plansById[p.id] = p; });
+
+  const plansParCommande = {};
+  (commandePlans || []).forEach(cp => {
+    if (!plansParCommande[cp.commande_id]) plansParCommande[cp.commande_id] = [];
+    if (plansById[cp.plan_id]) plansParCommande[cp.commande_id].push(plansById[cp.plan_id]);
+  });
+
+  allCommandes = (commandes || []).map(cmd => ({
+    ...cmd,
+    client: clientsById[cmd.client_id] || null,
+    plans: plansParCommande[cmd.id] || []
+  }));
+
   renderCommandes();
 }
 
-function hoursSince(dateStr) {
-  return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
-}
+function hoursSince(dateStr) { return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60); }
 
 function renderCommandes() {
   const tbody = document.getElementById('commandesTableBody');
@@ -353,7 +347,7 @@ function renderCommandes() {
   const statutLabels = { en_attente: 'Nouvelle', payee: 'Paiement confirmé', livree: 'Plans envoyés', annulee: 'Annulée' };
 
   tbody.innerHTML = filtered.map(cmd => {
-    const client = cmd.clients || {};
+    const client = cmd.client || {};
     const dateStr = new Date(cmd.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
     const isUrgent = cmd.statut_paiement === 'en_attente' && hoursSince(cmd.created_at) > 24;
 
@@ -375,19 +369,13 @@ function renderCommandes() {
   document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => openDetailModal(btn.dataset.id)));
 }
 
-// ---------- GENERATION NUMERO DE FACTURE ----------
 async function generateInvoiceNumber() {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const prefix = `FAC-${yy}${mm}-`;
 
-  const { data } = await supabase
-    .from('commandes')
-    .select('numero_facture')
-    .like('numero_facture', `${prefix}%`)
-    .order('numero_facture', { ascending: false })
-    .limit(1);
+  const { data } = await supabase.from('commandes').select('numero_facture').like('numero_facture', `${prefix}%`).order('numero_facture', { ascending: false }).limit(1);
 
   let nextSeq = 1;
   if (data && data.length > 0 && data[0].numero_facture) {
@@ -397,12 +385,11 @@ async function generateInvoiceNumber() {
   return `${prefix}${String(nextSeq).padStart(3, '0')}`;
 }
 
-// ---------- MODAL DETAIL ----------
 function openDetailModal(id) {
   const cmd = allCommandes.find(c => c.id == id);
   if (!cmd) return;
   activeCommande = cmd;
-  const client = cmd.clients || {};
+  const client = cmd.client || {};
 
   document.getElementById('dFacture').textContent = cmd.numero_facture ? `Facture N° ${cmd.numero_facture}` : 'Facture non générée';
   document.getElementById('dClient').textContent = client.nom || '—';
@@ -413,7 +400,7 @@ function openDetailModal(id) {
   document.getElementById('dMontant').textContent = fmtMoney(cmd.montant_total);
   document.getElementById('noteInterne').value = cmd.note_interne || '';
 
-  const plans = (cmd.commande_plans || []).map(cp => cp.plans).filter(Boolean);
+  const plans = cmd.plans || [];
   document.getElementById('dPlansList').innerHTML = plans.length
     ? plans.map(p => `<div class="plans-list-item">• ${escapeHtml(p.titre)} ${p.reference ? `(${escapeHtml(p.reference)})` : ''}</div>`).join('')
     : '<div class="plans-list-item">Aucun plan associé trouvé.</div>';
@@ -425,19 +412,13 @@ function openDetailModal(id) {
 }
 
 function renderStepper(statut) {
-  const steps = [
-    { key: 'en_attente', label: 'Nouvelle' },
-    { key: 'payee', label: 'Paiement confirmé' },
-    { key: 'livree', label: 'Plans envoyés' }
-  ];
+  const steps = [{ key: 'en_attente', label: 'Nouvelle' }, { key: 'payee', label: 'Paiement confirmé' }, { key: 'livree', label: 'Plans envoyés' }];
   const order = { en_attente: 0, payee: 1, livree: 2, annulee: -1 };
   const currentIdx = order[statut];
 
   document.getElementById('stepper').innerHTML = steps.map((s, i) => {
     let cls = '';
-    if (statut === 'annulee') cls = '';
-    else if (i < currentIdx) cls = 'done';
-    else if (i === currentIdx) cls = 'current';
+    if (statut !== 'annulee') { if (i < currentIdx) cls = 'done'; else if (i === currentIdx) cls = 'current'; }
     return `<div class="step ${cls}"><div class="dot">${i + 1}</div><div class="label">${s.label}</div></div>`;
   }).join('');
 }
@@ -445,15 +426,8 @@ function renderStepper(statut) {
 function renderActionZone(cmd) {
   const zone = document.getElementById('actionZone');
 
-  if (isReadOnly) {
-    zone.innerHTML = `<p style="font-size:12px; color:var(--grey-text);">Lecture seule — tu n'as pas les droits pour modifier cette commande.</p>`;
-    return;
-  }
-
-  if (cmd.statut_paiement === 'annulee') {
-    zone.innerHTML = `<p style="font-size:12px; color:var(--error);">Cette commande a été annulée.</p>`;
-    return;
-  }
+  if (isReadOnly) { zone.innerHTML = `<p style="font-size:12px; color:var(--grey-text);">Lecture seule.</p>`; return; }
+  if (cmd.statut_paiement === 'annulee') { zone.innerHTML = `<p style="font-size:12px; color:var(--error);">Cette commande a été annulée.</p>`; return; }
 
   let html = '';
 
@@ -463,19 +437,13 @@ function renderActionZone(cmd) {
   }
 
   if (cmd.statut_paiement === 'payee') {
-    if (cmd.email_confirmation_envoye_at) {
-      html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
-    }
+    if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
     html += `<button class="btn btn-info" id="sendPlansBtn">2. Envoyer les plans</button>`;
   }
 
   if (cmd.statut_paiement === 'livree') {
-    if (cmd.email_confirmation_envoye_at) {
-      html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
-    }
-    if (cmd.email_plans_envoye_at) {
-      html += `<div class="email-log">✓ Plans envoyés le ${new Date(cmd.email_plans_envoye_at).toLocaleString('fr-FR')}</div>`;
-    }
+    if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
+    if (cmd.email_plans_envoye_at) html += `<div class="email-log">✓ Plans envoyés le ${new Date(cmd.email_plans_envoye_at).toLocaleString('fr-FR')}</div>`;
     html += `<p style="font-size:12px; color:var(--success);">Commande terminée avec succès.</p>`;
   }
 
@@ -483,39 +451,32 @@ function renderActionZone(cmd) {
 
   const confirmBtn = document.getElementById('confirmPaiementBtn');
   if (confirmBtn) confirmBtn.addEventListener('click', () => confirmerPaiement(cmd));
-
   const sendPlansBtn = document.getElementById('sendPlansBtn');
   if (sendPlansBtn) sendPlansBtn.addEventListener('click', () => document.getElementById('confirmPlansModal').classList.add('open'));
-
   const cancelBtn = document.getElementById('cancelCommandeBtn');
   if (cancelBtn) cancelBtn.addEventListener('click', () => annulerCommande(cmd));
 }
 
 document.getElementById('closeDetailBtn').addEventListener('click', () => document.getElementById('detailModal').classList.remove('open'));
 
-// ---------- ETAPE 1 : CONFIRMER LE PAIEMENT + ENVOYER LA FACTURE ----------
 async function confirmerPaiement(cmd) {
   const btn = document.getElementById('confirmPaiementBtn');
-  btn.disabled = true;
-  btn.textContent = 'Envoi en cours...';
+  btn.disabled = true; btn.textContent = 'Envoi en cours...';
 
   try {
     const numeroFacture = cmd.numero_facture || await generateInvoiceNumber();
-    const client = cmd.clients || {};
+    const client = cmd.client || {};
 
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
-      to_email: client.email,
-      to_name: client.nom,
-      numero_facture: numeroFacture,
-      montant: fmtMoney(cmd.montant_total),
-      date_commande: new Date(cmd.created_at).toLocaleDateString('fr-FR'),
-      mode_paiement: cmd.mode_paiement
-    });
+    if (typeof emailjs !== 'undefined' && client.email) {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
+        to_email: client.email, to_name: client.nom, numero_facture: numeroFacture,
+        montant: fmtMoney(cmd.montant_total), date_commande: new Date(cmd.created_at).toLocaleDateString('fr-FR'),
+        mode_paiement: cmd.mode_paiement
+      });
+    }
 
     const { error } = await supabase.from('commandes').update({
-      statut_paiement: 'payee',
-      numero_facture: numeroFacture,
-      email_confirmation_envoye_at: new Date().toISOString()
+      statut_paiement: 'payee', numero_facture: numeroFacture, email_confirmation_envoye_at: new Date().toISOString()
     }).eq('id', cmd.id);
 
     if (error) throw error;
@@ -523,44 +484,32 @@ async function confirmerPaiement(cmd) {
     showToast('Facture envoyée et paiement confirmé.', 'success');
     document.getElementById('detailModal').classList.remove('open');
     loadCommandes();
-
   } catch (err) {
     console.error(err);
-    showToast("Erreur lors de l'envoi : " + (err.text || err.message || 'inconnue'), 'error');
-    btn.disabled = false;
-    btn.textContent = '1. Confirmer le paiement & envoyer la facture';
+    showToast("Erreur : " + (err.text || err.message || 'inconnue'), 'error');
+    btn.disabled = false; btn.textContent = '1. Confirmer le paiement & envoyer la facture';
   }
 }
 
-// ---------- ETAPE 2 : ENVOYER LES PLANS (avec popup de confirmation) ----------
-document.getElementById('cancelSendPlansBtn').addEventListener('click', () => {
-  document.getElementById('confirmPlansModal').classList.remove('open');
-});
+document.getElementById('cancelSendPlansBtn').addEventListener('click', () => document.getElementById('confirmPlansModal').classList.remove('open'));
 
 document.getElementById('confirmSendPlansBtn').addEventListener('click', async () => {
   const btn = document.getElementById('confirmSendPlansBtn');
-  btn.disabled = true;
-  btn.textContent = 'Envoi en cours...';
+  btn.disabled = true; btn.textContent = 'Envoi en cours...';
 
   try {
     const cmd = activeCommande;
-    const client = cmd.clients || {};
-    const plans = (cmd.commande_plans || []).map(cp => cp.plans).filter(Boolean);
+    const client = cmd.client || {};
+    const plansListText = (cmd.plans || []).map(p => `${p.titre} (${p.reference || ''})`).join(', ');
 
-    // Liste des liens de téléchargement — nécessite que chaque plan ait un fichier
-    // livrable stocké (PDF/DWG), à ajouter dans db-plans.html si pas encore fait.
-    const plansListText = plans.map(p => `${p.titre} (${p.reference || ''})`).join(', ');
-
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PLANS, {
-      to_email: client.email,
-      to_name: client.nom,
-      numero_facture: cmd.numero_facture,
-      plans_liste: plansListText
-    });
+    if (typeof emailjs !== 'undefined' && client.email) {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PLANS, {
+        to_email: client.email, to_name: client.nom, numero_facture: cmd.numero_facture, plans_liste: plansListText
+      });
+    }
 
     const { error } = await supabase.from('commandes').update({
-      statut_paiement: 'livree',
-      email_plans_envoye_at: new Date().toISOString()
+      statut_paiement: 'livree', email_plans_envoye_at: new Date().toISOString()
     }).eq('id', cmd.id);
 
     if (error) throw error;
@@ -569,52 +518,38 @@ document.getElementById('confirmSendPlansBtn').addEventListener('click', async (
     document.getElementById('confirmPlansModal').classList.remove('open');
     document.getElementById('detailModal').classList.remove('open');
     loadCommandes();
-
   } catch (err) {
     console.error(err);
-    showToast("Erreur lors de l'envoi : " + (err.text || err.message || 'inconnue'), 'error');
+    showToast("Erreur : " + (err.text || err.message || 'inconnue'), 'error');
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Oui, j'ai vérifié — Envoyer";
+    btn.disabled = false; btn.textContent = "Oui, j'ai vérifié — Envoyer";
   }
 });
 
-// ---------- ANNULER UNE COMMANDE ----------
 async function annulerCommande(cmd) {
   if (!confirm('Annuler définitivement cette commande ?')) return;
-
   const { error } = await supabase.from('commandes').update({ statut_paiement: 'annulee' }).eq('id', cmd.id);
   if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
-
   showToast('Commande annulée.', 'success');
   document.getElementById('detailModal').classList.remove('open');
   loadCommandes();
 }
 
-// ---------- NOTE INTERNE ----------
 document.getElementById('saveNoteBtn').addEventListener('click', async () => {
   if (!activeCommande) return;
   const note = document.getElementById('noteInterne').value.trim();
-
   const { error } = await supabase.from('commandes').update({ note_interne: note }).eq('id', activeCommande.id);
   if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
-
   showToast('Note enregistrée.', 'success');
   loadCommandes();
 });
 
-// ---------- EXPORT CSV ----------
 document.getElementById('exportBtn').addEventListener('click', () => {
   const rows = [['Date', 'Client', 'Email', 'Montant', 'Mode de paiement', 'Statut', 'N° Facture']];
   allCommandes.forEach(c => {
     rows.push([
-      new Date(c.created_at).toLocaleDateString('fr-FR'),
-      c.clients?.nom || '',
-      c.clients?.email || '',
-      c.montant_total,
-      c.mode_paiement || '',
-      c.statut_paiement,
-      c.numero_facture || ''
+      new Date(c.created_at).toLocaleDateString('fr-FR'), c.client?.nom || '', c.client?.email || '',
+      c.montant_total, c.mode_paiement || '', c.statut_paiement, c.numero_facture || ''
     ]);
   });
   const csvContent = rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g,'""')}"`).join(';')).join('\n');
