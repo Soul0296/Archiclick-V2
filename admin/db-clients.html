@@ -214,12 +214,13 @@ function escapeHtml(str) { const div = document.createElement('div'); div.textCo
 
 document.getElementById('searchInput').addEventListener('input', (e) => renderClients(e.target.value.toLowerCase()));
 
-// ---------- CHARGEMENT : requêtes séparées + jointure manuelle en JS ----------
-// (pas de clé étrangère déclarée entre "clients" et "commandes" dans Supabase)
+// ---------- CHARGEMENT ----------
+// "commandes" ne référence pas clients.id — le client y est stocké directement
+// (client_nom, client_email, client_tel). On relie donc l'historique par email.
 async function loadClients() {
   const [{ data: clients, error }, { data: commandes }] = await Promise.all([
     supabase.from('clients').select('*').order('nom', { ascending: true }),
-    supabase.from('commandes').select('id, client_id, montant_total, created_at, statut_paiement')
+    supabase.from('commandes').select('id, client_email, montant_total, date_commande, statut')
   ]);
 
   if (error) {
@@ -227,13 +228,15 @@ async function loadClients() {
     return;
   }
 
-  const commandesByClient = {};
+  const commandesByEmail = {};
   (commandes || []).forEach(cmd => {
-    if (!commandesByClient[cmd.client_id]) commandesByClient[cmd.client_id] = [];
-    commandesByClient[cmd.client_id].push(cmd);
+    const key = (cmd.client_email || '').toLowerCase();
+    if (!key) return;
+    if (!commandesByEmail[key]) commandesByEmail[key] = [];
+    commandesByEmail[key].push(cmd);
   });
 
-  allClients = (clients || []).map(c => ({ ...c, commandes: commandesByClient[c.id] || [] }));
+  allClients = (clients || []).map(c => ({ ...c, commandes: commandesByEmail[(c.email || '').toLowerCase()] || [] }));
   renderClients('');
 }
 
@@ -299,10 +302,10 @@ function openModal(id) {
   if (commandes.length > 0) {
     historyBox.style.display = 'block';
     historyList.innerHTML = commandes
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .sort((a, b) => new Date(b.date_commande) - new Date(a.date_commande))
       .map(cmd => `
         <div class="history-item">
-          <span>${new Date(cmd.created_at).toLocaleDateString('fr-FR')} — ${cmd.statut_paiement}</span>
+          <span>${new Date(cmd.date_commande).toLocaleDateString('fr-FR')} — ${cmd.statut}</span>
           <span>${Number(cmd.montant_total).toLocaleString('fr-FR')} FCFA</span>
         </div>
       `).join('');

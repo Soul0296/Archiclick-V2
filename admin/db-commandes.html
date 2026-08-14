@@ -91,6 +91,8 @@
 
   .plans-list { margin:14px 0; padding:12px; background:rgba(255,255,255,0.02); border-radius:3px; }
   .plans-list-item { font-size:13px; padding:4px 0; color:#ddd; }
+  .options-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .option-tag { font-size:11px; background:rgba(201,169,97,0.1); color:var(--gold-light); padding:3px 9px; border-radius:10px; }
 
   .note-box { margin-top:18px; }
   .note-box label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
@@ -203,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Date</th><th>Client</th><th>Montant</th><th>Paiement</th><th>Statut</th><th>Actions</th></tr>
+        <tr><th>Date</th><th>Client</th><th>Plan</th><th>Montant</th><th>Statut</th><th>Actions</th></tr>
       </thead>
       <tbody id="commandesTableBody">
         <tr><td colspan="6" class="empty-state">Chargement des commandes...</td></tr>
@@ -222,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="detail-row"><span class="label">Email</span><span class="value" id="dEmail">—</span></div>
     <div class="detail-row"><span class="label">Téléphone</span><span class="value" id="dTelephone">—</span></div>
     <div class="detail-row"><span class="label">Date de commande</span><span class="value" id="dDate">—</span></div>
-    <div class="detail-row"><span class="label">Mode de paiement</span><span class="value" id="dPaiement">—</span></div>
+    <div class="detail-row"><span class="label">Code promo utilisé</span><span class="value" id="dPromo">—</span></div>
     <div class="detail-row"><span class="label">Montant total</span><span class="value" id="dMontant">—</span></div>
 
     <div class="plans-list" id="dPlansList"></div>
@@ -263,10 +265,9 @@ const EMAILJS_PUBLIC_KEY = 'TA_CLE_PUBLIQUE_EMAILJS';
 const EMAILJS_SERVICE_ID = 'TON_SERVICE_ID';
 const EMAILJS_TEMPLATE_CONFIRMATION = 'TEMPLATE_CONFIRMATION_PAIEMENT';
 const EMAILJS_TEMPLATE_PLANS = 'TEMPLATE_ENVOI_PLANS';
-emailjs.init(EMAILJS_PUBLIC_KEY);
+if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 
 let allCommandes = [];
-let clientsById = {};
 let plansById = {};
 let currentFilter = 'toutes';
 let isReadOnly = false;
@@ -294,16 +295,15 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-// ---------- CHARGEMENT : requêtes séparées + jointure manuelle en JS ----------
-// (aucune clé étrangère n'est déclarée entre "commandes" et "clients" dans Supabase,
-// donc on ne peut pas utiliser la syntaxe de jointure imbriquée de PostgREST)
+// ---------- CHARGEMENT ----------
+// client_nom/email/tel sont stockés directement dans "commandes" (pas de table clients liée).
+// plan_id référence un seul plan par commande (vraie clé étrangère vers "plans").
+// tri sur "date_commande" (pas "created_at", qui n'existe pas sur cette table).
 async function loadCommandes() {
   const tbody = document.getElementById('commandesTableBody');
 
-  const [{ data: commandes, error: cmdError }, { data: clients }, { data: commandePlans }, { data: plans }] = await Promise.all([
-    supabase.from('commandes').select('*').order('created_at', { ascending: false }),
-    supabase.from('clients').select('*'),
-    supabase.from('commande_plans').select('*'),
+  const [{ data: commandes, error: cmdError }, { data: plans }] = await Promise.all([
+    supabase.from('commandes').select('*').order('date_commande', { ascending: false }),
     supabase.from('plans').select('id, titre, reference')
   ]);
 
@@ -312,24 +312,10 @@ async function loadCommandes() {
     return;
   }
 
-  clientsById = {};
-  (clients || []).forEach(c => { clientsById[c.id] = c; });
-
   plansById = {};
   (plans || []).forEach(p => { plansById[p.id] = p; });
 
-  const plansParCommande = {};
-  (commandePlans || []).forEach(cp => {
-    if (!plansParCommande[cp.commande_id]) plansParCommande[cp.commande_id] = [];
-    if (plansById[cp.plan_id]) plansParCommande[cp.commande_id].push(plansById[cp.plan_id]);
-  });
-
-  allCommandes = (commandes || []).map(cmd => ({
-    ...cmd,
-    client: clientsById[cmd.client_id] || null,
-    plans: plansParCommande[cmd.id] || []
-  }));
-
+  allCommandes = (commandes || []).map(cmd => ({ ...cmd, plan: plansById[cmd.plan_id] || null }));
   renderCommandes();
 }
 
@@ -337,7 +323,7 @@ function hoursSince(dateStr) { return (Date.now() - new Date(dateStr).getTime())
 
 function renderCommandes() {
   const tbody = document.getElementById('commandesTableBody');
-  const filtered = currentFilter === 'toutes' ? allCommandes : allCommandes.filter(c => c.statut_paiement === currentFilter);
+  const filtered = currentFilter === 'toutes' ? allCommandes : allCommandes.filter(c => c.statut === currentFilter);
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune commande pour ce filtre.</td></tr>`;
@@ -347,18 +333,17 @@ function renderCommandes() {
   const statutLabels = { en_attente: 'Nouvelle', payee: 'Paiement confirmé', livree: 'Plans envoyés', annulee: 'Annulée' };
 
   tbody.innerHTML = filtered.map(cmd => {
-    const client = cmd.client || {};
-    const dateStr = new Date(cmd.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-    const isUrgent = cmd.statut_paiement === 'en_attente' && hoursSince(cmd.created_at) > 24;
+    const dateStr = cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+    const isUrgent = cmd.statut === 'en_attente' && cmd.date_commande && hoursSince(cmd.date_commande) > 24;
 
     return `
       <tr>
         <td>${dateStr}</td>
-        <td>${escapeHtml(client.nom || 'Client inconnu')}</td>
+        <td>${escapeHtml(cmd.client_nom || 'Client inconnu')}</td>
+        <td>${escapeHtml(cmd.plan?.titre || '—')}</td>
         <td>${fmtMoney(cmd.montant_total)}</td>
-        <td>${escapeHtml(cmd.mode_paiement || '—')}</td>
         <td>
-          <span class="badge ${cmd.statut_paiement}">${statutLabels[cmd.statut_paiement] || cmd.statut_paiement}</span>
+          <span class="badge ${cmd.statut}">${statutLabels[cmd.statut] || cmd.statut}</span>
           ${isUrgent ? '<span class="urgent-flag">⏱ +24h</span>' : ''}
         </td>
         <td><button class="icon-btn view-btn" data-id="${cmd.id}">Voir détail</button></td>
@@ -389,23 +374,27 @@ function openDetailModal(id) {
   const cmd = allCommandes.find(c => c.id == id);
   if (!cmd) return;
   activeCommande = cmd;
-  const client = cmd.client || {};
 
   document.getElementById('dFacture').textContent = cmd.numero_facture ? `Facture N° ${cmd.numero_facture}` : 'Facture non générée';
-  document.getElementById('dClient').textContent = client.nom || '—';
-  document.getElementById('dEmail').textContent = client.email || '—';
-  document.getElementById('dTelephone').textContent = client.telephone || '—';
-  document.getElementById('dDate').textContent = new Date(cmd.created_at).toLocaleString('fr-FR');
-  document.getElementById('dPaiement').textContent = cmd.mode_paiement || '—';
+  document.getElementById('dClient').textContent = cmd.client_nom || '—';
+  document.getElementById('dEmail').textContent = cmd.client_email || '—';
+  document.getElementById('dTelephone').textContent = cmd.client_tel || '—';
+  document.getElementById('dDate').textContent = cmd.date_commande ? new Date(cmd.date_commande).toLocaleString('fr-FR') : '—';
+  document.getElementById('dPromo').textContent = cmd.code_promo_applique || 'Aucun';
   document.getElementById('dMontant').textContent = fmtMoney(cmd.montant_total);
   document.getElementById('noteInterne').value = cmd.note_interne || '';
 
-  const plans = cmd.plans || [];
-  document.getElementById('dPlansList').innerHTML = plans.length
-    ? plans.map(p => `<div class="plans-list-item">• ${escapeHtml(p.titre)} ${p.reference ? `(${escapeHtml(p.reference)})` : ''}</div>`).join('')
-    : '<div class="plans-list-item">Aucun plan associé trouvé.</div>';
+  const options = cmd.options || {};
+  const optionTags = [];
+  if (options.dwg) optionTags.push('DWG');
+  if (options.physique) optionTags.push('Dossier physique' + (options.region ? ' — ' + options.region : ''));
 
-  renderStepper(cmd.statut_paiement);
+  document.getElementById('dPlansList').innerHTML = `
+    <div class="plans-list-item">• ${escapeHtml(cmd.plan?.titre || 'Plan introuvable')} ${cmd.plan?.reference ? `(${escapeHtml(cmd.plan.reference)})` : ''}</div>
+    ${optionTags.length ? `<div class="options-tags">${optionTags.map(t => `<span class="option-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+  `;
+
+  renderStepper(cmd.statut);
   renderActionZone(cmd);
 
   document.getElementById('detailModal').classList.add('open');
@@ -427,21 +416,21 @@ function renderActionZone(cmd) {
   const zone = document.getElementById('actionZone');
 
   if (isReadOnly) { zone.innerHTML = `<p style="font-size:12px; color:var(--grey-text);">Lecture seule.</p>`; return; }
-  if (cmd.statut_paiement === 'annulee') { zone.innerHTML = `<p style="font-size:12px; color:var(--error);">Cette commande a été annulée.</p>`; return; }
+  if (cmd.statut === 'annulee') { zone.innerHTML = `<p style="font-size:12px; color:var(--error);">Cette commande a été annulée.</p>`; return; }
 
   let html = '';
 
-  if (cmd.statut_paiement === 'en_attente') {
+  if (cmd.statut === 'en_attente') {
     html += `<button class="btn btn-gold" id="confirmPaiementBtn">1. Confirmer le paiement & envoyer la facture</button>`;
     html += `<button class="btn btn-outline" id="cancelCommandeBtn" style="color:var(--error);">Annuler la commande</button>`;
   }
 
-  if (cmd.statut_paiement === 'payee') {
+  if (cmd.statut === 'payee') {
     if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
     html += `<button class="btn btn-info" id="sendPlansBtn">2. Envoyer les plans</button>`;
   }
 
-  if (cmd.statut_paiement === 'livree') {
+  if (cmd.statut === 'livree') {
     if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
     if (cmd.email_plans_envoye_at) html += `<div class="email-log">✓ Plans envoyés le ${new Date(cmd.email_plans_envoye_at).toLocaleString('fr-FR')}</div>`;
     html += `<p style="font-size:12px; color:var(--success);">Commande terminée avec succès.</p>`;
@@ -465,18 +454,17 @@ async function confirmerPaiement(cmd) {
 
   try {
     const numeroFacture = cmd.numero_facture || await generateInvoiceNumber();
-    const client = cmd.client || {};
 
-    if (typeof emailjs !== 'undefined' && client.email) {
+    if (typeof emailjs !== 'undefined' && cmd.client_email) {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
-        to_email: client.email, to_name: client.nom, numero_facture: numeroFacture,
-        montant: fmtMoney(cmd.montant_total), date_commande: new Date(cmd.created_at).toLocaleDateString('fr-FR'),
-        mode_paiement: cmd.mode_paiement
+        to_email: cmd.client_email, to_name: cmd.client_nom, numero_facture: numeroFacture,
+        montant: fmtMoney(cmd.montant_total),
+        date_commande: cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : ''
       });
     }
 
     const { error } = await supabase.from('commandes').update({
-      statut_paiement: 'payee', numero_facture: numeroFacture, email_confirmation_envoye_at: new Date().toISOString()
+      statut: 'payee', numero_facture: numeroFacture, email_confirmation_envoye_at: new Date().toISOString()
     }).eq('id', cmd.id);
 
     if (error) throw error;
@@ -499,17 +487,16 @@ document.getElementById('confirmSendPlansBtn').addEventListener('click', async (
 
   try {
     const cmd = activeCommande;
-    const client = cmd.client || {};
-    const plansListText = (cmd.plans || []).map(p => `${p.titre} (${p.reference || ''})`).join(', ');
 
-    if (typeof emailjs !== 'undefined' && client.email) {
+    if (typeof emailjs !== 'undefined' && cmd.client_email) {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PLANS, {
-        to_email: client.email, to_name: client.nom, numero_facture: cmd.numero_facture, plans_liste: plansListText
+        to_email: cmd.client_email, to_name: cmd.client_nom, numero_facture: cmd.numero_facture,
+        plans_liste: cmd.plan?.titre || ''
       });
     }
 
     const { error } = await supabase.from('commandes').update({
-      statut_paiement: 'livree', email_plans_envoye_at: new Date().toISOString()
+      statut: 'livree', email_plans_envoye_at: new Date().toISOString()
     }).eq('id', cmd.id);
 
     if (error) throw error;
@@ -528,7 +515,7 @@ document.getElementById('confirmSendPlansBtn').addEventListener('click', async (
 
 async function annulerCommande(cmd) {
   if (!confirm('Annuler définitivement cette commande ?')) return;
-  const { error } = await supabase.from('commandes').update({ statut_paiement: 'annulee' }).eq('id', cmd.id);
+  const { error } = await supabase.from('commandes').update({ statut: 'annulee' }).eq('id', cmd.id);
   if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
   showToast('Commande annulée.', 'success');
   document.getElementById('detailModal').classList.remove('open');
@@ -545,11 +532,11 @@ document.getElementById('saveNoteBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('exportBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Client', 'Email', 'Montant', 'Mode de paiement', 'Statut', 'N° Facture']];
+  const rows = [['Date', 'Client', 'Email', 'Plan', 'Montant', 'Statut', 'N° Facture']];
   allCommandes.forEach(c => {
     rows.push([
-      new Date(c.created_at).toLocaleDateString('fr-FR'), c.client?.nom || '', c.client?.email || '',
-      c.montant_total, c.mode_paiement || '', c.statut_paiement, c.numero_facture || ''
+      c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '', c.client_nom || '', c.client_email || '',
+      c.plan?.titre || '', c.montant_total, c.statut, c.numero_facture || ''
     ]);
   });
   const csvContent = rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g,'""')}"`).join(';')).join('\n');
