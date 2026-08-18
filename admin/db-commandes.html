@@ -12,6 +12,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
   :root {
@@ -39,6 +40,10 @@
   .filter-btn { background:var(--black-card); border:1px solid var(--border); color:var(--grey-text); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; letter-spacing:0.3px; }
   .filter-btn.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
   .filter-btn:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
+
+  .search-input { background:var(--black-card); border:1px solid var(--border); color:#fff; padding:9px 14px; border-radius:20px; font-size:12px; font-family:'Inter',sans-serif; margin-left:auto; min-width:220px; }
+  .search-input:focus { outline:none; border-color:var(--gold); }
+  .search-input::placeholder { color:var(--grey-text); }
 
   .btn { padding:10px 18px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.4px; cursor:pointer; font-family:'Inter',sans-serif; }
   .btn-gold { background:var(--gold); color:var(--black); }
@@ -88,6 +93,7 @@
   .detail-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px; }
   .detail-row .label { color:var(--grey-text); }
   .detail-row .value { color:#fff; font-weight:500; text-align:right; }
+  .detail-row .value.discount { color:var(--success); }
 
   .plans-list { margin:14px 0; padding:12px; background:rgba(255,255,255,0.02); border-radius:3px; }
   .plans-list-item { font-size:13px; padding:4px 0; color:#ddd; }
@@ -200,15 +206,16 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="filter-btn" data-filter="payee">Paiement confirmé</button>
     <button class="filter-btn" data-filter="livree">Plans envoyés</button>
     <button class="filter-btn" data-filter="annulee">Annulées</button>
+    <input type="text" id="searchInput" class="search-input" placeholder="Rechercher par N° de commande...">
   </div>
 
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Date</th><th>Client</th><th>Plan</th><th>Montant</th><th>Statut</th><th>Actions</th></tr>
+        <tr><th>N° Commande</th><th>Date</th><th>Client</th><th>Plan</th><th>Montant</th><th>Statut</th><th>Actions</th></tr>
       </thead>
       <tbody id="commandesTableBody">
-        <tr><td colspan="6" class="empty-state">Chargement des commandes...</td></tr>
+        <tr><td colspan="7" class="empty-state">Chargement des commandes...</td></tr>
       </tbody>
     </table>
   </div>
@@ -217,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="modal-overlay" id="detailModal">
   <div class="modal">
     <h2>Détail de la commande</h2>
+    <div class="sub-id" id="dNumeroCommande">—</div>
     <div class="sub-id" id="dFacture">—</div>
     <div class="stepper" id="stepper"></div>
 
@@ -269,7 +277,9 @@ if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 
 let allCommandes = [];
 let plansById = {};
+let promosByCode = {};
 let currentFilter = 'toutes';
+let searchQuery = '';
 let isReadOnly = false;
 let activeCommande = null;
 
@@ -295,6 +305,11 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  renderCommandes();
+});
+
 // ---------- CHARGEMENT ----------
 // client_nom/email/tel sont stockés directement dans "commandes" (pas de table clients liée).
 // plan_id référence un seul plan par commande (vraie clé étrangère vers "plans").
@@ -302,31 +317,70 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 async function loadCommandes() {
   const tbody = document.getElementById('commandesTableBody');
 
-  const [{ data: commandes, error: cmdError }, { data: plans }] = await Promise.all([
+  const [{ data: commandes, error: cmdError }, { data: plans }, { data: promos }] = await Promise.all([
     supabase.from('commandes').select('*').order('date_commande', { ascending: false }),
-    supabase.from('plans').select('id, titre, reference')
+    supabase.from('plans').select('id, titre, reference'),
+    supabase.from('promos').select('code, type, reduction')
   ]);
 
   if (cmdError) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${cmdError.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Erreur : ${cmdError.message}</td></tr>`;
     return;
   }
 
   plansById = {};
   (plans || []).forEach(p => { plansById[p.id] = p; });
 
+  promosByCode = {};
+  (promos || []).forEach(p => { promosByCode[p.code] = p; });
+
   allCommandes = (commandes || []).map(cmd => ({ ...cmd, plan: plansById[cmd.plan_id] || null }));
+
+  // Génère un numéro de commande pour toute commande qui n'en a pas encore
+  // (ex : commandes créées avant l'ajout de cette fonctionnalité).
+  await backfillNumerosCommande();
+
   renderCommandes();
+}
+
+// Numéro de commande lisible et unique, format CMD-AAMM-XXX, basé sur la date de la commande.
+async function generateCommandeNumber(dateRef) {
+  const d = dateRef ? new Date(dateRef) : new Date();
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const prefix = `CMD-${yy}${mm}-`;
+
+  const { data } = await supabase.from('commandes').select('numero_commande').like('numero_commande', `${prefix}%`).order('numero_commande', { ascending: false }).limit(1);
+
+  let nextSeq = 1;
+  if (data && data.length > 0 && data[0].numero_commande) {
+    const lastSeq = parseInt(data[0].numero_commande.split('-')[2], 10);
+    if (!isNaN(lastSeq)) nextSeq = lastSeq + 1;
+  }
+  return `${prefix}${String(nextSeq).padStart(3, '0')}`;
+}
+
+async function backfillNumerosCommande() {
+  const missing = allCommandes.filter(c => !c.numero_commande).sort((a, b) => new Date(a.date_commande) - new Date(b.date_commande));
+  for (const cmd of missing) {
+    const num = await generateCommandeNumber(cmd.date_commande);
+    const { error } = await supabase.from('commandes').update({ numero_commande: num }).eq('id', cmd.id);
+    if (!error) cmd.numero_commande = num;
+  }
 }
 
 function hoursSince(dateStr) { return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60); }
 
 function renderCommandes() {
   const tbody = document.getElementById('commandesTableBody');
-  const filtered = currentFilter === 'toutes' ? allCommandes : allCommandes.filter(c => c.statut === currentFilter);
+  let filtered = currentFilter === 'toutes' ? allCommandes : allCommandes.filter(c => c.statut === currentFilter);
+
+  if (searchQuery) {
+    filtered = filtered.filter(c => (c.numero_commande || '').toLowerCase().includes(searchQuery));
+  }
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune commande pour ce filtre.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aucune commande ne correspond.</td></tr>`;
     return;
   }
 
@@ -338,6 +392,7 @@ function renderCommandes() {
 
     return `
       <tr>
+        <td>${escapeHtml(cmd.numero_commande || '—')}</td>
         <td>${dateStr}</td>
         <td>${escapeHtml(cmd.client_nom || 'Client inconnu')}</td>
         <td>${escapeHtml(cmd.plan?.titre || '—')}</td>
@@ -370,17 +425,89 @@ async function generateInvoiceNumber() {
   return `${prefix}${String(nextSeq).padStart(3, '0')}`;
 }
 
+// ---------- FACTURE PDF ----------
+// Génère un PDF simple de facture avec jsPDF, à partir des infos de la commande.
+function genererFacturePDF(cmd, numeroFacture) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+  doc.text('ARCHICLICK', 14, 20);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Plans de maison — Cameroun', 14, 26);
+
+  doc.setDrawColor(201, 169, 97);
+  doc.line(14, 32, 196, 32);
+
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+  doc.text(`Facture N° ${numeroFacture}`, 14, 44);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text(`Commande N° ${cmd.numero_commande || '—'}`, 14, 50);
+  doc.text(`Date d'émission : ${new Date().toLocaleDateString('fr-FR')}`, 14, 56);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Client', 14, 70);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`${cmd.client_nom || ''}`, 14, 76);
+  doc.text(`${cmd.client_email || ''}`, 14, 81);
+  doc.text(`${cmd.client_tel || ''}`, 14, 86);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Détail de la commande', 14, 100);
+  doc.setFont('helvetica', 'normal');
+  let y = 106;
+  doc.text(`Plan : ${cmd.plan?.titre || '—'}${cmd.plan?.reference ? ' (' + cmd.plan.reference + ')' : ''}`, 14, y);
+  y += 6;
+  const options = cmd.options || {};
+  if (options.dwg) { doc.text('Option : fichier DWG', 14, y); y += 6; }
+  if (options.physique) { doc.text('Option : dossier physique' + (options.region ? ' — ' + options.region : ''), 14, y); y += 6; }
+  if (cmd.code_promo_applique) { doc.text(`Code promo appliqué : ${cmd.code_promo_applique}`, 14, y); y += 6; }
+
+  doc.setDrawColor(220, 220, 220);
+  doc.line(14, y + 4, 196, y + 4);
+
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+  doc.text(`Montant total payé : ${fmtMoney(cmd.montant_total)}`, 14, y + 16);
+
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 120, 120);
+  doc.text('Facture générée automatiquement — Archiclick', 14, 285);
+
+  return doc.output('blob');
+}
+
+// Envoie le PDF dans le bucket privé "factures" (créer ce bucket dans Supabase Storage au préalable).
+async function uploadFacturePDF(blob, numeroFacture) {
+  const path = `${numeroFacture}.pdf`;
+  const { error } = await supabase.storage.from('factures').upload(path, blob, { contentType: 'application/pdf', upsert: true });
+  if (error) throw error;
+  return path;
+}
+
 function openDetailModal(id) {
   const cmd = allCommandes.find(c => c.id == id);
   if (!cmd) return;
   activeCommande = cmd;
 
+  document.getElementById('dNumeroCommande').textContent = cmd.numero_commande ? `Commande N° ${cmd.numero_commande}` : 'Numéro non généré';
   document.getElementById('dFacture').textContent = cmd.numero_facture ? `Facture N° ${cmd.numero_facture}` : 'Facture non générée';
   document.getElementById('dClient').textContent = cmd.client_nom || '—';
   document.getElementById('dEmail').textContent = cmd.client_email || '—';
   document.getElementById('dTelephone').textContent = cmd.client_tel || '—';
   document.getElementById('dDate').textContent = cmd.date_commande ? new Date(cmd.date_commande).toLocaleString('fr-FR') : '—';
-  document.getElementById('dPromo').textContent = cmd.code_promo_applique || 'Aucun';
+
+  const dPromoEl = document.getElementById('dPromo');
+  if (cmd.code_promo_applique) {
+    const promo = promosByCode[cmd.code_promo_applique];
+    if (promo) {
+      const reductionLabel = promo.type === '%' ? `−${promo.reduction}%` : `−${fmtMoney(promo.reduction)}`;
+      dPromoEl.innerHTML = `${escapeHtml(cmd.code_promo_applique)} <span class="discount">(${reductionLabel})</span>`;
+    } else {
+      dPromoEl.textContent = `${cmd.code_promo_applique} (code introuvable dans la table promos, peut-être expiré/supprimé)`;
+    }
+  } else {
+    dPromoEl.textContent = 'Aucun';
+  }
+
   document.getElementById('dMontant').textContent = fmtMoney(cmd.montant_total);
   document.getElementById('noteInterne').value = cmd.note_interne || '';
 
@@ -427,12 +554,14 @@ function renderActionZone(cmd) {
 
   if (cmd.statut === 'payee') {
     if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
+    if (cmd.facture_pdf_path) html += `<button class="btn btn-outline" id="viewFactureBtn">Voir la facture PDF archivée</button>`;
     html += `<button class="btn btn-info" id="sendPlansBtn">2. Envoyer les plans</button>`;
   }
 
   if (cmd.statut === 'livree') {
     if (cmd.email_confirmation_envoye_at) html += `<div class="email-log">✓ Facture envoyée le ${new Date(cmd.email_confirmation_envoye_at).toLocaleString('fr-FR')}</div>`;
     if (cmd.email_plans_envoye_at) html += `<div class="email-log">✓ Plans envoyés le ${new Date(cmd.email_plans_envoye_at).toLocaleString('fr-FR')}</div>`;
+    if (cmd.facture_pdf_path) html += `<button class="btn btn-outline" id="viewFactureBtn">Voir la facture PDF archivée</button>`;
     html += `<p style="font-size:12px; color:var(--success);">Commande terminée avec succès.</p>`;
   }
 
@@ -444,6 +573,15 @@ function renderActionZone(cmd) {
   if (sendPlansBtn) sendPlansBtn.addEventListener('click', () => document.getElementById('confirmPlansModal').classList.add('open'));
   const cancelBtn = document.getElementById('cancelCommandeBtn');
   if (cancelBtn) cancelBtn.addEventListener('click', () => annulerCommande(cmd));
+  const viewFactureBtn = document.getElementById('viewFactureBtn');
+  if (viewFactureBtn) viewFactureBtn.addEventListener('click', () => voirFacturePDF(cmd));
+}
+
+async function voirFacturePDF(cmd) {
+  if (!cmd.facture_pdf_path) return;
+  const { data, error } = await supabase.storage.from('factures').createSignedUrl(cmd.facture_pdf_path, 60 * 10);
+  if (error || !data?.signedUrl) { showToast('Impossible de récupérer la facture : ' + (error?.message || 'inconnue'), 'error'); return; }
+  window.open(data.signedUrl, '_blank');
 }
 
 document.getElementById('closeDetailBtn').addEventListener('click', () => document.getElementById('detailModal').classList.remove('open'));
@@ -455,21 +593,35 @@ async function confirmerPaiement(cmd) {
   try {
     const numeroFacture = cmd.numero_facture || await generateInvoiceNumber();
 
+    // Génère le PDF de facture et l'archive dans le bucket Storage "factures".
+    // En cas d'échec (bucket pas encore créé, etc.), on n'interrompt pas la confirmation du paiement.
+    let facturePdfPath = cmd.facture_pdf_path || null;
+    let factureUrl = '';
+    try {
+      const pdfBlob = genererFacturePDF(cmd, numeroFacture);
+      facturePdfPath = await uploadFacturePDF(pdfBlob, numeroFacture);
+      const { data: signedData } = await supabase.storage.from('factures').createSignedUrl(facturePdfPath, 60 * 60 * 24 * 30);
+      factureUrl = signedData?.signedUrl || '';
+    } catch (pdfErr) {
+      console.error('Génération/archivage facture PDF impossible :', pdfErr);
+    }
+
     if (typeof emailjs !== 'undefined' && cmd.client_email) {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
         to_email: cmd.client_email, to_name: cmd.client_nom, numero_facture: numeroFacture,
         montant: fmtMoney(cmd.montant_total),
-        date_commande: cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : ''
+        date_commande: cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : '',
+        facture_url: factureUrl
       });
     }
 
     const { error } = await supabase.from('commandes').update({
-      statut: 'payee', numero_facture: numeroFacture, email_confirmation_envoye_at: new Date().toISOString()
+      statut: 'payee', numero_facture: numeroFacture, facture_pdf_path: facturePdfPath, email_confirmation_envoye_at: new Date().toISOString()
     }).eq('id', cmd.id);
 
     if (error) throw error;
 
-    showToast('Facture envoyée et paiement confirmé.', 'success');
+    showToast('Facture générée, archivée et envoyée — paiement confirmé.', 'success');
     document.getElementById('detailModal').classList.remove('open');
     loadCommandes();
   } catch (err) {
@@ -532,10 +684,10 @@ document.getElementById('saveNoteBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('exportBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Client', 'Email', 'Plan', 'Montant', 'Statut', 'N° Facture']];
+  const rows = [['N° Commande', 'Date', 'Client', 'Email', 'Plan', 'Montant', 'Statut', 'N° Facture']];
   allCommandes.forEach(c => {
     rows.push([
-      c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '', c.client_nom || '', c.client_email || '',
+      c.numero_commande || '', c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '', c.client_nom || '', c.client_email || '',
       c.plan?.titre || '', c.montant_total, c.statut, c.numero_facture || ''
     ]);
   });
