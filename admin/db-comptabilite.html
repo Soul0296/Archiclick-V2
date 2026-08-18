@@ -12,12 +12,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <style>
   :root {
     --gold: #C9A961; --gold-light: #E5D4A8; --black: #0D0D0D;
     --black-soft: #1A1A1A; --black-card: #161616; --grey-text: #A8A8A8;
-    --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --border: rgba(201,169,97,0.2);
+    --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --info: #6CA0D9; --border: rgba(201,169,97,0.2);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
@@ -34,18 +35,20 @@
   .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
   .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
 
-  .period-filter { display:flex; gap:10px; align-items:center; }
-  .period-filter select {
+  .daterange-filter { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .daterange-filter label { font-size:11px; color:var(--grey-text); letter-spacing:0.5px; }
+  .daterange-filter input[type="date"] {
     background:var(--black-card); border:1px solid var(--border); color:#fff;
-    padding:9px 14px; border-radius:2px; font-size:13px; font-family:'Inter',sans-serif;
+    padding:8px 10px; border-radius:2px; font-size:12px; font-family:'Inter',sans-serif;
   }
-  .period-filter select:focus { outline:none; border-color:var(--gold); }
+  .daterange-filter input[type="date"]:focus { outline:none; border-color:var(--gold); }
 
   .btn { padding:10px 18px; border-radius:2px; border:none; font-size:12px; font-weight:600; letter-spacing:0.5px; cursor:pointer; font-family:'Inter',sans-serif; }
   .btn-gold { background:var(--gold); color:var(--black); }
   .btn-gold:hover { background:var(--gold-light); }
   .btn-outline { background:transparent; border:1px solid var(--border); color:var(--grey-text); }
   .btn-outline:hover { border-color:var(--gold); color:var(--gold-light); }
+  .btn-small { padding:7px 12px; font-size:11px; }
   .btn:disabled { opacity:0.5; cursor:not-allowed; }
 
   .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px; }
@@ -60,12 +63,17 @@
   .chart-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); margin-bottom:18px; }
   .chart-canvas-wrap { height:280px; position:relative; }
 
-  .section-block { margin-bottom:32px; }
-  .section-block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-  .section-block-header h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); }
-  .section-actions { display:flex; gap:8px; }
+  .report-section { background:var(--black-card); border:1px solid var(--gold); border-radius:4px; padding:24px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .report-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); margin-bottom:6px; }
+  .report-section p { font-size:12px; color:var(--grey-text); max-width:480px; }
 
-  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  .section-block { margin-bottom:32px; }
+  .section-block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+  .section-block-header h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); }
+  .section-block-header .subtitle { font-size:11px; color:var(--grey-text); margin-top:2px; }
+  .section-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:20px; }
   table { width:100%; border-collapse:collapse; }
   th { text-align:left; padding:12px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
   td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; }
@@ -73,9 +81,15 @@
   tr:hover td { background:rgba(255,255,255,0.02); }
 
   .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
-  .badge.paye, .badge.payee { background:rgba(127,184,138,0.15); color:var(--success); }
-  .badge.a_payer, .badge.en_attente { background:rgba(217,183,108,0.15); color:var(--warning); }
+  .badge.payee, .badge.livree { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.en_attente { background:rgba(217,183,108,0.15); color:var(--warning); }
+  .badge.annulee { background:rgba(217,108,108,0.15); color:var(--error); }
+  .badge.a_payer { background:rgba(217,183,108,0.15); color:var(--warning); }
+  .badge.paye { background:rgba(127,184,138,0.15); color:var(--success); }
   .badge.en_retard { background:rgba(217,108,108,0.15); color:var(--error); }
+  .badge.entree { background:rgba(127,184,138,0.15); color:var(--success); }
+  .badge.sortie { background:rgba(217,108,108,0.15); color:var(--error); }
+  .badge.inactif { background:rgba(168,168,168,0.15); color:var(--grey-text); }
 
   .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:5px 9px; border-radius:2px; cursor:pointer; font-size:11px; }
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
@@ -84,7 +98,8 @@
   .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:28px; }
-  .modal h2 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold-light); margin-bottom:18px; }
+  .modal h2 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold-light); margin-bottom:8px; }
+  .modal .modal-sub { font-size:12px; color:var(--grey-text); margin-bottom:18px; }
 
   .form-group { margin-bottom:14px; }
   label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); margin-bottom:6px; }
@@ -93,7 +108,7 @@
 
   .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
-  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; max-width:360px; }
   .toast.success { border-color:var(--success); color:var(--success); }
   .toast.error { border-color:var(--error); color:var(--error); }
 
@@ -122,12 +137,12 @@
 <div class="main">
   <div class="page-header">
     <h1>Comptabilité</h1>
-    <div class="period-filter">
-      <select id="periodSelect">
-        <option value="mois">Ce mois</option>
-        <option value="annee" selected>Cette année</option>
-        <option value="tout">Depuis le début</option>
-      </select>
+    <div class="daterange-filter">
+      <label>Du</label>
+      <input type="date" id="dateDebut">
+      <label>Au</label>
+      <input type="date" id="dateFin">
+      <button class="btn btn-outline btn-small" id="applyDateBtn">Appliquer</button>
       <button class="btn btn-outline" id="exportGlobalBtn">Exporter le résumé (CSV)</button>
     </div>
   </div>
@@ -146,9 +161,17 @@
       <div class="value" id="statBenefice">—</div>
     </div>
     <div class="stat-card">
-      <div class="label">Taxes en attente</div>
-      <div class="value" id="statTaxes">—</div>
+      <div class="label">Solde petite caisse</div>
+      <div class="value" id="statCaisse">—</div>
     </div>
+  </div>
+
+  <div class="report-section">
+    <div>
+      <h2>Rapport de comptabilité</h2>
+      <p>Génère un rapport complet (ventes, dépenses, taxes, petite caisse) pour la période sélectionnée ci-dessus et envoie-le par email.</p>
+    </div>
+    <button class="btn btn-gold" id="openReportModalBtn">Envoyer le rapport par email</button>
   </div>
 
   <div class="chart-section">
@@ -161,32 +184,78 @@
   <!-- VENTES -->
   <div class="section-block">
     <div class="section-block-header">
-      <h2>Ventes enregistrées</h2>
+      <div>
+        <h2>Ventes enregistrées</h2>
+        <div class="subtitle">Chaque commande passée à "Paiement confirmé" ou "Plans envoyés" apparaît automatiquement ici.</div>
+      </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportVentesBtn">Exporter (CSV)</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Client</th><th>Montant</th><th>Statut</th></tr></thead>
-        <tbody id="ventesTableBody"><tr><td colspan="4" class="empty-state">Chargement...</td></tr></tbody>
+        <thead><tr><th>Date</th><th>N° Commande</th><th>Client</th><th>Montant</th><th>Statut</th><th>Facture</th></tr></thead>
+        <tbody id="ventesTableBody"><tr><td colspan="6" class="empty-state">Chargement...</td></tr></tbody>
       </table>
     </div>
   </div>
 
-  <!-- DEPENSES -->
+  <!-- DEPENSES RECURRENTES -->
   <div class="section-block">
     <div class="section-block-header">
-      <h2>Dépenses</h2>
+      <div>
+        <h2>Dépenses récurrentes (mensuelles)</h2>
+        <div class="subtitle">Loyer, salaires, abonnements... indépendantes de la période sélectionnée.</div>
+      </div>
       <div class="section-actions">
-        <button class="btn btn-outline" id="exportDepensesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addDepenseBtn">+ Ajouter une dépense</button>
+        <button class="btn btn-outline" id="exportDepRecurrentesBtn">Exporter (CSV)</button>
+        <button class="btn btn-gold" id="addDepRecurrenteBtn">+ Ajouter une dépense récurrente</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Description</th><th>Catégorie</th><th>Montant / mois</th><th>Depuis le</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="depensesRecurrentesTableBody"><tr><td colspan="6" class="empty-state">Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DEPENSES PONCTUELLES -->
+  <div class="section-block">
+    <div class="section-block-header">
+      <div>
+        <h2>Dépenses ponctuelles</h2>
+        <div class="subtitle">Filtrées sur la période sélectionnée ci-dessus.</div>
+      </div>
+      <div class="section-actions">
+        <button class="btn btn-outline" id="exportDepPonctuellesBtn">Exporter (CSV)</button>
+        <button class="btn btn-gold" id="addDepPonctuelleBtn">+ Ajouter une dépense ponctuelle</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Montant</th><th>Actions</th></tr></thead>
-        <tbody id="depensesTableBody"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
+        <tbody id="depensesPonctuellesTableBody"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PETITE CAISSE -->
+  <div class="section-block">
+    <div class="section-block-header">
+      <div>
+        <h2>Petite caisse</h2>
+        <div class="subtitle">Suivi des entrées/sorties d'espèces. Solde calculé sur l'historique complet.</div>
+      </div>
+      <div class="section-actions">
+        <button class="btn btn-outline" id="exportCaisseBtn">Exporter (CSV)</button>
+        <button class="btn btn-gold" id="addCaisseBtn">+ Mouvement de caisse</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Motif</th><th>Montant</th><th>Actions</th></tr></thead>
+        <tbody id="caisseTableBody"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -215,6 +284,7 @@
     <h2 id="depenseModalTitle">Ajouter une dépense</h2>
     <form id="depenseForm">
       <input type="hidden" id="depenseId">
+      <input type="hidden" id="depType">
       <div class="form-group"><label>Description</label><input type="text" id="depDescription" required></div>
       <div class="form-group">
         <label>Catégorie</label>
@@ -228,11 +298,35 @@
           <option value="autres">Autres</option>
         </select>
       </div>
-      <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="depMontant" min="0" required></div>
-      <div class="form-group"><label>Date</label><input type="date" id="depDate" required></div>
+      <div class="form-group"><label id="depMontantLabel">Montant (FCFA)</label><input type="number" id="depMontant" min="0" required></div>
+      <div class="form-group"><label id="depDateLabel">Date</label><input type="date" id="depDate" required></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" id="cancelDepenseBtn">Annuler</button>
         <button type="submit" class="btn btn-gold" id="saveDepenseBtn">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CAISSE -->
+<div class="modal-overlay" id="caisseModal">
+  <div class="modal">
+    <h2 id="caisseModalTitle">Mouvement de caisse</h2>
+    <form id="caisseForm">
+      <input type="hidden" id="caisseId">
+      <div class="form-group">
+        <label>Type de mouvement</label>
+        <select id="caisseType" required>
+          <option value="entree">Entrée (approvisionnement)</option>
+          <option value="sortie">Sortie (dépense en espèces)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Motif</label><input type="text" id="caisseMotif" placeholder="ex : achat fournitures bureau" required></div>
+      <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="caisseMontant" min="0" required></div>
+      <div class="form-group"><label>Date</label><input type="date" id="caisseDate" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelCaisseBtn">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="saveCaisseBtn">Enregistrer</button>
       </div>
     </form>
   </div>
@@ -273,122 +367,232 @@
   </div>
 </div>
 
+<!-- MODAL RAPPORT -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <h2>Envoyer le rapport comptable</h2>
+    <p class="modal-sub">Le rapport couvrira la période du <strong id="reportPeriodeLabel">—</strong>.</p>
+    <form id="reportForm">
+      <div class="form-group"><label>Adresse email de destination</label><input type="email" id="reportEmail" placeholder="ex: direction@archiclick.com" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelReportBtn">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="sendReportBtn">Envoyer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="../js/supabase.js"></script>
 <script src="../js/permissions.js"></script>
 <script src="../js/auth-guard.js"></script>
 <script>
+const EMAILJS_PUBLIC_KEY = 'wAe0yWf88bXZbKdnl';
+const EMAILJS_SERVICE_ID = 'service_kwivmyg';
+const EMAILJS_TEMPLATE_RAPPORT = 'TEMPLATE_RAPPORT_COMPTABLE'; // à remplacer une fois le template créé dans EmailJS
+if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
+
+const PAID_STATUSES = ['payee', 'livree'];
+
 let allCommandes = [];
 let allDepenses = [];
 let allTaxes = [];
+let allCaisse = [];
 let isReadOnly = false;
 let caChartInstance = null;
 
 document.addEventListener('adminReady', () => {
   isReadOnly = window.ADMIN.access('comptabilite') !== 'full';
   if (isReadOnly) {
-    document.getElementById('addDepenseBtn').style.display = 'none';
-    document.getElementById('addTaxeBtn').style.display = 'none';
+    ['addDepRecurrenteBtn', 'addDepPonctuelleBtn', 'addTaxeBtn', 'addCaisseBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
   }
+  initDefaultDates();
   loadAllData();
 });
 
-document.getElementById('periodSelect').addEventListener('change', () => renderStatsAndTables());
+function initDefaultDates() {
+  const now = new Date();
+  const debutAnnee = new Date(now.getFullYear(), 0, 1);
+  document.getElementById('dateDebut').value = debutAnnee.toISOString().slice(0, 10);
+  document.getElementById('dateFin').value = now.toISOString().slice(0, 10);
+}
+
+document.getElementById('applyDateBtn').addEventListener('click', () => renderStatsAndTables());
 
 function showToast(text, type) {
   const t = document.getElementById('toast');
   t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3500);
+  setTimeout(() => { t.style.display = 'none'; }, 5000);
 }
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML;
 }
 function fmtMoney(n) { return Number(n || 0).toLocaleString('fr-FR') + ' FCFA'; }
 
+// Traduit les erreurs Supabase courantes en messages compréhensibles, au lieu du message technique brut.
+function friendlyError(error) {
+  if (!error) return 'Erreur inconnue.';
+  const code = error.code || '';
+  if (code === '23502') return "Un champ obligatoire n'a pas été enregistré côté base de données (colonne manquante ou vide). Vérifie la structure de la table dans Supabase.";
+  if (code === '42501' || /row-level security/i.test(error.message || '')) return "Action refusée par les règles de sécurité (RLS) de Supabase. Vérifie qu'une policy d'écriture existe pour cette table.";
+  if (code === '23505') return "Cette entrée existe déjà (doublon détecté).";
+  if (code === '42703') return "Une colonne utilisée par cette page n'existe pas dans la table (structure de base de données à vérifier).";
+  return error.message || 'Erreur inconnue.';
+}
+
 // ---------- CHARGEMENT GLOBAL ----------
 async function loadAllData() {
-  const [{ data: commandes }, { data: depenses }, { data: taxes }] = await Promise.all([
-    supabase.from('commandes').select('*, clients(nom)').order('created_at', { ascending: false }),
+  const [{ data: commandes, error: cmdErr }, { data: depenses, error: depErr }, { data: taxes, error: taxErr }, { data: caisse, error: caisseErr }] = await Promise.all([
+    supabase.from('commandes').select('*').order('date_commande', { ascending: false }),
     supabase.from('depenses').select('*').order('date_depense', { ascending: false }),
-    supabase.from('taxes').select('*').order('date_echeance', { ascending: true })
+    supabase.from('taxes').select('*').order('date_echeance', { ascending: true }),
+    supabase.from('caisse_mouvements').select('*').order('date_mouvement', { ascending: false })
   ]);
+
+  if (cmdErr) console.error('Erreur commandes :', cmdErr);
+  if (depErr) console.error('Erreur dépenses :', depErr);
+  if (taxErr) console.error('Erreur taxes :', taxErr);
+  if (caisseErr) console.error('Erreur caisse (table caisse_mouvements manquante ?) :', caisseErr);
 
   allCommandes = commandes || [];
   allDepenses = depenses || [];
   allTaxes = taxes || [];
+  allCaisse = caisse || [];
 
   renderStatsAndTables();
   renderChart();
 }
 
-// ---------- FILTRAGE PAR PERIODE ----------
+// ---------- FILTRAGE PAR PERIODE (calendrier "du ... au ...") ----------
 function getPeriodBounds() {
-  const period = document.getElementById('periodSelect').value;
-  const now = new Date();
-  if (period === 'mois') {
-    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: null };
-  } else if (period === 'annee') {
-    return { start: new Date(now.getFullYear(), 0, 1), end: null };
-  }
-  return { start: null, end: null };
+  const debutVal = document.getElementById('dateDebut').value;
+  const finVal = document.getElementById('dateFin').value;
+  const start = debutVal ? new Date(debutVal + 'T00:00:00') : null;
+  const end = finVal ? new Date(finVal + 'T23:59:59') : null;
+  return { start, end };
 }
 
 function filterByPeriod(items, dateField) {
-  const { start } = getPeriodBounds();
-  if (!start) return items;
-  return items.filter(item => new Date(item[dateField]) >= start);
+  const { start, end } = getPeriodBounds();
+  return items.filter(item => {
+    if (!item[dateField]) return false;
+    const d = new Date(item[dateField]);
+    if (start && d < start) return false;
+    if (end && d > end) return false;
+    return true;
+  });
+}
+
+function periodeLabel() {
+  const { start, end } = getPeriodBounds();
+  const f = (d) => d ? d.toLocaleDateString('fr-FR') : '—';
+  return `${f(start)} au ${f(end)}`;
 }
 
 // ---------- STATS + TABLEAUX ----------
 function renderStatsAndTables() {
-  const ventesFiltered = filterByPeriod(allCommandes.filter(c => c.statut_paiement === 'payee'), 'created_at');
-  const depensesFiltered = filterByPeriod(allDepenses, 'date_depense');
+  const ventesPayeesFiltered = filterByPeriod(allCommandes.filter(c => PAID_STATUSES.includes(c.statut)), 'date_commande');
+  const depensesPonctuellesFiltered = filterByPeriod(allDepenses.filter(d => d.type_depense !== 'recurrente'), 'date_depense');
+  const depensesRecurrentesActives = allDepenses.filter(d => d.type_depense === 'recurrente' && d.actif !== false);
 
-  const totalCA = ventesFiltered.reduce((s, c) => s + Number(c.montant_total || 0), 0);
-  const totalDepenses = depensesFiltered.reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalCA = ventesPayeesFiltered.reduce((s, c) => s + Number(c.montant_total || 0), 0);
+  const totalDepensesPonctuelles = depensesPonctuellesFiltered.reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepensesRecurrentes = depensesRecurrentesActives.reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepenses = totalDepensesPonctuelles + totalDepensesRecurrentes;
   const benefice = totalCA - totalDepenses;
-  const taxesEnAttente = allTaxes.filter(t => t.statut !== 'paye').reduce((s, t) => s + Number(t.montant || 0), 0);
+
+  const soldeCaisse = allCaisse.reduce((s, m) => s + (m.type === 'entree' ? Number(m.montant || 0) : -Number(m.montant || 0)), 0);
 
   document.getElementById('statCA').textContent = fmtMoney(totalCA);
   document.getElementById('statDepenses').textContent = fmtMoney(totalDepenses);
   document.getElementById('statBenefice').textContent = fmtMoney(benefice);
-  document.getElementById('statTaxes').textContent = fmtMoney(taxesEnAttente);
+  document.getElementById('statCaisse').textContent = fmtMoney(soldeCaisse);
 
   const beneficeCard = document.getElementById('statBeneficeCard');
   beneficeCard.classList.remove('positive', 'negative');
   beneficeCard.classList.add(benefice >= 0 ? 'positive' : 'negative');
 
-  renderVentesTable(filterByPeriod(allCommandes, 'created_at'));
-  renderDepensesTable(depensesFiltered);
+  renderVentesTable(filterByPeriod(allCommandes, 'date_commande'));
+  renderDepensesRecurrentesTable(allDepenses.filter(d => d.type_depense === 'recurrente'));
+  renderDepensesPonctuellesTable(depensesPonctuellesFiltered);
+  renderCaisseTable(filterByPeriod(allCaisse, 'date_mouvement'));
   renderTaxesTable(allTaxes);
+
+  document.getElementById('reportPeriodeLabel').textContent = periodeLabel();
 }
 
 function renderVentesTable(ventes) {
   const tbody = document.getElementById('ventesTableBody');
   if (ventes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Aucune vente sur cette période.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune vente sur cette période.</td></tr>`;
     return;
   }
-  tbody.innerHTML = ventes.slice(0, 50).map(c => `
+  const statutLabels = { en_attente: 'Nouvelle', payee: 'Paiement confirmé', livree: 'Plans envoyés', annulee: 'Annulée' };
+  tbody.innerHTML = ventes.slice(0, 100).map(c => `
     <tr>
-      <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-      <td>${escapeHtml(c.clients?.nom || 'Client inconnu')}</td>
+      <td>${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '—'}</td>
+      <td>${escapeHtml(c.numero_commande || '—')}</td>
+      <td>${escapeHtml(c.client_nom || 'Client inconnu')}</td>
       <td>${fmtMoney(c.montant_total)}</td>
-      <td><span class="badge ${c.statut_paiement}">${c.statut_paiement}</span></td>
+      <td><span class="badge ${c.statut}">${statutLabels[c.statut] || c.statut}</span></td>
+      <td>${c.facture_pdf_path ? `<button class="icon-btn view-facture-btn" data-path="${escapeHtml(c.facture_pdf_path)}" data-numero="${escapeHtml(c.numero_facture || c.numero_commande || '')}">Voir</button>` : '—'}</td>
     </tr>
   `).join('');
+
+  document.querySelectorAll('.view-facture-btn').forEach(btn => {
+    btn.addEventListener('click', () => voirFactureArchivee(btn.dataset.path, btn.dataset.numero));
+  });
 }
 
-function renderDepensesTable(depenses) {
-  const tbody = document.getElementById('depensesTableBody');
+async function voirFactureArchivee(path, numero) {
+  const { data, error } = await supabase.storage.from('factures').createSignedUrl(path, 600, { download: `Facture-${numero}.pdf` });
+  if (error || !data?.signedUrl) { showToast('Impossible de récupérer la facture : ' + friendlyError(error), 'error'); return; }
+  window.open(data.signedUrl, '_blank');
+}
+
+function renderDepensesRecurrentesTable(depenses) {
+  const tbody = document.getElementById('depensesRecurrentesTableBody');
   if (depenses.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucune dépense enregistrée.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune dépense récurrente enregistrée.</td></tr>`;
     return;
   }
   tbody.innerHTML = depenses.map(d => `
     <tr>
-      <td>${new Date(d.date_depense).toLocaleDateString('fr-FR')}</td>
+      <td>${escapeHtml(d.description)}</td>
+      <td>${escapeHtml(d.categorie)}</td>
+      <td>${fmtMoney(d.montant)}</td>
+      <td>${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
+      <td>${d.actif === false ? '<span class="badge inactif">Inactive</span>' : '<span class="badge paye">Active</span>'}</td>
+      <td>
+        ${!isReadOnly ? `
+          <button class="icon-btn edit-dep-btn" data-id="${d.id}">Modifier</button>
+          <button class="icon-btn toggle-dep-btn" data-id="${d.id}">${d.actif === false ? 'Activer' : 'Désactiver'}</button>
+          <button class="icon-btn delete-dep-btn" data-id="${d.id}" style="color:var(--error);">Suppr.</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+
+  if (!isReadOnly) {
+    tbody.querySelectorAll('.edit-dep-btn').forEach(b => b.addEventListener('click', () => openDepenseModal(b.dataset.id)));
+    tbody.querySelectorAll('.delete-dep-btn').forEach(b => b.addEventListener('click', () => deleteDepense(b.dataset.id)));
+    tbody.querySelectorAll('.toggle-dep-btn').forEach(b => b.addEventListener('click', () => toggleDepenseActive(b.dataset.id)));
+  }
+}
+
+function renderDepensesPonctuellesTable(depenses) {
+  const tbody = document.getElementById('depensesPonctuellesTableBody');
+  if (depenses.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucune dépense ponctuelle sur cette période.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = depenses.map(d => `
+    <tr>
+      <td>${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
       <td>${escapeHtml(d.description)}</td>
       <td>${escapeHtml(d.categorie)}</td>
       <td>${fmtMoney(d.montant)}</td>
@@ -402,8 +606,29 @@ function renderDepensesTable(depenses) {
   `).join('');
 
   if (!isReadOnly) {
-    document.querySelectorAll('.edit-dep-btn').forEach(b => b.addEventListener('click', () => openDepenseModal(b.dataset.id)));
-    document.querySelectorAll('.delete-dep-btn').forEach(b => b.addEventListener('click', () => deleteDepense(b.dataset.id)));
+    tbody.querySelectorAll('.edit-dep-btn').forEach(b => b.addEventListener('click', () => openDepenseModal(b.dataset.id)));
+    tbody.querySelectorAll('.delete-dep-btn').forEach(b => b.addEventListener('click', () => deleteDepense(b.dataset.id)));
+  }
+}
+
+function renderCaisseTable(mouvements) {
+  const tbody = document.getElementById('caisseTableBody');
+  if (mouvements.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Aucun mouvement de caisse sur cette période.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = mouvements.map(m => `
+    <tr>
+      <td>${m.date_mouvement ? new Date(m.date_mouvement).toLocaleDateString('fr-FR') : '—'}</td>
+      <td><span class="badge ${m.type}">${m.type === 'entree' ? 'Entrée' : 'Sortie'}</span></td>
+      <td>${escapeHtml(m.motif)}</td>
+      <td>${m.type === 'entree' ? '+' : '−'}${fmtMoney(m.montant)}</td>
+      <td>${!isReadOnly ? `<button class="icon-btn delete-caisse-btn" data-id="${m.id}" style="color:var(--error);">Suppr.</button>` : '—'}</td>
+    </tr>
+  `).join('');
+
+  if (!isReadOnly) {
+    tbody.querySelectorAll('.delete-caisse-btn').forEach(b => b.addEventListener('click', () => deleteCaisseMouvement(b.dataset.id)));
   }
 }
 
@@ -419,7 +644,7 @@ function renderTaxesTable(taxes) {
       <td>${escapeHtml(t.periode)}</td>
       <td>${fmtMoney(t.montant)}</td>
       <td>${t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge ${t.statut}">${t.statut.replace('_',' ')}</span></td>
+      <td><span class="badge ${t.statut}">${(t.statut || '').replace('_', ' ')}</span></td>
       <td>
         ${!isReadOnly ? `
           <button class="icon-btn edit-taxe-btn" data-id="${t.id}">Modifier</button>
@@ -430,8 +655,8 @@ function renderTaxesTable(taxes) {
   `).join('');
 
   if (!isReadOnly) {
-    document.querySelectorAll('.edit-taxe-btn').forEach(b => b.addEventListener('click', () => openTaxeModal(b.dataset.id)));
-    document.querySelectorAll('.delete-taxe-btn').forEach(b => b.addEventListener('click', () => deleteTaxe(b.dataset.id)));
+    tbody.querySelectorAll('.edit-taxe-btn').forEach(b => b.addEventListener('click', () => openTaxeModal(b.dataset.id)));
+    tbody.querySelectorAll('.delete-taxe-btn').forEach(b => b.addEventListener('click', () => deleteTaxe(b.dataset.id)));
   }
 }
 
@@ -447,9 +672,10 @@ function renderChart() {
     months.push(label);
 
     const total = allCommandes
-      .filter(c => c.statut_paiement === 'payee')
+      .filter(c => PAID_STATUSES.includes(c.statut))
       .filter(c => {
-        const cd = new Date(c.created_at);
+        if (!c.date_commande) return false;
+        const cd = new Date(c.date_commande);
         return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth();
       })
       .reduce((s, c) => s + Number(c.montant_total || 0), 0);
@@ -486,21 +712,42 @@ function renderChart() {
   });
 }
 
-// ---------- MODAL DEPENSE ----------
+// ---------- MODAL DEPENSE (récurrente ou ponctuelle) ----------
 const depenseModal = document.getElementById('depenseModal');
-document.getElementById('addDepenseBtn').addEventListener('click', () => {
+
+document.getElementById('addDepRecurrenteBtn').addEventListener('click', () => {
   document.getElementById('depenseForm').reset();
-  document.getElementById('depenseModalTitle').textContent = 'Ajouter une dépense';
+  document.getElementById('depenseModalTitle').textContent = 'Ajouter une dépense récurrente';
   document.getElementById('depenseId').value = '';
+  document.getElementById('depType').value = 'recurrente';
+  document.getElementById('depMontantLabel').textContent = 'Montant mensuel (FCFA)';
+  document.getElementById('depDateLabel').textContent = 'Active depuis le';
+  document.getElementById('depDate').value = new Date().toISOString().slice(0, 10);
   depenseModal.classList.add('open');
 });
+
+document.getElementById('addDepPonctuelleBtn').addEventListener('click', () => {
+  document.getElementById('depenseForm').reset();
+  document.getElementById('depenseModalTitle').textContent = 'Ajouter une dépense ponctuelle';
+  document.getElementById('depenseId').value = '';
+  document.getElementById('depType').value = 'ponctuelle';
+  document.getElementById('depMontantLabel').textContent = 'Montant (FCFA)';
+  document.getElementById('depDateLabel').textContent = 'Date';
+  document.getElementById('depDate').value = new Date().toISOString().slice(0, 10);
+  depenseModal.classList.add('open');
+});
+
 document.getElementById('cancelDepenseBtn').addEventListener('click', () => depenseModal.classList.remove('open'));
 
 function openDepenseModal(id) {
   const dep = allDepenses.find(d => d.id == id);
   if (!dep) return;
-  document.getElementById('depenseModalTitle').textContent = 'Modifier la dépense';
+  const isRecurrente = dep.type_depense === 'recurrente';
+  document.getElementById('depenseModalTitle').textContent = isRecurrente ? 'Modifier la dépense récurrente' : 'Modifier la dépense ponctuelle';
   document.getElementById('depenseId').value = dep.id;
+  document.getElementById('depType').value = dep.type_depense || 'ponctuelle';
+  document.getElementById('depMontantLabel').textContent = isRecurrente ? 'Montant mensuel (FCFA)' : 'Montant (FCFA)';
+  document.getElementById('depDateLabel').textContent = isRecurrente ? 'Active depuis le' : 'Date';
   document.getElementById('depDescription').value = dep.description;
   document.getElementById('depCategorie').value = dep.categorie;
   document.getElementById('depMontant').value = dep.montant;
@@ -517,17 +764,18 @@ document.getElementById('depenseForm').addEventListener('submit', async (e) => {
     description: document.getElementById('depDescription').value.trim(),
     categorie: document.getElementById('depCategorie').value,
     montant: parseFloat(document.getElementById('depMontant').value),
-    date_depense: document.getElementById('depDate').value
+    date_depense: document.getElementById('depDate').value,
+    type_depense: document.getElementById('depType').value || 'ponctuelle'
   };
 
   const id = document.getElementById('depenseId').value;
   let error;
   if (id) ({ error } = await supabase.from('depenses').update(data).eq('id', id));
-  else ({ error } = await supabase.from('depenses').insert([data]));
+  else ({ error } = await supabase.from('depenses').insert([{ ...data, actif: true }]));
 
   btn.disabled = false; btn.textContent = 'Enregistrer';
 
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
+  if (error) { console.error(error); showToast(friendlyError(error), 'error'); return; }
   showToast(id ? 'Dépense modifiée.' : 'Dépense ajoutée.', 'success');
   depenseModal.classList.remove('open');
   loadAllData();
@@ -536,8 +784,56 @@ document.getElementById('depenseForm').addEventListener('submit', async (e) => {
 async function deleteDepense(id) {
   if (!confirm('Supprimer cette dépense ?')) return;
   const { error } = await supabase.from('depenses').delete().eq('id', id);
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
+  if (error) { showToast(friendlyError(error), 'error'); return; }
   showToast('Dépense supprimée.', 'success');
+  loadAllData();
+}
+
+async function toggleDepenseActive(id) {
+  const dep = allDepenses.find(d => d.id == id);
+  if (!dep) return;
+  const { error } = await supabase.from('depenses').update({ actif: dep.actif === false ? true : false }).eq('id', id);
+  if (error) { showToast(friendlyError(error), 'error'); return; }
+  showToast('Statut mis à jour.', 'success');
+  loadAllData();
+}
+
+// ---------- MODAL CAISSE ----------
+const caisseModal = document.getElementById('caisseModal');
+document.getElementById('addCaisseBtn').addEventListener('click', () => {
+  document.getElementById('caisseForm').reset();
+  document.getElementById('caisseDate').value = new Date().toISOString().slice(0, 10);
+  caisseModal.classList.add('open');
+});
+document.getElementById('cancelCaisseBtn').addEventListener('click', () => caisseModal.classList.remove('open'));
+
+document.getElementById('caisseForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('saveCaisseBtn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+
+  const data = {
+    type: document.getElementById('caisseType').value,
+    motif: document.getElementById('caisseMotif').value.trim(),
+    montant: parseFloat(document.getElementById('caisseMontant').value),
+    date_mouvement: document.getElementById('caisseDate').value
+  };
+
+  const { error } = await supabase.from('caisse_mouvements').insert([data]);
+
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+
+  if (error) { console.error(error); showToast(friendlyError(error), 'error'); return; }
+  showToast('Mouvement de caisse enregistré.', 'success');
+  caisseModal.classList.remove('open');
+  loadAllData();
+});
+
+async function deleteCaisseMouvement(id) {
+  if (!confirm('Supprimer ce mouvement de caisse ?')) return;
+  const { error } = await supabase.from('caisse_mouvements').delete().eq('id', id);
+  if (error) { showToast(friendlyError(error), 'error'); return; }
+  showToast('Mouvement supprimé.', 'success');
   loadAllData();
 }
 
@@ -554,7 +850,7 @@ document.getElementById('cancelTaxeBtn').addEventListener('click', () => taxeMod
 function openTaxeModal(id) {
   const taxe = allTaxes.find(t => t.id == id);
   if (!taxe) return;
-  document.getElementById('taxeModalTitle').textContent = 'Modifier l\'obligation fiscale';
+  document.getElementById('taxeModalTitle').textContent = "Modifier l'obligation fiscale";
   document.getElementById('taxeId').value = taxe.id;
   document.getElementById('taxeType').value = taxe.type;
   document.getElementById('taxePeriode').value = taxe.periode;
@@ -584,7 +880,7 @@ document.getElementById('taxeForm').addEventListener('submit', async (e) => {
 
   btn.disabled = false; btn.textContent = 'Enregistrer';
 
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
+  if (error) { console.error(error); showToast(friendlyError(error), 'error'); return; }
   showToast(id ? 'Obligation modifiée.' : 'Obligation ajoutée.', 'success');
   taxeModal.classList.remove('open');
   loadAllData();
@@ -593,12 +889,12 @@ document.getElementById('taxeForm').addEventListener('submit', async (e) => {
 async function deleteTaxe(id) {
   if (!confirm('Supprimer cette obligation fiscale ?')) return;
   const { error } = await supabase.from('taxes').delete().eq('id', id);
-  if (error) { showToast("Erreur : " + error.message, 'error'); return; }
+  if (error) { showToast(friendlyError(error), 'error'); return; }
   showToast('Obligation supprimée.', 'success');
   loadAllData();
 }
 
-// ---------- EXPORT CSV ----------
+// ---------- EXPORT CSV (présentation améliorée) ----------
 function downloadCSV(filename, rows) {
   const csvContent = rows.map(row =>
     row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';')
@@ -613,29 +909,64 @@ function downloadCSV(filename, rows) {
   document.body.removeChild(link);
 }
 
+function csvHeader(titre) {
+  return [
+    ['ARCHICLICK — ' + titre],
+    ['Période', periodeLabel()],
+    ['Généré le', new Date().toLocaleString('fr-FR')],
+    []
+  ];
+}
+
 document.getElementById('exportVentesBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Client', 'Montant (FCFA)', 'Statut']];
-  filterByPeriod(allCommandes, 'created_at').forEach(c => {
-    rows.push([
-      new Date(c.created_at).toLocaleDateString('fr-FR'),
-      c.clients?.nom || 'Client inconnu',
-      c.montant_total,
-      c.statut_paiement
-    ]);
+  const ventes = filterByPeriod(allCommandes, 'date_commande');
+  const rows = [...csvHeader('Ventes'), ['Date', 'N° Commande', 'Client', 'Montant (FCFA)', 'Statut']];
+  let total = 0;
+  ventes.forEach(c => {
+    total += Number(c.montant_total || 0);
+    rows.push([c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '', c.numero_commande || '', c.client_nom || 'Client inconnu', c.montant_total, c.statut]);
   });
+  rows.push([]); rows.push(['TOTAL', '', '', total, '']);
   downloadCSV('ventes_archiclick.csv', rows);
 });
 
-document.getElementById('exportDepensesBtn').addEventListener('click', () => {
-  const rows = [['Date', 'Description', 'Catégorie', 'Montant (FCFA)']];
-  filterByPeriod(allDepenses, 'date_depense').forEach(d => {
-    rows.push([new Date(d.date_depense).toLocaleDateString('fr-FR'), d.description, d.categorie, d.montant]);
+document.getElementById('exportDepRecurrentesBtn').addEventListener('click', () => {
+  const deps = allDepenses.filter(d => d.type_depense === 'recurrente');
+  const rows = [...csvHeader('Dépenses récurrentes'), ['Description', 'Catégorie', 'Montant mensuel (FCFA)', 'Depuis le', 'Statut']];
+  let total = 0;
+  deps.forEach(d => {
+    if (d.actif !== false) total += Number(d.montant || 0);
+    rows.push([d.description, d.categorie, d.montant, d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '', d.actif === false ? 'Inactive' : 'Active']);
   });
-  downloadCSV('depenses_archiclick.csv', rows);
+  rows.push([]); rows.push(['TOTAL MENSUEL (actives)', '', total, '', '']);
+  downloadCSV('depenses_recurrentes_archiclick.csv', rows);
+});
+
+document.getElementById('exportDepPonctuellesBtn').addEventListener('click', () => {
+  const deps = filterByPeriod(allDepenses.filter(d => d.type_depense !== 'recurrente'), 'date_depense');
+  const rows = [...csvHeader('Dépenses ponctuelles'), ['Date', 'Description', 'Catégorie', 'Montant (FCFA)']];
+  let total = 0;
+  deps.forEach(d => {
+    total += Number(d.montant || 0);
+    rows.push([d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '', d.description, d.categorie, d.montant]);
+  });
+  rows.push([]); rows.push(['TOTAL', '', '', total]);
+  downloadCSV('depenses_ponctuelles_archiclick.csv', rows);
+});
+
+document.getElementById('exportCaisseBtn').addEventListener('click', () => {
+  const mouvements = filterByPeriod(allCaisse, 'date_mouvement');
+  const rows = [...csvHeader('Petite caisse'), ['Date', 'Type', 'Motif', 'Montant (FCFA)']];
+  mouvements.forEach(m => {
+    rows.push([m.date_mouvement ? new Date(m.date_mouvement).toLocaleDateString('fr-FR') : '', m.type === 'entree' ? 'Entrée' : 'Sortie', m.motif, (m.type === 'entree' ? '' : '-') + m.montant]);
+  });
+  const solde = allCaisse.reduce((s, m) => s + (m.type === 'entree' ? Number(m.montant || 0) : -Number(m.montant || 0)), 0);
+  rows.push([]); rows.push(['SOLDE ACTUEL (historique complet)', '', '', solde]);
+  downloadCSV('petite_caisse_archiclick.csv', rows);
 });
 
 document.getElementById('exportTaxesBtn').addEventListener('click', () => {
-  const rows = [['Type', 'Période', 'Montant (FCFA)', 'Échéance', 'Statut']];
+  const rows = [...csvHeader('Obligations fiscales'), ['Type', 'Période', 'Montant (FCFA)', 'Échéance', 'Statut']];
   allTaxes.forEach(t => {
     rows.push([t.type, t.periode, t.montant, t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '', t.statut]);
   });
@@ -643,22 +974,110 @@ document.getElementById('exportTaxesBtn').addEventListener('click', () => {
 });
 
 document.getElementById('exportGlobalBtn').addEventListener('click', () => {
-  const ventesFiltered = filterByPeriod(allCommandes.filter(c => c.statut_paiement === 'payee'), 'created_at');
-  const depensesFiltered = filterByPeriod(allDepenses, 'date_depense');
-  const totalCA = ventesFiltered.reduce((s, c) => s + Number(c.montant_total || 0), 0);
-  const totalDepenses = depensesFiltered.reduce((s, d) => s + Number(d.montant || 0), 0);
-  const taxesEnAttente = allTaxes.filter(t => t.statut !== 'paye').reduce((s, t) => s + Number(t.montant || 0), 0);
+  const totalCA = filterByPeriod(allCommandes.filter(c => PAID_STATUSES.includes(c.statut)), 'date_commande').reduce((s, c) => s + Number(c.montant_total || 0), 0);
+  const totalDepPonct = filterByPeriod(allDepenses.filter(d => d.type_depense !== 'recurrente'), 'date_depense').reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepRec = allDepenses.filter(d => d.type_depense === 'recurrente' && d.actif !== false).reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepenses = totalDepPonct + totalDepRec;
+  const soldeCaisse = allCaisse.reduce((s, m) => s + (m.type === 'entree' ? Number(m.montant || 0) : -Number(m.montant || 0)), 0);
 
   const rows = [
-    ['Résumé comptable Archiclick'],
-    ['Période', document.getElementById('periodSelect').selectedOptions[0].textContent],
-    [],
-    ['Chiffre d\'affaires', totalCA],
+    ...csvHeader('Résumé comptable'),
+    ["Chiffre d'affaires", totalCA],
+    ['Dépenses récurrentes (mensuelles, actives)', totalDepRec],
+    ['Dépenses ponctuelles (période)', totalDepPonct],
     ['Total dépenses', totalDepenses],
     ['Bénéfice net', totalCA - totalDepenses],
-    ['Taxes en attente', taxesEnAttente]
+    ['Solde petite caisse (historique complet)', soldeCaisse]
   ];
   downloadCSV('resume_comptable_archiclick.csv', rows);
+});
+
+// ---------- RAPPORT COMPTABLE PAR EMAIL ----------
+const reportModal = document.getElementById('reportModal');
+document.getElementById('openReportModalBtn').addEventListener('click', () => {
+  document.getElementById('reportPeriodeLabel').textContent = periodeLabel();
+  reportModal.classList.add('open');
+});
+document.getElementById('cancelReportBtn').addEventListener('click', () => reportModal.classList.remove('open'));
+
+function buildReportHtml() {
+  const ventes = filterByPeriod(allCommandes.filter(c => PAID_STATUSES.includes(c.statut)), 'date_commande');
+  const depPonct = filterByPeriod(allDepenses.filter(d => d.type_depense !== 'recurrente'), 'date_depense');
+  const depRec = allDepenses.filter(d => d.type_depense === 'recurrente' && d.actif !== false);
+  const totalCA = ventes.reduce((s, c) => s + Number(c.montant_total || 0), 0);
+  const totalDepPonct = depPonct.reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepRec = depRec.reduce((s, d) => s + Number(d.montant || 0), 0);
+  const totalDepenses = totalDepPonct + totalDepRec;
+  const benefice = totalCA - totalDepenses;
+  const soldeCaisse = allCaisse.reduce((s, m) => s + (m.type === 'entree' ? Number(m.montant || 0) : -Number(m.montant || 0)), 0);
+  const taxesEnAttente = allTaxes.filter(t => t.statut !== 'paye');
+
+  const rowStyle = 'padding:8px 10px; font-size:12px; border-bottom:1px solid #e0d8ca;';
+  const th = (label) => `<th style="text-align:left; padding:8px 10px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#888888; background:#f5f0eb; border-bottom:1px solid #e0d8ca;">${label}</th>`;
+
+  const statsTable = `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px; border:1px solid #eae3db;">
+      <tr><td style="${rowStyle}">Chiffre d'affaires</td><td style="${rowStyle} font-weight:bold; text-align:right;">${fmtMoney(totalCA)}</td></tr>
+      <tr><td style="${rowStyle}">Dépenses récurrentes (mensuelles)</td><td style="${rowStyle} text-align:right;">${fmtMoney(totalDepRec)}</td></tr>
+      <tr><td style="${rowStyle}">Dépenses ponctuelles</td><td style="${rowStyle} text-align:right;">${fmtMoney(totalDepPonct)}</td></tr>
+      <tr><td style="${rowStyle} font-weight:bold;">Bénéfice net</td><td style="${rowStyle} font-weight:bold; text-align:right; color:${benefice >= 0 ? '#4a8a5c' : '#c25555'};">${fmtMoney(benefice)}</td></tr>
+      <tr><td style="padding:8px 10px; font-size:12px;">Solde petite caisse (historique complet)</td><td style="padding:8px 10px; font-size:12px; text-align:right;">${fmtMoney(soldeCaisse)}</td></tr>
+    </table>`;
+
+  const ventesRows = ventes.slice(0, 30).map(c => `
+    <tr><td style="${rowStyle}">${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '—'}</td><td style="${rowStyle}">${escapeHtml(c.client_nom || '—')}</td><td style="${rowStyle} text-align:right;">${fmtMoney(c.montant_total)}</td></tr>
+  `).join('');
+  const ventesTable = `
+    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Ventes (${ventes.length})</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px; border:1px solid #eae3db;">
+      <tr>${th('Date')}${th('Client')}${th('Montant')}</tr>
+      ${ventesRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune vente</td></tr>`}
+    </table>`;
+
+  const depRows = [...depRec.map(d => ({ ...d, tag: 'Récurrente' })), ...depPonct.map(d => ({ ...d, tag: 'Ponctuelle' }))].map(d => `
+    <tr><td style="${rowStyle}">${escapeHtml(d.description)}</td><td style="${rowStyle}">${escapeHtml(d.tag)}</td><td style="${rowStyle} text-align:right;">${fmtMoney(d.montant)}</td></tr>
+  `).join('');
+  const depensesTable = `
+    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Dépenses</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px; border:1px solid #eae3db;">
+      <tr>${th('Description')}${th('Type')}${th('Montant')}</tr>
+      ${depRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune dépense</td></tr>`}
+    </table>`;
+
+  const taxesRows = taxesEnAttente.map(t => `
+    <tr><td style="${rowStyle}">${escapeHtml(t.type)}</td><td style="${rowStyle}">${escapeHtml(t.periode)}</td><td style="${rowStyle} text-align:right;">${fmtMoney(t.montant)}</td></tr>
+  `).join('');
+  const taxesTable = `
+    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Obligations fiscales en attente</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eae3db;">
+      <tr>${th('Type')}${th('Période')}${th('Montant')}</tr>
+      ${taxesRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune obligation en attente</td></tr>`}
+    </table>`;
+
+  return statsTable + ventesTable + depensesTable + taxesTable;
+}
+
+document.getElementById('reportForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('sendReportBtn');
+  const email = document.getElementById('reportEmail').value.trim();
+  btn.disabled = true; btn.textContent = 'Envoi en cours...';
+
+  try {
+    const reportHtml = buildReportHtml();
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_RAPPORT, {
+      to_email: email,
+      periode: periodeLabel(),
+      report_content: reportHtml
+    });
+    showToast('Rapport envoyé à ' + email, 'success');
+    reportModal.classList.remove('open');
+  } catch (err) {
+    console.error(err);
+    showToast('Erreur d\'envoi : ' + (err.text || err.message || 'inconnue'), 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Envoyer';
+  }
 });
 </script>
 
