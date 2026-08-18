@@ -271,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 const EMAILJS_PUBLIC_KEY = 'wAe0yWf88bXZbKdnl';
 const EMAILJS_SERVICE_ID = 'service_kwivmyg';
-const EMAILJS_TEMPLATE_CONFIRMATION = 'TEMPLATE_CONFIRMATION_PAIEMENT';
-const EMAILJS_TEMPLATE_PLANS = 'TEMPLATE_ENVOI_PLANS';
+const EMAILJS_TEMPLATE_CONFIRMATION = 'template_sqcxbyh';
+const EMAILJS_TEMPLATE_PLANS = 'template_k6pwdx9';
 if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 
 let allCommandes = [];
@@ -319,7 +319,7 @@ async function loadCommandes() {
 
   const [{ data: commandes, error: cmdError }, { data: plans }, { data: promos }] = await Promise.all([
     supabase.from('commandes').select('*').order('date_commande', { ascending: false }),
-    supabase.from('plans').select('id, titre, reference'),
+    supabase.from('plans').select('id, titre, reference, fichier_pdf, fichier_dwg'),
     supabase.from('promos').select('code, type, reduction')
   ]);
 
@@ -608,10 +608,13 @@ async function confirmerPaiement(cmd) {
 
     if (typeof emailjs !== 'undefined' && cmd.client_email) {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRMATION, {
-        to_email: cmd.client_email, to_name: cmd.client_nom, numero_facture: numeroFacture,
+        to_email: cmd.client_email,
+        client_name: cmd.client_nom,
+        order_id: numeroFacture,
+        plans_list: cmd.plan?.titre || '',
         montant: fmtMoney(cmd.montant_total),
-        date_commande: cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : '',
-        facture_url: factureUrl
+        order_date: cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : '',
+        facture_pdf_link: factureUrl
       });
     }
 
@@ -639,11 +642,36 @@ document.getElementById('confirmSendPlansBtn').addEventListener('click', async (
 
   try {
     const cmd = activeCommande;
+    const options = cmd.options || {};
+
+    // Génère des liens de téléchargement signés (30 jours) vers le PDF et, si acheté, le DWG du plan,
+    // depuis le bucket privé "plans-fichiers".
+    let pdfLink = '';
+    let cadLink = '';
+    if (cmd.plan?.fichier_pdf) {
+      const { data: pdfSigned, error: pdfErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_pdf, 60 * 60 * 24 * 30);
+      if (pdfErr) throw new Error('Lien PDF : ' + pdfErr.message);
+      pdfLink = pdfSigned?.signedUrl || '';
+    }
+    if (options.dwg && cmd.plan?.fichier_dwg) {
+      const { data: dwgSigned, error: dwgErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_dwg, 60 * 60 * 24 * 30);
+      if (dwgErr) throw new Error('Lien DWG : ' + dwgErr.message);
+      cadLink = dwgSigned?.signedUrl || '';
+    }
+
+    const formats = [];
+    if (pdfLink) formats.push('PDF');
+    if (cadLink) formats.push('DWG');
 
     if (typeof emailjs !== 'undefined' && cmd.client_email) {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PLANS, {
-        to_email: cmd.client_email, to_name: cmd.client_nom, numero_facture: cmd.numero_facture,
-        plans_liste: cmd.plan?.titre || ''
+        to_email: cmd.client_email,
+        client_name: cmd.client_nom,
+        order_id: cmd.numero_facture,
+        plans_list: cmd.plan?.titre || '',
+        format: formats.join(' + ') || 'PDF',
+        pdf_links: pdfLink,
+        cad_links: cadLink
       });
     }
 
