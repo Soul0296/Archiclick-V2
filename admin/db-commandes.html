@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <style>
   :root {
@@ -426,51 +427,95 @@ async function generateInvoiceNumber() {
 }
 
 // ---------- FACTURE PDF ----------
-// Génère un PDF simple de facture avec jsPDF, à partir des infos de la commande.
+// Génère une facture PDF au design professionnel (bandeau noir/doré, bloc client, tableau des articles).
 function genererFacturePDF(cmd, numeroFacture) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const GOLD = [201, 169, 110];
+  const BLACK = [10, 10, 10];
+  const GREY = [136, 136, 136];
+  const DARK = [45, 45, 45];
 
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+  // Bandeau d'en-tête
+  doc.setFillColor(...BLACK);
+  doc.rect(0, 0, 210, 38, 'F');
+  doc.setFillColor(...GOLD);
+  doc.rect(0, 38, 210, 1.2, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
   doc.text('ARCHICLICK', 14, 20);
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-  doc.text('Plans de maison — Cameroun', 14, 26);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+  doc.setTextColor(...GOLD);
+  doc.text('PLANS DE MAISON — CAMEROUN', 14, 27);
 
-  doc.setDrawColor(201, 169, 97);
-  doc.line(14, 32, 196, 32);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+  doc.text('FACTURE', 196, 16, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`N° ${numeroFacture}`, 196, 23, { align: 'right' });
+  doc.text(`${new Date().toLocaleDateString('fr-FR')}`, 196, 29, { align: 'right' });
 
-  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
-  doc.text(`Facture N° ${numeroFacture}`, 14, 44);
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-  doc.text(`Commande N° ${cmd.numero_commande || '—'}`, 14, 50);
-  doc.text(`Date d'émission : ${new Date().toLocaleDateString('fr-FR')}`, 14, 56);
+  let y = 54;
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Client', 14, 70);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`${cmd.client_nom || ''}`, 14, 76);
-  doc.text(`${cmd.client_email || ''}`, 14, 81);
-  doc.text(`${cmd.client_tel || ''}`, 14, 86);
+  // Bloc client (gauche)
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+  doc.text('FACTURÉ À', 14, y);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...DARK);
+  doc.text(cmd.client_nom || '—', 14, y + 7);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(100, 100, 100);
+  doc.text(cmd.client_email || '', 14, y + 13);
+  doc.text(cmd.client_tel || '', 14, y + 18);
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Détail de la commande', 14, 100);
-  doc.setFont('helvetica', 'normal');
-  let y = 106;
-  doc.text(`Plan : ${cmd.plan?.titre || '—'}${cmd.plan?.reference ? ' (' + cmd.plan.reference + ')' : ''}`, 14, y);
-  y += 6;
+  // Bloc commande (droite)
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+  doc.text('N° DE COMMANDE', 196, y, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...DARK);
+  doc.text(cmd.numero_commande || '—', 196, y + 7, { align: 'right' });
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+  doc.text('DATE DE COMMANDE', 196, y + 15, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...DARK);
+  doc.text(cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR') : '—', 196, y + 22, { align: 'right' });
+
+  y += 36;
+
+  // Tableau des articles
   const options = cmd.options || {};
-  if (options.dwg) { doc.text('Option : fichier DWG', 14, y); y += 6; }
-  if (options.physique) { doc.text('Option : dossier physique' + (options.region ? ' — ' + options.region : ''), 14, y); y += 6; }
-  if (cmd.code_promo_applique) { doc.text(`Code promo appliqué : ${cmd.code_promo_applique}`, 14, y); y += 6; }
+  const rows = [];
+  rows.push([`Plan ${cmd.plan?.titre || '—'}${cmd.plan?.reference ? ' (' + cmd.plan.reference + ')' : ''}`, 'Article principal']);
+  if (options.dwg) rows.push(['Fichier DWG', 'Option incluse']);
+  if (options.physique) rows.push(['Dossier physique' + (options.region ? ' — ' + options.region : ''), 'Option incluse']);
+  if (cmd.code_promo_applique) {
+    const promo = promosByCode[cmd.code_promo_applique];
+    const reductionLabel = promo ? (promo.type === '%' ? `−${promo.reduction}%` : `−${fmtMoney(promo.reduction)}`) : '';
+    rows.push([`Code promo appliqué : ${cmd.code_promo_applique}`, reductionLabel]);
+  }
 
-  doc.setDrawColor(220, 220, 220);
-  doc.line(14, y + 4, 196, y + 4);
+  doc.autoTable({
+    startY: y,
+    head: [['Désignation', 'Détail']],
+    body: rows,
+    theme: 'plain',
+    headStyles: { fillColor: BLACK, textColor: 255, fontStyle: 'bold', fontSize: 9, cellPadding: 4 },
+    bodyStyles: { fontSize: 9.5, textColor: DARK, cellPadding: 4 },
+    alternateRowStyles: { fillColor: [245, 240, 235] },
+    margin: { left: 14, right: 14 }
+  });
 
-  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
-  doc.text(`Montant total payé : ${fmtMoney(cmd.montant_total)}`, 14, y + 16);
+  const finalY = doc.lastAutoTable.finalY + 12;
+  doc.setDrawColor(...GOLD); doc.setLineWidth(0.6);
+  doc.line(14, finalY, 196, finalY);
 
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 120, 120);
-  doc.text('Facture générée automatiquement — Archiclick', 14, 285);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...GREY);
+  doc.text('MONTANT TOTAL PAYÉ', 14, finalY + 11);
+  doc.setFontSize(15); doc.setTextColor(...BLACK);
+  doc.text(fmtMoney(cmd.montant_total), 196, finalY + 12, { align: 'right' });
+
+  doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.3);
+  doc.line(14, 275, 196, 275);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...GREY);
+  doc.text('Merci pour votre confiance — contact@archiclick.com', 14, 281);
+  doc.text('Facture générée automatiquement par Archiclick', 14, 286);
 
   return doc.output('blob');
 }
@@ -579,7 +624,7 @@ function renderActionZone(cmd) {
 
 async function voirFacturePDF(cmd) {
   if (!cmd.facture_pdf_path) return;
-  const { data, error } = await supabase.storage.from('factures').createSignedUrl(cmd.facture_pdf_path, 60 * 10);
+  const { data, error } = await supabase.storage.from('factures').createSignedUrl(cmd.facture_pdf_path, 60 * 10, { download: `Facture-${cmd.numero_facture || cmd.numero_commande}.pdf` });
   if (error || !data?.signedUrl) { showToast('Impossible de récupérer la facture : ' + (error?.message || 'inconnue'), 'error'); return; }
   window.open(data.signedUrl, '_blank');
 }
@@ -600,7 +645,7 @@ async function confirmerPaiement(cmd) {
     try {
       const pdfBlob = genererFacturePDF(cmd, numeroFacture);
       facturePdfPath = await uploadFacturePDF(pdfBlob, numeroFacture);
-      const { data: signedData } = await supabase.storage.from('factures').createSignedUrl(facturePdfPath, 60 * 60 * 24 * 30);
+      const { data: signedData } = await supabase.storage.from('factures').createSignedUrl(facturePdfPath, 60 * 60 * 24 * 30, { download: `Facture-${numeroFacture}.pdf` });
       factureUrl = signedData?.signedUrl || '';
     } catch (pdfErr) {
       console.error('Génération/archivage facture PDF impossible :', pdfErr);
@@ -649,12 +694,12 @@ document.getElementById('confirmSendPlansBtn').addEventListener('click', async (
     let pdfLink = '';
     let cadLink = '';
     if (cmd.plan?.fichier_pdf) {
-      const { data: pdfSigned, error: pdfErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_pdf, 60 * 60 * 24 * 30);
+      const { data: pdfSigned, error: pdfErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_pdf, 60 * 60 * 24 * 30, { download: `${cmd.plan.titre || 'plan'}.pdf` });
       if (pdfErr) throw new Error('Lien PDF : ' + pdfErr.message);
       pdfLink = pdfSigned?.signedUrl || '';
     }
     if (options.dwg && cmd.plan?.fichier_dwg) {
-      const { data: dwgSigned, error: dwgErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_dwg, 60 * 60 * 24 * 30);
+      const { data: dwgSigned, error: dwgErr } = await supabase.storage.from('plans-fichiers').createSignedUrl(cmd.plan.fichier_dwg, 60 * 60 * 24 * 30, { download: `${cmd.plan.titre || 'plan'}.dwg` });
       if (dwgErr) throw new Error('Lien DWG : ' + dwgErr.message);
       cadLink = dwgSigned?.signedUrl || '';
     }
