@@ -12,6 +12,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <style>
@@ -21,16 +23,17 @@
     --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --info: #6CA0D9; --border: rgba(201,169,97,0.2);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
+  html { overflow-x:hidden; }
+  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; overflow-x:hidden; max-width:100vw; }
 
-  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
+  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; z-index:140; }
   .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
   .sidebar .logo span { color:var(--gold); }
   .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; }
   .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
   .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
 
-  .main { margin-left:240px; flex:1; padding:32px 40px; }
+  .main { margin-left:240px; flex:1; padding:32px 40px; min-width:0; max-width:100%; }
 
   .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
   .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
@@ -39,7 +42,7 @@
   .daterange-filter label { font-size:11px; color:var(--grey-text); letter-spacing:0.5px; }
   .daterange-filter input[type="date"] {
     background:var(--black-card); border:1px solid var(--border); color:#fff;
-    padding:8px 10px; border-radius:2px; font-size:12px; font-family:'Inter',sans-serif;
+    padding:8px 10px; border-radius:2px; font-size:12px; font-family:'Inter',sans-serif; max-width:150px;
   }
   .daterange-filter input[type="date"]:focus { outline:none; border-color:var(--gold); }
 
@@ -52,16 +55,19 @@
   .btn:disabled { opacity:0.5; cursor:not-allowed; }
 
   .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px; }
-  .stat-card { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:20px; position:relative; overflow:hidden; }
+  .stat-card { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:20px; position:relative; overflow:hidden; min-width:0; }
   .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
   .stat-card .label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--grey-text); margin-bottom:8px; }
-  .stat-card .value { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; color:var(--gold-light); }
+  .stat-card .value { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; color:var(--gold-light); word-break:break-word; }
   .stat-card.negative .value { color:var(--error); }
   .stat-card.positive .value { color:var(--success); }
 
   .chart-section { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:24px; margin-bottom:28px; }
-  .chart-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); margin-bottom:18px; }
-  .chart-canvas-wrap { height:280px; position:relative; }
+  .chart-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+  .chart-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); }
+  .chart-zoom-controls { display:flex; gap:6px; }
+  .chart-canvas-wrap { height:280px; position:relative; max-width:100%; }
+  .chart-hint { font-size:10px; color:var(--grey-text); margin-top:8px; }
 
   .report-section { background:var(--black-card); border:1px solid var(--gold); border-radius:4px; padding:24px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
   .report-section h2 { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--gold-light); margin-bottom:6px; }
@@ -73,7 +79,7 @@
   .section-block-header .subtitle { font-size:11px; color:var(--grey-text); margin-top:2px; }
   .section-actions { display:flex; gap:8px; flex-wrap:wrap; }
 
-  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:20px; }
+  .table-wrap { background:var(--black-card); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:20px; max-width:100%; }
   table { width:100%; border-collapse:collapse; }
   th { text-align:left; padding:12px 16px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-light); border-bottom:1px solid var(--border); background:rgba(201,169,97,0.04); }
   td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; }
@@ -91,11 +97,11 @@
   .badge.sortie { background:rgba(217,108,108,0.15); color:var(--error); }
   .badge.inactif { background:rgba(168,168,168,0.15); color:var(--grey-text); }
 
-  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:5px 9px; border-radius:2px; cursor:pointer; font-size:11px; }
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:5px 9px; border-radius:2px; cursor:pointer; font-size:11px; margin:2px 3px 2px 0; }
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
   .empty-state { text-align:center; padding:40px 20px; color:var(--grey-text); font-size:13px; }
 
-  .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; padding:20px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--black-soft); border:1px solid var(--border); border-radius:4px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:28px; }
   .modal h2 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold-light); margin-bottom:8px; }
@@ -108,14 +114,94 @@
 
   .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 
-  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:200; display:none; max-width:360px; }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--black-soft); border:1px solid var(--border); padding:14px 20px; border-radius:4px; font-size:13px; z-index:300; display:none; max-width:calc(100vw - 48px); }
   .toast.success { border-color:var(--success); color:var(--success); }
   .toast.error { border-color:var(--error); color:var(--error); }
 
-  @media (max-width: 1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+  /* ---------- FISCALITÉ (cartes en pourcentage) ---------- */
+  .fiscal-summary { display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+  .fiscal-summary .stat-card { flex:1; min-width:200px; }
+  .fiscal-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; margin-bottom:20px; }
+  .fiscal-card { background:var(--black-card); border:1px solid var(--border); border-radius:4px; padding:16px; }
+  .fiscal-card .fiscal-name { font-size:13px; font-weight:600; color:var(--gold-light); margin-bottom:2px; }
+  .fiscal-card .fiscal-desc { font-size:10.5px; color:var(--grey-text); margin-bottom:10px; line-height:1.4; }
+  .fiscal-card .fiscal-input-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .fiscal-card .fiscal-input-row input { width:80px; text-align:right; }
+  .fiscal-card .fiscal-unit { font-size:12px; color:var(--grey-text); }
+  .fiscal-card .fiscal-result { font-size:16px; font-weight:600; color:var(--gold); border-top:1px solid var(--border); padding-top:8px; }
+  .fiscal-disclaimer { font-size:11px; color:var(--grey-text); line-height:1.6; background:rgba(217,183,108,0.08); border:1px solid var(--warning); border-radius:4px; padding:12px 14px; margin-bottom:20px; }
+
+  /* ---------- RESPONSIVE MOBILE ---------- */
+  .mobile-topbar { display:none; }
+  .sidebar-overlay { display:none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:var(--black-soft); border-bottom:1px solid var(--border);
+      padding:0 16px; z-index:150;
+    }
+    .mobile-topbar .logo-mini { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold-light); }
+    .mobile-topbar .logo-mini span { color:var(--gold); }
+    .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
+
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; }
+    .sidebar.open { transform:translateX(0); }
+
+    .sidebar-overlay.open {
+      display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); z-index:130;
+    }
+
+    .main { margin-left:0 !important; padding:76px 14px 24px !important; }
+    .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+    .stat-card { padding:14px; }
+    .stat-card .value { font-size:19px; }
+    .page-header h1 { font-size:24px; }
+  }
+
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns:1fr 1fr; }
+
+    /* Tableaux -> cartes empilées, plus de scroll horizontal */
+    .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr { display:block; width:100%; }
+    .table-wrap thead { position:absolute; top:-9999px; left:-9999px; }
+    .table-wrap tr { border-bottom:1px solid var(--border); padding:10px 0; }
+    .table-wrap tr:last-child { border-bottom:none; }
+    .table-wrap td { border:none; padding:6px 16px; text-align:right; position:relative; padding-left:48%; word-break:break-word; }
+    .table-wrap td::before {
+      content: attr(data-label);
+      position:absolute; left:16px; width:44%; text-align:left;
+      font-size:10px; letter-spacing:0.5px; text-transform:uppercase; color:var(--gold-light); font-weight:600;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns:1fr; }
+    .fiscal-grid { grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
+
+<div class="mobile-topbar">
+  <div class="logo-mini">Archi<span>click</span></div>
+  <button class="menu-toggle-btn" id="menuToggleBtn">☰ Menu</button>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleBtn = document.getElementById('menuToggleBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.querySelector('.sidebar');
+  if (toggleBtn) toggleBtn.addEventListener('click', function() { sidebar.classList.toggle('open'); overlay.classList.toggle('open'); });
+  if (overlay) overlay.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
+    link.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
+  });
+});
+</script>
 
 <div class="sidebar">
   <div class="logo">Archi<span>click</span></div>
@@ -143,7 +229,7 @@
       <label>Au</label>
       <input type="date" id="dateFin">
       <button class="btn btn-outline btn-small" id="applyDateBtn">Appliquer</button>
-      <button class="btn btn-outline" id="exportGlobalBtn">Exporter le résumé (CSV)</button>
+      <button class="btn btn-outline btn-small" id="exportGlobalBtn">Résumé (CSV)</button>
     </div>
   </div>
 
@@ -175,18 +261,27 @@
   </div>
 
   <div class="chart-section">
-    <h2>Évolution du chiffre d'affaires (12 derniers mois)</h2>
+    <div class="chart-section-header">
+      <h2>Évolution du chiffre d'affaires (par jour)</h2>
+      <div class="chart-zoom-controls">
+        <button class="btn btn-outline btn-small" data-zoom="7">Semaine</button>
+        <button class="btn btn-outline btn-small" data-zoom="30">Mois</button>
+        <button class="btn btn-outline btn-small" data-zoom="365">Année</button>
+        <button class="btn btn-outline btn-small" data-zoom="0">Tout</button>
+      </div>
+    </div>
     <div class="chart-canvas-wrap">
       <canvas id="caChart"></canvas>
     </div>
+    <div class="chart-hint">Molette / pincement pour zoomer, glisser pour naviguer.</div>
   </div>
 
   <!-- VENTES -->
   <div class="section-block">
     <div class="section-block-header">
       <div>
-        <h2>Ventes enregistrées</h2>
-        <div class="subtitle">Chaque commande passée à "Paiement confirmé" ou "Plans envoyés" apparaît automatiquement ici.</div>
+        <h2>Ventes confirmées</h2>
+        <div class="subtitle">Uniquement les commandes dont le paiement a été confirmé (les commandes annulées ou en attente n'apparaissent pas ici).</div>
       </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportVentesBtn">Exporter (CSV)</button>
@@ -209,7 +304,7 @@
       </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportDepRecurrentesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addDepRecurrenteBtn">+ Ajouter une dépense récurrente</button>
+        <button class="btn btn-gold" id="addDepRecurrenteBtn">+ Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -229,7 +324,7 @@
       </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportDepPonctuellesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addDepPonctuelleBtn">+ Ajouter une dépense ponctuelle</button>
+        <button class="btn btn-gold" id="addDepPonctuelleBtn">+ Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -249,7 +344,7 @@
       </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportCaisseBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addCaisseBtn">+ Mouvement de caisse</button>
+        <button class="btn btn-gold" id="addCaisseBtn">+ Mouvement</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -260,13 +355,44 @@
     </div>
   </div>
 
-  <!-- TAXES -->
+  <!-- FISCALITÉ -->
   <div class="section-block">
     <div class="section-block-header">
-      <h2>Obligations fiscales</h2>
+      <div>
+        <h2>Fiscalité (SARL — Cameroun)</h2>
+        <div class="subtitle">Taux éditables, calculés automatiquement sur le chiffre d'affaires de la période sélectionnée.</div>
+      </div>
+    </div>
+    <div class="fiscal-disclaimer">
+      ⚠️ Ceci est un outil de calcul, pas un conseil fiscal. Les taux ne sont pas pré-remplis — indique toi-même les taux applicables à ta situation (confirmés avec ton comptable/le Centre des Impôts) dans les cases ci-dessous ; le montant se recalcule automatiquement à chaque saisie.
+    </div>
+    <div class="fiscal-summary">
+      <div class="stat-card">
+        <div class="label">Chiffre d'affaires (période)</div>
+        <div class="value" id="fiscalCA">—</div>
+      </div>
+      <div class="stat-card negative">
+        <div class="label">Total montants fiscaux déduits</div>
+        <div class="value" id="fiscalTotal">—</div>
+      </div>
+      <div class="stat-card positive">
+        <div class="label">Chiffre d'affaires net (après taxes)</div>
+        <div class="value" id="fiscalNet">—</div>
+      </div>
+    </div>
+    <div class="fiscal-grid" id="fiscalGrid"></div>
+  </div>
+
+  <!-- TAXES / ÉCHÉANCES -->
+  <div class="section-block">
+    <div class="section-block-header">
+      <div>
+        <h2>Échéances fiscales à suivre</h2>
+        <div class="subtitle">Dates de dépôt/paiement, indépendamment du calcul ci-dessus.</div>
+      </div>
       <div class="section-actions">
         <button class="btn btn-outline" id="exportTaxesBtn">Exporter (CSV)</button>
-        <button class="btn btn-gold" id="addTaxeBtn">+ Ajouter une obligation</button>
+        <button class="btn btn-gold" id="addTaxeBtn">+ Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -311,9 +437,8 @@
 <!-- MODAL CAISSE -->
 <div class="modal-overlay" id="caisseModal">
   <div class="modal">
-    <h2 id="caisseModalTitle">Mouvement de caisse</h2>
+    <h2>Mouvement de caisse</h2>
     <form id="caisseForm">
-      <input type="hidden" id="caisseId">
       <div class="form-group">
         <label>Type de mouvement</label>
         <select id="caisseType" required>
@@ -335,14 +460,15 @@
 <!-- MODAL TAXE -->
 <div class="modal-overlay" id="taxeModal">
   <div class="modal">
-    <h2 id="taxeModalTitle">Ajouter une obligation fiscale</h2>
+    <h2 id="taxeModalTitle">Ajouter une échéance fiscale</h2>
     <form id="taxeForm">
       <input type="hidden" id="taxeId">
       <div class="form-group">
         <label>Type</label>
         <select id="taxeType" required>
-          <option value="IRPP">IRPP</option>
+          <option value="IS">Impôt sur les Sociétés (IS)</option>
           <option value="TVA">TVA</option>
+          <option value="Acompte IS">Acompte IS mensuel</option>
           <option value="Patente">Patente</option>
           <option value="CAC">Centimes Additionnels Communaux (CAC)</option>
           <option value="Autre">Autre</option>
@@ -395,6 +521,18 @@ if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 
 const PAID_STATUSES = ['payee', 'livree'];
 
+// Taux fiscaux SARL Cameroun : structure fixe, valeurs saisies par l'utilisateur (persistées en local sur cet appareil/navigateur).
+const FISCAL_ITEMS = [
+  { key: 'is', name: 'Impôt sur les Sociétés (IS)', desc: 'Taux courant 33% (30% + 10% de CAC), sur le bénéfice — appliqué ici sur le CA à titre indicatif si tu préfères une estimation rapide.', mode: 'percent' },
+  { key: 'acompte_is', name: 'Acompte IS mensuel', desc: 'Acompte mensuel calculé sur le chiffre d\'affaires hors taxes.', mode: 'percent' },
+  { key: 'tva', name: 'TVA collectée à reverser', desc: 'Taxe sur la valeur ajoutée, généralement 19,25% TTC.', mode: 'percent' },
+  { key: 'cac', name: 'Centimes Additionnels Communaux (CAC)', desc: 'Souvent déjà inclus dans l\'IS/TVA ; case séparée si tu calcules manuellement.', mode: 'percent' },
+  { key: 'irc', name: 'IRCM sur dividendes', desc: 'Impôt sur le revenu des capitaux mobiliers, si distribution de dividendes.', mode: 'percent' },
+  { key: 'patente', name: 'Patente', desc: 'Généralement un montant forfaitaire selon la tranche de chiffre d\'affaires, pas un pourcentage.', mode: 'fixed' },
+  { key: 'tdl', name: 'Taxe de Développement Local (TDL)', desc: 'Montant variable selon la commune.', mode: 'fixed' },
+  { key: 'droits_enreg', name: "Droits d'enregistrement", desc: 'Selon les actes concernés (statuts, baux, etc.).', mode: 'fixed' }
+];
+
 let allCommandes = [];
 let allDepenses = [];
 let allTaxes = [];
@@ -411,6 +549,7 @@ document.addEventListener('adminReady', () => {
     });
   }
   initDefaultDates();
+  buildFiscalGrid();
   loadAllData();
 });
 
@@ -426,22 +565,24 @@ document.getElementById('applyDateBtn').addEventListener('click', () => renderSt
 function showToast(text, type) {
   const t = document.getElementById('toast');
   t.textContent = text; t.className = 'toast ' + type; t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 5000);
+  setTimeout(() => { t.style.display = 'none'; }, 6000);
 }
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML;
 }
 function fmtMoney(n) { return Number(n || 0).toLocaleString('fr-FR') + ' FCFA'; }
 
-// Traduit les erreurs Supabase courantes en messages compréhensibles, au lieu du message technique brut.
+// Traduit les erreurs Supabase courantes en messages compréhensibles et actionnables.
 function friendlyError(error) {
   if (!error) return 'Erreur inconnue.';
   const code = error.code || '';
-  if (code === '23502') return "Un champ obligatoire n'a pas été enregistré côté base de données (colonne manquante ou vide). Vérifie la structure de la table dans Supabase.";
-  if (code === '42501' || /row-level security/i.test(error.message || '')) return "Action refusée par les règles de sécurité (RLS) de Supabase. Vérifie qu'une policy d'écriture existe pour cette table.";
+  const msg = error.message || '';
+  if (code === '23502') return "Un champ obligatoire n'a pas pu être enregistré (colonne manquante côté base de données). Vérifie les colonnes de la table dans Supabase.";
+  if (code === '42501' || /row-level security/i.test(msg)) return "Action refusée par les règles de sécurité (RLS) de Supabase. Vérifie qu'une policy d'écriture existe pour cette table.";
   if (code === '23505') return "Cette entrée existe déjà (doublon détecté).";
-  if (code === '42703') return "Une colonne utilisée par cette page n'existe pas dans la table (structure de base de données à vérifier).";
-  return error.message || 'Erreur inconnue.';
+  if (code === '42703') return "Une colonne utilisée par cette page n'existe pas encore dans la table (voir les instructions SQL fournies).";
+  if (code === '42P01' || /schema cache/i.test(msg)) return "Une table ou colonne référencée n'existe pas encore côté Supabase (voir les instructions SQL fournies).";
+  return msg || 'Erreur inconnue.';
 }
 
 // ---------- CHARGEMENT GLOBAL ----------
@@ -456,7 +597,7 @@ async function loadAllData() {
   if (cmdErr) console.error('Erreur commandes :', cmdErr);
   if (depErr) console.error('Erreur dépenses :', depErr);
   if (taxErr) console.error('Erreur taxes :', taxErr);
-  if (caisseErr) console.error('Erreur caisse (table caisse_mouvements manquante ?) :', caisseErr);
+  if (caisseErr) { console.error('Erreur caisse :', caisseErr); showToast('Petite caisse indisponible : ' + friendlyError(caisseErr), 'error'); }
 
   allCommandes = commandes || [];
   allDepenses = depenses || [];
@@ -516,11 +657,12 @@ function renderStatsAndTables() {
   beneficeCard.classList.remove('positive', 'negative');
   beneficeCard.classList.add(benefice >= 0 ? 'positive' : 'negative');
 
-  renderVentesTable(filterByPeriod(allCommandes, 'date_commande'));
+  renderVentesTable(ventesPayeesFiltered);
   renderDepensesRecurrentesTable(allDepenses.filter(d => d.type_depense === 'recurrente'));
   renderDepensesPonctuellesTable(depensesPonctuellesFiltered);
   renderCaisseTable(filterByPeriod(allCaisse, 'date_mouvement'));
   renderTaxesTable(allTaxes);
+  updateFiscalCalculations(totalCA);
 
   document.getElementById('reportPeriodeLabel').textContent = periodeLabel();
 }
@@ -528,18 +670,18 @@ function renderStatsAndTables() {
 function renderVentesTable(ventes) {
   const tbody = document.getElementById('ventesTableBody');
   if (ventes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune vente sur cette période.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune vente confirmée sur cette période.</td></tr>`;
     return;
   }
-  const statutLabels = { en_attente: 'Nouvelle', payee: 'Paiement confirmé', livree: 'Plans envoyés', annulee: 'Annulée' };
+  const statutLabels = { payee: 'Paiement confirmé', livree: 'Plans envoyés' };
   tbody.innerHTML = ventes.slice(0, 100).map(c => `
     <tr>
-      <td>${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '—'}</td>
-      <td>${escapeHtml(c.numero_commande || '—')}</td>
-      <td>${escapeHtml(c.client_nom || 'Client inconnu')}</td>
-      <td>${fmtMoney(c.montant_total)}</td>
-      <td><span class="badge ${c.statut}">${statutLabels[c.statut] || c.statut}</span></td>
-      <td>${c.facture_pdf_path ? `<button class="icon-btn view-facture-btn" data-path="${escapeHtml(c.facture_pdf_path)}" data-numero="${escapeHtml(c.numero_facture || c.numero_commande || '')}">Voir</button>` : '—'}</td>
+      <td data-label="Date">${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '—'}</td>
+      <td data-label="N° Commande">${escapeHtml(c.numero_commande || '—')}</td>
+      <td data-label="Client">${escapeHtml(c.client_nom || 'Client inconnu')}</td>
+      <td data-label="Montant">${fmtMoney(c.montant_total)}</td>
+      <td data-label="Statut"><span class="badge ${c.statut}">${statutLabels[c.statut] || c.statut}</span></td>
+      <td data-label="Facture">${c.facture_pdf_path ? `<button class="icon-btn view-facture-btn" data-path="${escapeHtml(c.facture_pdf_path)}" data-numero="${escapeHtml(c.numero_facture || c.numero_commande || '')}">Voir</button>` : '—'}</td>
     </tr>
   `).join('');
 
@@ -562,12 +704,12 @@ function renderDepensesRecurrentesTable(depenses) {
   }
   tbody.innerHTML = depenses.map(d => `
     <tr>
-      <td>${escapeHtml(d.description)}</td>
-      <td>${escapeHtml(d.categorie)}</td>
-      <td>${fmtMoney(d.montant)}</td>
-      <td>${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
-      <td>${d.actif === false ? '<span class="badge inactif">Inactive</span>' : '<span class="badge paye">Active</span>'}</td>
-      <td>
+      <td data-label="Description">${escapeHtml(d.description)}</td>
+      <td data-label="Catégorie">${escapeHtml(d.categorie)}</td>
+      <td data-label="Montant / mois">${fmtMoney(d.montant)}</td>
+      <td data-label="Depuis le">${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
+      <td data-label="Statut">${d.actif === false ? '<span class="badge inactif">Inactive</span>' : '<span class="badge paye">Active</span>'}</td>
+      <td data-label="Actions">
         ${!isReadOnly ? `
           <button class="icon-btn edit-dep-btn" data-id="${d.id}">Modifier</button>
           <button class="icon-btn toggle-dep-btn" data-id="${d.id}">${d.actif === false ? 'Activer' : 'Désactiver'}</button>
@@ -592,11 +734,11 @@ function renderDepensesPonctuellesTable(depenses) {
   }
   tbody.innerHTML = depenses.map(d => `
     <tr>
-      <td>${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
-      <td>${escapeHtml(d.description)}</td>
-      <td>${escapeHtml(d.categorie)}</td>
-      <td>${fmtMoney(d.montant)}</td>
-      <td>
+      <td data-label="Date">${d.date_depense ? new Date(d.date_depense).toLocaleDateString('fr-FR') : '—'}</td>
+      <td data-label="Description">${escapeHtml(d.description)}</td>
+      <td data-label="Catégorie">${escapeHtml(d.categorie)}</td>
+      <td data-label="Montant">${fmtMoney(d.montant)}</td>
+      <td data-label="Actions">
         ${!isReadOnly ? `
           <button class="icon-btn edit-dep-btn" data-id="${d.id}">Modifier</button>
           <button class="icon-btn delete-dep-btn" data-id="${d.id}" style="color:var(--error);">Suppr.</button>
@@ -619,11 +761,11 @@ function renderCaisseTable(mouvements) {
   }
   tbody.innerHTML = mouvements.map(m => `
     <tr>
-      <td>${m.date_mouvement ? new Date(m.date_mouvement).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge ${m.type}">${m.type === 'entree' ? 'Entrée' : 'Sortie'}</span></td>
-      <td>${escapeHtml(m.motif)}</td>
-      <td>${m.type === 'entree' ? '+' : '−'}${fmtMoney(m.montant)}</td>
-      <td>${!isReadOnly ? `<button class="icon-btn delete-caisse-btn" data-id="${m.id}" style="color:var(--error);">Suppr.</button>` : '—'}</td>
+      <td data-label="Date">${m.date_mouvement ? new Date(m.date_mouvement).toLocaleDateString('fr-FR') : '—'}</td>
+      <td data-label="Type"><span class="badge ${m.type}">${m.type === 'entree' ? 'Entrée' : 'Sortie'}</span></td>
+      <td data-label="Motif">${escapeHtml(m.motif)}</td>
+      <td data-label="Montant">${m.type === 'entree' ? '+' : '−'}${fmtMoney(m.montant)}</td>
+      <td data-label="Actions">${!isReadOnly ? `<button class="icon-btn delete-caisse-btn" data-id="${m.id}" style="color:var(--error);">Suppr.</button>` : '—'}</td>
     </tr>
   `).join('');
 
@@ -635,17 +777,17 @@ function renderCaisseTable(mouvements) {
 function renderTaxesTable(taxes) {
   const tbody = document.getElementById('taxesTableBody');
   if (taxes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune obligation fiscale enregistrée.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune échéance fiscale enregistrée.</td></tr>`;
     return;
   }
   tbody.innerHTML = taxes.map(t => `
     <tr>
-      <td>${escapeHtml(t.type)}</td>
-      <td>${escapeHtml(t.periode)}</td>
-      <td>${fmtMoney(t.montant)}</td>
-      <td>${t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge ${t.statut}">${(t.statut || '').replace('_', ' ')}</span></td>
-      <td>
+      <td data-label="Type">${escapeHtml(t.type)}</td>
+      <td data-label="Période">${escapeHtml(t.periode)}</td>
+      <td data-label="Montant">${fmtMoney(t.montant)}</td>
+      <td data-label="Échéance">${t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '—'}</td>
+      <td data-label="Statut"><span class="badge ${t.statut}">${(t.statut || '').replace('_', ' ')}</span></td>
+      <td data-label="Actions">
         ${!isReadOnly ? `
           <button class="icon-btn edit-taxe-btn" data-id="${t.id}">Modifier</button>
           <button class="icon-btn delete-taxe-btn" data-id="${t.id}" style="color:var(--error);">Suppr.</button>
@@ -660,27 +802,72 @@ function renderTaxesTable(taxes) {
   }
 }
 
-// ---------- GRAPHIQUE ----------
+// ---------- FISCALITÉ : cartes % éditables ----------
+function buildFiscalGrid() {
+  const grid = document.getElementById('fiscalGrid');
+  grid.innerHTML = FISCAL_ITEMS.map(item => {
+    const savedVal = localStorage.getItem('fiscal_' + item.key) || '';
+    const inputHtml = item.mode === 'percent'
+      ? `<input type="number" step="0.01" min="0" id="fiscal_${item.key}" value="${savedVal}" placeholder="0"><span class="fiscal-unit">%</span>`
+      : `<input type="number" step="1" min="0" id="fiscal_${item.key}" value="${savedVal}" placeholder="0"><span class="fiscal-unit">FCFA</span>`;
+    return `
+      <div class="fiscal-card">
+        <div class="fiscal-name">${escapeHtml(item.name)}</div>
+        <div class="fiscal-desc">${escapeHtml(item.desc)}</div>
+        <div class="fiscal-input-row">${inputHtml}</div>
+        <div class="fiscal-result" id="fiscal_result_${item.key}">0 FCFA</div>
+      </div>
+    `;
+  }).join('');
+
+  FISCAL_ITEMS.forEach(item => {
+    document.getElementById(`fiscal_${item.key}`).addEventListener('input', (e) => {
+      localStorage.setItem('fiscal_' + item.key, e.target.value);
+      updateFiscalCalculations();
+    });
+  });
+}
+
+function updateFiscalCalculations(caOverride) {
+  const totalCA = caOverride !== undefined ? caOverride : filterByPeriod(allCommandes.filter(c => PAID_STATUSES.includes(c.statut)), 'date_commande').reduce((s, c) => s + Number(c.montant_total || 0), 0);
+  document.getElementById('fiscalCA').textContent = fmtMoney(totalCA);
+
+  let totalFiscal = 0;
+  FISCAL_ITEMS.forEach(item => {
+    const input = document.getElementById(`fiscal_${item.key}`);
+    if (!input) return;
+    const val = parseFloat(input.value) || 0;
+    const montant = item.mode === 'percent' ? (totalCA * val / 100) : val;
+    totalFiscal += montant;
+    const resultEl = document.getElementById(`fiscal_result_${item.key}`);
+    if (resultEl) resultEl.textContent = fmtMoney(montant);
+  });
+
+  document.getElementById('fiscalTotal').textContent = fmtMoney(totalFiscal);
+  document.getElementById('fiscalNet').textContent = fmtMoney(totalCA - totalFiscal);
+}
+
+// ---------- GRAPHIQUE JOURNALIER AVEC ZOOM ----------
 function renderChart() {
   const now = new Date();
-  const months = [];
-  const caByMonth = [];
+  const days = [];
+  const caByDay = [];
 
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const label = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-    months.push(label);
+  for (let i = 364; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    days.push(label);
 
     const total = allCommandes
       .filter(c => PAID_STATUSES.includes(c.statut))
       .filter(c => {
         if (!c.date_commande) return false;
         const cd = new Date(c.date_commande);
-        return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth();
+        return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth() && cd.getDate() === d.getDate();
       })
       .reduce((s, c) => s + Number(c.montant_total || 0), 0);
 
-    caByMonth.push(total);
+    caByDay.push(total);
   }
 
   const ctx = document.getElementById('caChart').getContext('2d');
@@ -689,28 +876,54 @@ function renderChart() {
   caChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: months,
+      labels: days,
       datasets: [{
         label: 'Chiffre d\'affaires (FCFA)',
-        data: caByMonth,
+        data: caByDay,
         borderColor: '#C9A961',
         backgroundColor: 'rgba(201,169,97,0.12)',
-        tension: 0.3,
+        tension: 0.2,
         fill: true,
+        pointRadius: 0,
+        pointHoverRadius: 4,
         pointBackgroundColor: '#E5D4A8'
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#ddd' } } },
+      plugins: {
+        legend: { labels: { color: '#ddd' } },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { minRange: 5 } }
+        }
+      },
       scales: {
-        x: { ticks: { color: '#A8A8A8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { ticks: { color: '#A8A8A8', maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.05)' }, min: days.length - 30, max: days.length - 1 },
         y: { ticks: { color: '#A8A8A8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
       }
     }
   });
 }
+
+document.querySelectorAll('[data-zoom]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!caChartInstance) return;
+    const days = parseInt(btn.dataset.zoom, 10);
+    const total = caChartInstance.data.labels.length;
+    if (!days || days >= total) {
+      caChartInstance.resetZoom();
+      caChartInstance.options.scales.x.min = 0;
+      caChartInstance.options.scales.x.max = total - 1;
+    } else {
+      caChartInstance.options.scales.x.min = total - days;
+      caChartInstance.options.scales.x.max = total - 1;
+    }
+    caChartInstance.update();
+  });
+});
 
 // ---------- MODAL DEPENSE (récurrente ou ponctuelle) ----------
 const depenseModal = document.getElementById('depenseModal');
@@ -760,18 +973,22 @@ document.getElementById('depenseForm').addEventListener('submit', async (e) => {
   const btn = document.getElementById('saveDepenseBtn');
   btn.disabled = true; btn.textContent = 'Enregistrement...';
 
+  const type = document.getElementById('depType').value || 'ponctuelle';
   const data = {
     description: document.getElementById('depDescription').value.trim(),
     categorie: document.getElementById('depCategorie').value,
     montant: parseFloat(document.getElementById('depMontant').value),
     date_depense: document.getElementById('depDate').value,
-    type_depense: document.getElementById('depType').value || 'ponctuelle'
+    type_depense: type
   };
 
   const id = document.getElementById('depenseId').value;
   let error;
-  if (id) ({ error } = await supabase.from('depenses').update(data).eq('id', id));
-  else ({ error } = await supabase.from('depenses').insert([{ ...data, actif: true }]));
+  if (id) {
+    ({ error } = await supabase.from('depenses').update(data).eq('id', id));
+  } else {
+    ({ error } = await supabase.from('depenses').insert([{ ...data, actif: true }]));
+  }
 
   btn.disabled = false; btn.textContent = 'Enregistrer';
 
@@ -841,7 +1058,7 @@ async function deleteCaisseMouvement(id) {
 const taxeModal = document.getElementById('taxeModal');
 document.getElementById('addTaxeBtn').addEventListener('click', () => {
   document.getElementById('taxeForm').reset();
-  document.getElementById('taxeModalTitle').textContent = 'Ajouter une obligation fiscale';
+  document.getElementById('taxeModalTitle').textContent = 'Ajouter une échéance fiscale';
   document.getElementById('taxeId').value = '';
   taxeModal.classList.add('open');
 });
@@ -850,7 +1067,7 @@ document.getElementById('cancelTaxeBtn').addEventListener('click', () => taxeMod
 function openTaxeModal(id) {
   const taxe = allTaxes.find(t => t.id == id);
   if (!taxe) return;
-  document.getElementById('taxeModalTitle').textContent = "Modifier l'obligation fiscale";
+  document.getElementById('taxeModalTitle').textContent = "Modifier l'échéance fiscale";
   document.getElementById('taxeId').value = taxe.id;
   document.getElementById('taxeType').value = taxe.type;
   document.getElementById('taxePeriode').value = taxe.periode;
@@ -881,16 +1098,16 @@ document.getElementById('taxeForm').addEventListener('submit', async (e) => {
   btn.disabled = false; btn.textContent = 'Enregistrer';
 
   if (error) { console.error(error); showToast(friendlyError(error), 'error'); return; }
-  showToast(id ? 'Obligation modifiée.' : 'Obligation ajoutée.', 'success');
+  showToast(id ? 'Échéance modifiée.' : 'Échéance ajoutée.', 'success');
   taxeModal.classList.remove('open');
   loadAllData();
 });
 
 async function deleteTaxe(id) {
-  if (!confirm('Supprimer cette obligation fiscale ?')) return;
+  if (!confirm('Supprimer cette échéance fiscale ?')) return;
   const { error } = await supabase.from('taxes').delete().eq('id', id);
   if (error) { showToast(friendlyError(error), 'error'); return; }
-  showToast('Obligation supprimée.', 'success');
+  showToast('Échéance supprimée.', 'success');
   loadAllData();
 }
 
@@ -919,8 +1136,8 @@ function csvHeader(titre) {
 }
 
 document.getElementById('exportVentesBtn').addEventListener('click', () => {
-  const ventes = filterByPeriod(allCommandes, 'date_commande');
-  const rows = [...csvHeader('Ventes'), ['Date', 'N° Commande', 'Client', 'Montant (FCFA)', 'Statut']];
+  const ventes = filterByPeriod(allCommandes.filter(c => PAID_STATUSES.includes(c.statut)), 'date_commande');
+  const rows = [...csvHeader('Ventes confirmées'), ['Date', 'N° Commande', 'Client', 'Montant (FCFA)', 'Statut']];
   let total = 0;
   ventes.forEach(c => {
     total += Number(c.montant_total || 0);
@@ -966,7 +1183,7 @@ document.getElementById('exportCaisseBtn').addEventListener('click', () => {
 });
 
 document.getElementById('exportTaxesBtn').addEventListener('click', () => {
-  const rows = [...csvHeader('Obligations fiscales'), ['Type', 'Période', 'Montant (FCFA)', 'Échéance', 'Statut']];
+  const rows = [...csvHeader('Échéances fiscales'), ['Type', 'Période', 'Montant (FCFA)', 'Échéance', 'Statut']];
   allTaxes.forEach(t => {
     rows.push([t.type, t.periode, t.montant, t.date_echeance ? new Date(t.date_echeance).toLocaleDateString('fr-FR') : '', t.statut]);
   });
@@ -1028,7 +1245,7 @@ function buildReportHtml() {
     <tr><td style="${rowStyle}">${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '—'}</td><td style="${rowStyle}">${escapeHtml(c.client_nom || '—')}</td><td style="${rowStyle} text-align:right;">${fmtMoney(c.montant_total)}</td></tr>
   `).join('');
   const ventesTable = `
-    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Ventes (${ventes.length})</p>
+    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Ventes confirmées (${ventes.length})</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px; border:1px solid #eae3db;">
       <tr>${th('Date')}${th('Client')}${th('Montant')}</tr>
       ${ventesRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune vente</td></tr>`}
@@ -1048,10 +1265,10 @@ function buildReportHtml() {
     <tr><td style="${rowStyle}">${escapeHtml(t.type)}</td><td style="${rowStyle}">${escapeHtml(t.periode)}</td><td style="${rowStyle} text-align:right;">${fmtMoney(t.montant)}</td></tr>
   `).join('');
   const taxesTable = `
-    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Obligations fiscales en attente</p>
+    <p style="font-size:13px; font-weight:bold; color:#2d2d2d; margin:0 0 8px;">Échéances fiscales en attente</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eae3db;">
       <tr>${th('Type')}${th('Période')}${th('Montant')}</tr>
-      ${taxesRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune obligation en attente</td></tr>`}
+      ${taxesRows || `<tr><td colspan="3" style="${rowStyle} text-align:center; color:#888;">Aucune échéance en attente</td></tr>`}
     </table>`;
 
   return statsTable + ventesTable + depensesTable + taxesTable;
