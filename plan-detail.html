@@ -805,22 +805,51 @@
                     alert(currentLang === 'fr' ? 'Tous les champs sont requis' : 'All fields are required');
                     return;
                 }
+
+                // 1. Enregistrement du client dans la base (créé seulement s'il n'existe pas déjà)
+                // 2. Enregistrement de la demande sur mesure — c'est ce qui la fait apparaître dans l'admin
                 try {
-                    if (typeof emailjs === 'undefined') {
-                        alert(currentLang === 'fr' ? 'Le service d\'envoi est momentanément indisponible. Contacte-nous directement.' : 'Sending service temporarily unavailable. Please contact us directly.');
-                        return;
+                    const { data: existingClient } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
+                    if (!existingClient) {
+                        await supabase.from('clients').insert([{ nom: name, email: email, telephone: phone }]);
                     }
-                    await emailjs.send('service_kwivmyg', 'template_k6pwdx9', {
-                        to_email: 'archiclick@gmail.com', client_name: name, client_email: email,
-                        client_phone: phone, plan_name: currentPlan.titre, modifications: mods
-                    });
-                    alert(currentLang === 'fr' ? 'Demande envoyée ! L\'architecte vous contactera sous peu.' : 'Request sent!');
-                    document.getElementById('customizeForm').classList.remove('show');
-                    document.getElementById('optPersonnalisation').checked = false;
+
+                    const { error: demandeError } = await supabase.from('demandes_sur_mesure').insert([{
+                        client_nom: name,
+                        client_email: email,
+                        client_tel: phone,
+                        plan_id: planId,
+                        plan_titre: currentPlan.titre,
+                        modifications: mods,
+                        statut: 'nouvelle',
+                        historique: [{ date: new Date().toISOString(), admin: 'Client (site web)', action: 'Nouvelle demande soumise via le site' }]
+                    }]);
+                    if (demandeError) throw demandeError;
                 } catch (err) {
-                    console.error(err);
-                    alert(currentLang === 'fr' ? 'Erreur lors de l\'envoi' : 'Error sending request');
+                    console.error('Erreur enregistrement demande:', err);
+                    alert(currentLang === 'fr' ? 'Erreur lors de l\'enregistrement de votre demande. Merci de réessayer.' : 'Error saving your request. Please try again.');
+                    return;
                 }
+
+                // L'email est secondaire : s'il échoue, la demande est déjà enregistrée côté admin
+                try {
+                    if (typeof emailjs !== 'undefined') {
+                        await emailjs.send('service_kwivmyg', 'template_k6pwdx9', {
+                            to_email: 'archiclick@gmail.com', client_name: name, client_email: email,
+                            client_phone: phone, plan_name: currentPlan.titre, modifications: mods
+                        });
+                    }
+                } catch (emailErr) {
+                    console.warn('Email de notification non envoyé (la demande est tout de même enregistrée) :', emailErr);
+                }
+
+                alert(currentLang === 'fr' ? 'Demande envoyée ! L\'architecte vous contactera sous peu.' : 'Request sent!');
+                document.getElementById('customizeForm').classList.remove('show');
+                document.getElementById('optPersonnalisation').checked = false;
+                document.getElementById('formName').value = '';
+                document.getElementById('formEmail').value = '';
+                document.getElementById('formPhone').value = '';
+                document.getElementById('formModifications').value = '';
             };
 
             window.goToCatalog = function() { window.location.href = 'catalogue.html'; };
