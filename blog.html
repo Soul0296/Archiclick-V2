@@ -284,18 +284,14 @@
                 </div>
             </div>
             <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
-                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+                <p class="text-white/40 text-sm" data-fr="© 2026 Archiclick" data-en="© 2026 Archiclick">© 2026 Archiclick</p>
             </div>
         </div>
     </footer>
 
-    <!-- Supabase -->
+    <!-- Supabase (fichier commun, protégé contre la double déclaration) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
+    <script src="js/supabase.js"></script>
 
     <script>
         (function() {
