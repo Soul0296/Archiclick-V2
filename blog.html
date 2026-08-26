@@ -43,6 +43,10 @@
             background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
             padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
         }
+        .nav-container {
+            max-width:100%; padding:0 1.5rem;
+            display:flex; justify-content:space-between; align-items:center;
+        }
         .nav-link-item {
             position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
             font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
@@ -94,7 +98,8 @@
         /* ========== PAGE HEADER ========== */
         .page-header {
             background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
-            padding:8rem 0 4rem; text-align:center; margin-top:5rem;
+            padding:8rem 1.5rem 4rem; text-align:center; margin-top:5rem;
+            width:100%;
         }
         .page-title {
             font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem);
@@ -108,7 +113,7 @@
         /* ========== ARTICLES GRID ========== */
         .articles-grid {
             display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
-            gap:2rem; max-width:7xl; margin:4rem auto; padding:0 1.5rem;
+            gap:2rem; max-width:100%; margin:4rem 0; padding:0 1.5rem;
         }
         @media(max-width:768px) {
             .articles-grid { grid-template-columns:1fr; gap:1.5rem; }
@@ -199,13 +204,17 @@
         .loading-text {
             text-align:center; padding:3rem; color:var(--gris-doux);
         }
+
+        .footer-inner {
+            max-width:100%; padding:0 1.5rem;
+        }
     </style>
 </head>
 <body>
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="nav-container">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -237,7 +246,7 @@
 
     <!-- ==================== PAGE HEADER ==================== -->
     <section class="page-header">
-        <div class="max-w-7xl mx-auto px-6 reveal">
+        <div class="header-inner reveal" style="max-width:100%;">
             <h1 class="page-title" data-fr="Notre Blog" data-en="Our Blog">Notre Blog</h1>
             <div class="sep-or" style="margin:1.5rem auto;"></div>
             <p class="page-desc" data-fr="Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison." data-en="Tips, trends and news from the world of architecture and construction in Cameroon. Discover our articles to build your home well.">Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison.</p>
@@ -245,7 +254,7 @@
     </section>
 
     <!-- ==================== ARTICLES ==================== -->
-    <section class="py-8 pb-24">
+    <section class="py-8 pb-24" style="padding-left:0; padding-right:0;">
         <div class="articles-grid" id="articlesGrid">
             <div class="loading-text" data-fr="Chargement des articles..." data-en="Loading articles...">Chargement des articles...</div>
         </div>
@@ -253,7 +262,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="footer-inner">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
@@ -284,14 +293,18 @@
                 </div>
             </div>
             <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
-                <p class="text-white/40 text-sm" data-fr="© 2026 Archiclick" data-en="© 2026 Archiclick">© 2026 Archiclick</p>
+                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
             </div>
         </div>
     </footer>
 
-    <!-- Supabase (fichier commun, protégé contre la double déclaration) -->
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
+    <script>
+        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
 
     <script>
         (function() {
