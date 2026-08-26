@@ -285,6 +285,10 @@
             font-family:'Inter',sans-serif; font-size:.7rem;
             font-weight:400; color:var(--gris-doux); letter-spacing:1px;
         }
+        .card-price .old-price {
+            font-family:'Inter',sans-serif; font-size:.85rem; font-weight:400;
+            color:var(--gris-doux); text-decoration:line-through; margin-right:8px;
+        }
 
         /* ========== ÉTAPES ========== */
         .step-num {
@@ -327,6 +331,44 @@
             font-family:'Cormorant Garamond',serif; font-size:1rem;
             font-weight:400; color:var(--ardoise); letter-spacing:1px;
         }
+
+        /* ========== MODAL AVIS ========== */
+        .modal-overlay {
+            display:none; position:fixed; inset:0; background:rgba(10,10,10,.7);
+            z-index:1000; align-items:center; justify-content:center; padding:20px;
+        }
+        .modal-overlay.open { display:flex; }
+        .avis-modal {
+            background:#fff; width:100%; max-width:480px; padding:2.5rem;
+            position:relative; border-top:2px solid var(--or);
+        }
+        .avis-modal h3 {
+            font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+            color:var(--ardoise); margin-bottom:1.5rem; text-align:center;
+        }
+        .avis-modal .modal-close {
+            position:absolute; top:1rem; right:1.2rem; background:none; border:none;
+            font-size:1.3rem; color:var(--gris-doux); cursor:pointer; transition:color .3s ease;
+        }
+        .avis-modal .modal-close:hover { color:var(--or); }
+        .avis-form-group { margin-bottom:1.2rem; }
+        .avis-form-group label {
+            display:block; font-size:.75rem; letter-spacing:1px; text-transform:uppercase;
+            color:var(--or); margin-bottom:.5rem;
+        }
+        .avis-form-group input, .avis-form-group textarea {
+            width:100%; border:1px solid var(--creme); padding:.7rem .9rem;
+            font-family:'Inter',sans-serif; font-size:.9rem; color:var(--ardoise);
+            background:var(--beige);
+        }
+        .avis-form-group input:focus, .avis-form-group textarea:focus { outline:none; border-color:var(--or); }
+        .avis-form-group textarea { resize:vertical; min-height:90px; }
+        .star-rating { display:flex; gap:6px; font-size:1.6rem; }
+        .star-rating i { color:var(--gris-clair); cursor:pointer; transition:color .2s ease; }
+        .star-rating i.selected { color:var(--or); }
+        .avis-submit-btn { width:100%; margin-top:.5rem; }
+        .avis-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+        .avis-cta-wrap { text-align:center; margin-top:3rem; }
 
         /* ========== FOOTER ========== */
         .footer-link {
@@ -574,8 +616,41 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="avis">
                 <div class="text-center text-gris-doux py-12">Chargement...</div>
             </div>
+            <div class="avis-cta-wrap">
+                <button type="button" class="btn-outline-dark" id="openAvisModalBtn" data-fr="Laisser un avis" data-en="Leave a review">Laisser un avis</button>
+            </div>
         </div>
     </section>
+
+    <!-- ==================== MODAL LAISSER UN AVIS ==================== -->
+    <div class="modal-overlay" id="avisModal">
+        <div class="avis-modal">
+            <button type="button" class="modal-close" id="closeAvisModalBtn">&times;</button>
+            <h3 data-fr="Partagez votre expérience" data-en="Share your experience">Partagez votre expérience</h3>
+            <form id="avisForm">
+                <div class="avis-form-group">
+                    <label data-fr="Votre nom" data-en="Your name">Votre nom</label>
+                    <input type="text" id="avisNom" required>
+                </div>
+                <div class="avis-form-group">
+                    <label data-fr="Votre note" data-en="Your rating">Votre note</label>
+                    <div class="star-rating" id="starRating">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" id="avisNote" value="0">
+                </div>
+                <div class="avis-form-group">
+                    <label data-fr="Votre commentaire" data-en="Your comment">Votre commentaire</label>
+                    <textarea id="avisCommentaire" required></textarea>
+                </div>
+                <button type="submit" class="btn-or avis-submit-btn" id="avisSubmitBtn" data-fr="Envoyer" data-en="Submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16">
@@ -625,8 +700,12 @@
         (function() {
             let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
             let allPlans = [];
+            let bestSellerPlans = [];
+            let promoPlans = [];
+            let nouveauPlans = [];
             let currentSlide = 0;
             let autoplayInterval;
+            let selectedNote = 0;
 
             /* ---- CAROUSEL ---- */
             function show(n) {
@@ -725,12 +804,40 @@
             }
             window.toggleMobileMenu = toggleMobileMenu;
 
-            /* ---- CHARGER PLANS ---- */
+            /* ---- CHARGER PLANS + COMMANDES (POUR LES 3 SECTIONS) ---- */
             async function loadPlans() {
                 try {
-                    const { data, error } = await supabase.from('plans').select('*').eq('actif', true).order('created_at', { ascending: false });
-                    if (error) throw error;
-                    allPlans = data || [];
+                    const { data: plans, error: plansError } = await supabase.from('plans').select('*').eq('actif', true);
+                    if (plansError) throw plansError;
+                    allPlans = plans || [];
+
+                    /* Nouveautés : les 3 derniers plans ajoutés */
+                    nouveauPlans = [...allPlans]
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .slice(0, 3);
+
+                    /* Promotions : plans marqués en_promo */
+                    promoPlans = allPlans.filter(p => p.en_promo).slice(0, 4);
+
+                    /* Best-sellers : basé sur le nombre de commandes non annulées par plan */
+                    const { data: commandes, error: commandesError } = await supabase
+                        .from('commandes')
+                        .select('plan_id, statut')
+                        .neq('statut', 'annulee');
+                    if (commandesError) throw commandesError;
+
+                    const compteurVentes = {};
+                    (commandes || []).forEach(c => {
+                        if (!c.plan_id) return;
+                        compteurVentes[c.plan_id] = (compteurVentes[c.plan_id] || 0) + 1;
+                    });
+
+                    const idsTries = Object.keys(compteurVentes).sort((a, b) => compteurVentes[b] - compteurVentes[a]);
+                    bestSellerPlans = idsTries
+                        .map(id => allPlans.find(p => String(p.id) === String(id)))
+                        .filter(Boolean)
+                        .slice(0, 3);
+
                     renderSections();
                 } catch (err) {
                     console.error('Erreur:', err);
@@ -738,26 +845,35 @@
             }
 
             function renderSections() {
-                renderCards('best-sellers', allPlans.slice(0, 3));
-                renderCards('nouveautes', allPlans.slice(3, 6));
-                renderCards('promotions', allPlans.slice(6, 8));
+                renderCards('best-sellers', bestSellerPlans, 'bestseller');
+                renderCards('nouveautes', nouveauPlans, 'nouveau');
+                renderCards('promotions', promoPlans, 'promo');
             }
 
-            function renderCards(id, plans) {
+            function renderCards(id, plans, type) {
                 const c = document.getElementById(id);
                 if (!c) return;
                 if (!plans || !plans.length) {
-                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Aucun plan disponible' : 'No plans available') + '</div>';
+                    const msgs = {
+                        bestseller: currentLang === 'fr' ? 'Aucune vente enregistrée pour le moment' : 'No sales recorded yet',
+                        nouveau: currentLang === 'fr' ? 'Aucun plan disponible' : 'No plans available',
+                        promo: currentLang === 'fr' ? 'Aucune promotion en cours' : 'No promotions running'
+                    };
+                    c.innerHTML = '<div class="col-span-full text-center py-12">' + msgs[type] + '</div>';
                     return;
                 }
-                const isNouveau = (id === 'nouveautes');
-                const badge = isNouveau ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Nouveau' : 'New') + '</div>' : '';
+                const badge = type === 'nouveau' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Nouveau' : 'New') + '</div>'
+                    : type === 'bestseller' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Populaire' : 'Popular') + '</div>'
+                    : type === 'promo' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Promo' : 'Sale') + '</div>' : '';
                 const buy = currentLang === 'fr' ? 'Voir le plan' : 'View plan';
                 const et = currentLang === 'fr' ? 'ét.' : 'fl.';
                 const ch = currentLang === 'fr' ? 'ch.' : 'bdr';
 
                 c.innerHTML = plans.map(p => {
                     const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/600x400/eae3db/b0b0b0?text=Plan';
+                    const prixHtml = (type === 'promo' && p.en_promo && p.prix_promo)
+                        ? '<span class="old-price">' + (p.prix_base || 0).toLocaleString('fr-FR') + '</span>' + (p.prix_promo || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>'
+                        : (p.prix_base || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>';
                     return '<div class="plan-card reveal">' +
                         '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
                         '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +
@@ -765,39 +881,130 @@
                         '<span><i class="fas fa-bed meta-icon"></i>' + (p.chambres || '?') + ' ' + ch + '</span>' +
                         '<span><i class="fas fa-bath meta-icon"></i>' + (p.sdb || '?') + ' sdb</span>' +
                         '<span><i class="fas fa-ruler-combined meta-icon"></i>' + (p.surface_habitable || '?') + ' m²</span></div>' +
-                        '<div class="card-footer"><div class="card-price">' + (p.prix_base || 0).toLocaleString('fr-FR') + ' <small>FCFA</small></div>' +
+                        '<div class="card-footer"><div class="card-price">' + prixHtml + '</div>' +
                         '<a href="plan-detail.html?id=' + p.id + '" class="btn-outline" style="padding:10px 22px;font-size:.7rem;">' + buy + '</a></div></div></div>';
                 }).join('');
                 observeNewReveals();
             }
 
-            function renderAvis() {
+            /* ---- TÉMOIGNAGES PLATEFORME (depuis la table avis, plan_id NULL) ---- */
+            async function loadAvis() {
                 const c = document.getElementById('avis');
-                if (!c) return;
-                const data = currentLang === 'fr' ? [
-                    { t: "Reçu mon plan en moins de 2 heures. La qualité est exceptionnelle et l'architecte très disponible. Je recommande vivement!", n: "Martine N., Douala" },
-                    { t: "Le paiement par code marchand MTN était simple. Le plan était exactement ce que je cherchais. Rapport qualité-prix imbattable.", n: "Jules K., Yaoundé" },
-                    { t: "L'option personnalisation a été déterminante. L'équipe a adapté le plan à mon terrain en un temps record.", n: "Aïssatou M., Garoua" }
-                ] : [
-                    { t: "Received my plan within 2 hours. Exceptional quality and very responsive architect. Highly recommend!", n: "Martine N., Douala" },
-                    { t: "MTN payment was simple. The plan was exactly what I wanted. Unbeatable value.", n: "Jules K., Yaoundé" },
-                    { t: "Customization was key. Team adapted my plan to my land in record time.", n: "Aïssatou M., Garoua" }
-                ];
+                try {
+                    const { data, error } = await supabase
+                        .from('avis')
+                        .select('*')
+                        .is('plan_id', null)
+                        .eq('statut', 'publie')
+                        .order('date_avis', { ascending: false })
+                        .limit(6);
+                    if (error) throw error;
+                    renderAvis(data || []);
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Erreur au chargement des avis' : 'Error loading reviews') + '</div>';
+                }
+            }
 
-                c.innerHTML = data.map(a => '<div class="testimonial-card reveal"><div class="quote-mark">"</div><p class="testimonial-text">' + a.t + '</p><span style="color:var(--or);letter-spacing:2px;">★★★★★</span><p class="testimonial-author" style="margin-top:1.2rem;">— ' + a.n + '</p></div>').join('');
+            function renderAvis(avisList) {
+                const c = document.getElementById('avis');
+                if (!avisList.length) {
+                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Aucun avis pour le moment. Soyez le premier à partager votre expérience !' : 'No reviews yet. Be the first to share your experience!') + '</div>';
+                    return;
+                }
+                c.innerHTML = avisList.map(a => {
+                    const etoiles = '★'.repeat(a.note || 0) + '☆'.repeat(5 - (a.note || 0));
+                    return '<div class="testimonial-card reveal"><div class="quote-mark">"</div>' +
+                        '<p class="testimonial-text">' + escapeHtml(a.commentaire || '') + '</p>' +
+                        '<span style="color:var(--or);letter-spacing:2px;">' + etoiles + '</span>' +
+                        '<p class="testimonial-author" style="margin-top:1.2rem;">— ' + escapeHtml(a.client_nom || '') + '</p></div>';
+                }).join('');
                 observeNewReveals();
             }
 
+            function escapeHtml(str) {
+                const d = document.createElement('div');
+                d.textContent = str || '';
+                return d.innerHTML;
+            }
+
+            /* ---- MODAL LAISSER UN AVIS ---- */
+            const avisModal = document.getElementById('avisModal');
+            document.getElementById('openAvisModalBtn').addEventListener('click', () => {
+                avisModal.classList.add('open');
+            });
+            document.getElementById('closeAvisModalBtn').addEventListener('click', () => {
+                avisModal.classList.remove('open');
+            });
+            avisModal.addEventListener('click', (e) => {
+                if (e.target === avisModal) avisModal.classList.remove('open');
+            });
+
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedNote = parseInt(star.dataset.value, 10);
+                    document.getElementById('avisNote').value = selectedNote;
+                    stars.forEach(s => {
+                        s.classList.toggle('selected', parseInt(s.dataset.value, 10) <= selectedNote);
+                    });
+                });
+            });
+
+            document.getElementById('avisForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('avisSubmitBtn');
+                const nom = document.getElementById('avisNom').value.trim();
+                const commentaire = document.getElementById('avisCommentaire').value.trim();
+                const note = parseInt(document.getElementById('avisNote').value, 10);
+
+                if (!note) {
+                    alert(currentLang === 'fr' ? 'Merci de sélectionner une note.' : 'Please select a rating.');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = currentLang === 'fr' ? 'Envoi...' : 'Sending...';
+
+                try {
+                    const { error } = await supabase.from('avis').insert([{
+                        plan_id: null,
+                        client_nom: nom,
+                        note: note,
+                        commentaire: commentaire,
+                        statut: 'en_attente',
+                        date_avis: new Date().toISOString()
+                    }]);
+                    if (error) throw error;
+
+                    alert(currentLang === 'fr'
+                        ? 'Merci ! Votre avis sera publié après validation par notre équipe.'
+                        : 'Thank you! Your review will be published after our team validates it.');
+
+                    document.getElementById('avisForm').reset();
+                    selectedNote = 0;
+                    document.getElementById('avisNote').value = 0;
+                    stars.forEach(s => s.classList.remove('selected'));
+                    avisModal.classList.remove('open');
+                } catch (err) {
+                    console.error('Erreur:', err);
+                    alert(currentLang === 'fr' ? "Une erreur est survenue, réessayez." : 'An error occurred, please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = currentLang === 'fr' ? 'Envoyer' : 'Submit';
+                }
+            });
+
             window.onLanguageChange = function() {
                 renderSections();
-                renderAvis();
+                loadAvis();
             };
 
             document.addEventListener('DOMContentLoaded', function() {
                 show(currentSlide);
                 startAuto();
                 loadPlans();
-                renderAvis();
+                loadAvis();
                 setLang(currentLang);
                 observeNewReveals();
             });
