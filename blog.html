@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Archiclick</title>
+    <title>À propos - Archiclick</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -41,11 +41,10 @@
         .navbar {
             position:fixed; top:0; left:0; right:0; z-index:100;
             background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
-            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
+            padding:.8rem 1.5rem; box-shadow:0 1px 0 rgba(201,169,110,.15);
         }
         .nav-container {
-            max-width:100%; padding:0 1.5rem;
-            display:flex; justify-content:space-between; align-items:center;
+            max-width:100%; display:flex; justify-content:space-between; align-items:center;
         }
         .nav-link-item {
             position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
@@ -110,73 +109,46 @@
             line-height:1.8;
         }
 
-        /* ========== ARTICLES GRID ========== */
-        .articles-grid {
-            display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
-            gap:2rem; max-width:100%; margin:4rem 0; padding:0 1.5rem;
+        /* ========== ABOUT CONTENT ========== */
+        .about-section {
+            padding:4rem 1.5rem;
+            width:100%;
         }
-        @media(max-width:768px) {
-            .articles-grid { grid-template-columns:1fr; gap:1.5rem; }
+        .about-section h2 {
+            font-family:'Cormorant Garamond',serif;
+            font-size:clamp(1.8rem,3vw,2.8rem);
+            font-weight:300;
+            color:var(--ardoise);
+            letter-spacing:2px;
+            margin-bottom:1.5rem;
         }
-
-        /* ========== ARTICLE CARD ========== */
-        .article-card {
-            background:white; border-radius:12px; overflow:hidden;
-            transition:transform .5s ease, box-shadow .5s ease; cursor:pointer;
-            box-shadow:0 10px 30px rgba(0,0,0,.06);
+        .about-section .sep-or {
+            margin:0 0 2rem 0;
         }
-        .article-card:hover {
-            transform:translateY(-8px);
-            box-shadow:0 30px 60px rgba(201,169,110,.15);
+        .about-section p {
+            font-size:1.05rem;
+            color:var(--gris-doux);
+            line-height:1.9;
+            max-width:100%;
         }
-        .article-image {
-            position:relative; overflow:hidden; height:250px;
+        .about-section .highlight-box {
+            background:var(--beige);
+            padding:2.5rem;
+            border-radius:8px;
+            margin-top:2rem;
+            width:100%;
         }
-        .article-image img {
-            width:100%; height:100%; object-fit:cover;
-            transition:transform .6s ease;
+        .about-section .highlight-box .stat {
+            font-family:'Cormorant Garamond',serif;
+            font-size:2.2rem;
+            color:var(--or);
+            font-weight:600;
         }
-        .article-card:hover .article-image img {
-            transform:scale(1.08);
+        .about-section .highlight-box .stat-label {
+            font-size:.9rem;
+            color:var(--ardoise);
+            letter-spacing:1px;
         }
-        .article-badge {
-            position:absolute; top:1rem; left:1rem;
-            background:var(--or); color:var(--noir);
-            padding:6px 14px; font-size:.65rem; font-weight:500;
-            letter-spacing:1.5px; text-transform:uppercase;
-            border-radius:4px;
-        }
-        .article-body { padding:1.8rem; }
-        .article-date {
-            font-size:.8rem; color:var(--or); letter-spacing:1px;
-            text-transform:uppercase; margin-bottom:.5rem;
-        }
-        .article-title {
-            font-family:'Cormorant Garamond',serif; font-size:1.4rem;
-            font-weight:400; color:var(--ardoise); margin-bottom:1rem;
-            letter-spacing:.5px; line-height:1.3;
-        }
-        .article-excerpt {
-            font-size:.9rem; color:var(--gris-doux); margin-bottom:1.5rem;
-            line-height:1.7; display:-webkit-box; -webkit-line-clamp:3;
-            -webkit-box-orient:vertical; overflow:hidden;
-        }
-        .article-footer {
-            display:flex; justify-content:space-between; align-items:center;
-            padding-top:1.2rem; border-top:1px solid var(--creme);
-        }
-        .article-author {
-            font-size:.85rem; color:var(--gris-doux);
-        }
-        .article-author strong {
-            color:var(--ardoise); font-weight:500;
-        }
-        .article-link {
-            font-family:'Inter',sans-serif; font-size:.75rem;
-            font-weight:500; letter-spacing:2px; text-transform:uppercase;
-            color:var(--or); text-decoration:none; transition:color .3s ease;
-        }
-        .article-link:hover { color:var(--noir); }
 
         /* ========== REVEAL ANIMATION ========== */
         .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
@@ -185,8 +157,6 @@
         .reveal-d2 { transition-delay:.3s; }
         .reveal-d3 { transition-delay:.45s; }
         .reveal-d4 { transition-delay:.6s; }
-        .reveal-d5 { transition-delay:.75s; }
-        .reveal-d6 { transition-delay:.9s; }
 
         /* ========== FOOTER ========== */
         .footer-link {
@@ -200,10 +170,6 @@
             transition:color .3s ease; text-decoration:none;
         }
         .footer-social:hover { color:var(--or); }
-
-        .loading-text {
-            text-align:center; padding:3rem; color:var(--gris-doux);
-        }
 
         .footer-inner {
             max-width:100%; padding:0 1.5rem;
@@ -247,16 +213,51 @@
     <!-- ==================== PAGE HEADER ==================== -->
     <section class="page-header">
         <div class="header-inner reveal" style="max-width:100%;">
-            <h1 class="page-title" data-fr="Notre Blog" data-en="Our Blog">Notre Blog</h1>
+            <h1 class="page-title" data-fr="À propos d'Archiclick" data-en="About Archiclick">À propos d'Archiclick</h1>
             <div class="sep-or" style="margin:1.5rem auto;"></div>
-            <p class="page-desc" data-fr="Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison." data-en="Tips, trends and news from the world of architecture and construction in Cameroon. Discover our articles to build your home well.">Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison.</p>
+            <p class="page-desc" data-fr="Découvrez notre histoire, notre mission et les valeurs qui nous animent." data-en="Discover our story, our mission and the values that drive us.">Découvrez notre histoire, notre mission et les valeurs qui nous animent.</p>
         </div>
     </section>
 
-    <!-- ==================== ARTICLES ==================== -->
-    <section class="py-8 pb-24" style="padding-left:0; padding-right:0;">
-        <div class="articles-grid" id="articlesGrid">
-            <div class="loading-text" data-fr="Chargement des articles..." data-en="Loading articles...">Chargement des articles...</div>
+    <!-- ==================== ABOUT CONTENT ==================== -->
+    <section class="about-section reveal reveal-d1">
+        <div style="max-width:100%;">
+            <h2 data-fr="Notre Histoire" data-en="Our Story">NOTRE HISTOIRE</h2>
+            <div class="sep-or"></div>
+            <p data-fr="Archiclick est né d'une conviction profonde : chaque Camerounais mérite d'avoir accès à des plans de maison professionnels, adaptés à son budget et à ses contraintes locales. Nous rendons l'architecture accessible, transparente et rapide." data-en="Archiclick was born from a deep conviction: every Cameroonian deserves access to professional house plans, adapted to their budget and local constraints. We make architecture accessible, transparent and fast.">
+                Archiclick est né d'une conviction profonde : chaque Camerounais mérite d'avoir accès à des plans de maison professionnels, adaptés à son budget et à ses contraintes locales. Nous rendons l'architecture accessible, transparente et rapide.
+            </p>
+        </div>
+    </section>
+
+    <section class="about-section reveal reveal-d2" style="background:var(--beige); padding-top:4rem; padding-bottom:4rem;">
+        <div style="max-width:100%;">
+            <h2 data-fr="Notre Mission" data-en="Our Mission">Notre mission</h2>
+            <div class="sep-or"></div>
+            <p data-fr="Avec plus de 50 plans disponibles, une équipe d'architectes expérimentés et une livraison en moins de 2 heures, nous accompagnons les particuliers et les professionnels dans la concrétisation de leurs projets immobiliers." data-en="With more than 50 plans available, a team of experienced architects and delivery in less than 2 hours, we support individuals and professionals in the realization of their real estate projects.">
+                Avec plus de 50 plans disponibles, une équipe d'architectes expérimentés et une livraison en moins de 2 heures, nous accompagnons les particuliers et les professionnels dans la concrétisation de leurs projets immobiliers.
+            </p>
+        </div>
+    </section>
+
+    <section class="about-section reveal reveal-d3">
+        <div style="max-width:100%;">
+            <div class="highlight-box" style="width:100%;">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div>
+                        <div class="stat">50+</div>
+                        <div class="stat-label" data-fr="Plans disponibles" data-en="Plans available">Plans disponibles</div>
+                    </div>
+                    <div>
+                        <div class="stat">2h</div>
+                        <div class="stat-label" data-fr="Livraison express" data-en="Express delivery">Livraison express</div>
+                    </div>
+                    <div>
+                        <div class="stat">100%</div>
+                        <div class="stat-label" data-fr="Satisfaction client" data-en="Client satisfaction">Satisfaction client</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -298,74 +299,10 @@
         </div>
     </footer>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const supabaseUrl = 'https://hhtkrdklyukhkybutxyb.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodGtyZGtseXVraGt5YnV0eHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTg3MTIsImV4cCI6MjA5NjEzNDcxMn0.Hgf5THjrt3465-h5NBF9nurgUXDpXsYJzgFTH4yHM7Q';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
-
     <script>
         (function() {
             let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
 
-            /* ---- CHARGER ARTICLES ---- */
-            async function loadArticles() {
-                try {
-                    const { data, error } = await supabase
-                        .from('blog')
-                        .select('*')
-                        .eq('actif', true)
-                        .order('date_publication', { ascending: false });
-
-                    if (error) throw error;
-
-                    if (!data || data.length === 0) {
-                        const emptyMsg = currentLang === 'fr' ? 'Aucun article publié pour le moment' : 'No articles published yet';
-                        document.getElementById('articlesGrid').innerHTML = `<div class="loading-text">${emptyMsg}</div>`;
-                        return;
-                    }
-
-                    renderArticles(data);
-                    observeReveals();
-                } catch (err) {
-                    console.error('Erreur:', err);
-                    const errorMsg = currentLang === 'fr' ? 'Erreur au chargement des articles' : 'Error loading articles';
-                    document.getElementById('articlesGrid').innerHTML = `<div class="loading-text" style="color:red;">${errorMsg}</div>`;
-                }
-            }
-
-            function renderArticles(articles) {
-                const grid = document.getElementById('articlesGrid');
-                const delayClasses = ['reveal-d1', 'reveal-d2', 'reveal-d3', 'reveal-d4', 'reveal-d5', 'reveal-d6'];
-
-                grid.innerHTML = articles.map((article, index) => {
-                    const img = article.image || 'https://via.placeholder.com/400x250/eae3db/b0b0b0?text=Article';
-                    const date = new Date(article.date_publication);
-                    const dateStr = currentLang === 'fr'
-                        ? date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
-                        : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                    return `<div class="article-card reveal ${delayClasses[index % delayClasses.length]}" onclick="window.location.href='article.html?id=${article.id}'">
-                        <div class="article-image">
-                            <img src="${img}" alt="${article.titre}" loading="lazy">
-                            <div class="article-badge" data-fr="Article" data-en="Article">Article</div>
-                        </div>
-                        <div class="article-body">
-                            <div class="article-date">${dateStr}</div>
-                            <h3 class="article-title">${article.titre}</h3>
-                            <p class="article-excerpt">${article.extrait || article.contenu?.substring(0, 150) || ''}</p>
-                            <div class="article-footer">
-                                <div class="article-author"><span data-fr="Par" data-en="By">Par</span> <strong>${article.auteur || 'Archiclick'}</strong></div>
-                                <a href="article.html?id=${article.id}" class="article-link" data-fr="Lire" data-en="Read">Lire</a>
-                            </div>
-                        </div>
-                    </div>`;
-                }).join('');
-            }
-
-            /* ---- LANGUE ---- */
             function setLang(lang) {
                 currentLang = lang;
                 localStorage.setItem('archiclick_lang', lang);
@@ -399,10 +336,8 @@
                 reveals.forEach(el => observer.observe(el));
             }
 
-            /* ---- INIT ---- */
             document.addEventListener('DOMContentLoaded', function() {
                 setLang(currentLang);
-                loadArticles();
                 observeReveals();
             });
         })();
