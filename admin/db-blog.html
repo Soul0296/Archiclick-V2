@@ -81,6 +81,11 @@
   .slug-preview span { color:var(--gold-light); }
   .word-count { font-size:11px; color:var(--grey-text); margin-top:4px; }
 
+  .image-source-toggle { display:flex; gap:8px; margin-bottom:10px; }
+  .source-tab { background:transparent; border:1px solid var(--border); color:var(--grey-text); padding:7px 14px; border-radius:20px; font-size:11px; letter-spacing:0.5px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .source-tab.active { background:var(--gold); color:var(--black); border-color:var(--gold); font-weight:600; }
+  .source-tab:hover:not(.active) { border-color:var(--gold); color:var(--gold-light); }
+
   .checkbox-row { display:flex; align-items:center; gap:8px; }
   .checkbox-row input { width:auto; }
   .checkbox-row label { margin-bottom:0; text-transform:none; letter-spacing:0; font-size:13px; color:#ddd; }
@@ -233,7 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
       <div class="form-group full">
         <label>Image de couverture</label>
-        <input type="file" id="imageInput" accept="image/*">
+        <div class="image-source-toggle">
+          <button type="button" class="source-tab active" data-source="file">Depuis mon appareil</button>
+          <button type="button" class="source-tab" data-source="url">Depuis un lien URL</button>
+        </div>
+        <input type="file" id="imageInput" accept="image/jpeg,image/jpg,image/png,image/webp">
+        <input type="url" id="imageUrlInput" placeholder="https://exemple.com/mon-image.jpg" style="display:none;">
         <img id="imagePreview" style="display:none; max-width:180px; margin-top:10px; border-radius:4px; border:1px solid var(--border);">
       </div>
 
@@ -274,6 +284,35 @@ let currentSearch = '';
 let isReadOnly = false;
 let newImageFile = null;
 let existingImageUrl = '';
+let imageSource = 'file';
+
+document.querySelectorAll('.source-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    imageSource = tab.dataset.source;
+    const fileInput = document.getElementById('imageInput');
+    const urlInput = document.getElementById('imageUrlInput');
+    if (imageSource === 'file') {
+      fileInput.style.display = 'block';
+      urlInput.style.display = 'none';
+    } else {
+      fileInput.style.display = 'none';
+      urlInput.style.display = 'block';
+    }
+  });
+});
+
+document.getElementById('imageUrlInput').addEventListener('input', (e) => {
+  const url = e.target.value.trim();
+  const preview = document.getElementById('imagePreview');
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+});
 
 document.addEventListener('adminReady', () => {
   isReadOnly = window.ADMIN.access('blog') !== 'full';
@@ -383,6 +422,13 @@ document.getElementById('addArticleBtn').addEventListener('click', () => {
   document.getElementById('imagePreview').style.display = 'none';
   newImageFile = null;
   existingImageUrl = '';
+  imageSource = 'file';
+  document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.source-tab[data-source="file"]').classList.add('active');
+  document.getElementById('imageInput').style.display = 'block';
+  document.getElementById('imageInput').value = '';
+  document.getElementById('imageUrlInput').style.display = 'none';
+  document.getElementById('imageUrlInput').value = '';
   updateWordCount();
   modal.classList.add('open');
 });
@@ -407,6 +453,26 @@ function openEditModal(id) {
   existingImageUrl = a.image || '';
   newImageFile = null;
   const preview = document.getElementById('imagePreview');
+  const fileInput = document.getElementById('imageInput');
+  const urlInput = document.getElementById('imageUrlInput');
+  fileInput.value = '';
+
+  const isUploadedFile = existingImageUrl.includes('/storage/v1/object/public/');
+  imageSource = isUploadedFile || !existingImageUrl ? 'file' : 'url';
+
+  document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.source-tab[data-source="${imageSource}"]`).classList.add('active');
+
+  if (imageSource === 'url') {
+    fileInput.style.display = 'none';
+    urlInput.style.display = 'block';
+    urlInput.value = existingImageUrl;
+  } else {
+    fileInput.style.display = 'block';
+    urlInput.style.display = 'none';
+    urlInput.value = '';
+  }
+
   if (existingImageUrl) {
     preview.src = existingImageUrl;
     preview.style.display = 'block';
@@ -435,7 +501,9 @@ form.addEventListener('submit', async (e) => {
   try {
     let imageUrl = existingImageUrl;
 
-    if (newImageFile) {
+    if (imageSource === 'url') {
+      imageUrl = document.getElementById('imageUrlInput').value.trim();
+    } else if (newImageFile) {
       const fileName = `${Date.now()}_${newImageFile.name.replace(/\s+/g, '_')}`;
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, newImageFile);
       if (uploadError) throw uploadError;
