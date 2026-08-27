@@ -62,6 +62,10 @@
   .badge.terminee { background:rgba(127,184,138,0.15); color:var(--success); }
   .badge.annulee { background:rgba(217,108,108,0.15); color:var(--error); }
 
+  .type-tag { font-size:11px; padding:3px 9px; border-radius:10px; letter-spacing:0.3px; display:inline-block; }
+  .type-tag.contact { background:rgba(108,160,217,0.12); color:var(--info); }
+  .type-tag.sur-mesure { background:rgba(201,169,97,0.12); color:var(--gold-light); }
+
   .assignee-tag { font-size:11px; color:var(--grey-text); }
   .assignee-tag.unassigned { color:var(--error); }
 
@@ -142,7 +146,7 @@
 
     .main { margin-left:0 !important; padding:76px 16px 24px !important; }
     .table-wrap { overflow-x:auto; }
-    table { min-width:700px; }
+    table { min-width:760px; }
     .page-header { flex-wrap:wrap; }
   }
 </style>
@@ -174,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <a href="db-commandes.html" class="nav-item" data-page="commandes">Commandes</a>
   <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
   <a href="db-avis.html" class="nav-item" data-page="avis">Avis clients</a>
-  <a href="db-demandes.html" class="nav-item active" data-page="demandes">Demandes sur mesure</a>
+  <a href="db-demandes.html" class="nav-item active" data-page="demandes">Demandes</a>
   <a href="db-promos.html" class="nav-item" data-page="promos">Codes Promo</a>
   <a href="db-blog.html" class="nav-item" data-page="blog">Blog</a>
   <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
@@ -186,9 +190,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <div class="main">
   <div class="page-header">
-    <h1>Demandes sur mesure</h1>
+    <h1>Demandes</h1>
   </div>
-  <p class="page-note">Demandes de personnalisation de plans soumises par les clients depuis le site. Chaque demande suit un traitement : Nouvelle → En cours → Devis envoyé → Terminée.</p>
+  <p class="page-note">Regroupe les demandes de personnalisation de plan ET les messages du formulaire de contact du site (les deux utilisent la même table). Chaque demande suit un traitement : Nouvelle → En cours → Devis envoyé → Terminée.</p>
 
   <div class="filters">
     <button class="filter-btn active" data-filter="toutes">Toutes</button>
@@ -202,10 +206,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Date</th><th>Client</th><th>Plan concerné</th><th>Statut</th><th>Assignée à</th><th>Actions</th></tr>
+        <tr><th>Date</th><th>Client</th><th>Type</th><th>Plan / Sujet</th><th>Statut</th><th>Assignée à</th><th>Actions</th></tr>
       </thead>
       <tbody id="demandesTableBody">
-        <tr><td colspan="6" class="empty-state">Chargement des demandes...</td></tr>
+        <tr><td colspan="7" class="empty-state">Chargement des demandes...</td></tr>
       </tbody>
     </table>
   </div>
@@ -222,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="detail-row"><span class="label">Téléphone</span><span class="value" id="dTelephone">—</span></div>
     <div class="detail-row"><span class="label">Date de la demande</span><span class="value" id="dDate">—</span></div>
 
-    <span class="section-label">Modifications demandées</span>
+    <span class="section-label" id="dModifLabel">Modifications demandées</span>
     <div class="mods-box" id="dModifications">—</div>
 
     <span class="section-label">Assignée à</span>
@@ -309,6 +313,12 @@ function showToast(text, type) {
 }
 function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
 
+// Une demande est une "demande de contact" si son plan_titre commence par ce préfixe
+// (posé par contact.html à l'insertion). Sinon c'est une demande sur mesure liée à un plan.
+function isContactDemande(d) {
+  return !!(d.plan_titre && d.plan_titre.indexOf('Demande de contact') === 0);
+}
+
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -323,7 +333,7 @@ async function loadDemandes() {
   const { data, error } = await supabase.from('demandes_sur_mesure').select('*').order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erreur : ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
 
@@ -341,7 +351,7 @@ function renderDemandes() {
   const filtered = currentFilter === 'toutes' ? allDemandes : allDemandes.filter(d => d.statut === currentFilter);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Aucune demande pour ce filtre.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aucune demande pour ce filtre.</td></tr>`;
     return;
   }
 
@@ -350,12 +360,15 @@ function renderDemandes() {
   tbody.innerHTML = filtered.map(d => {
     const dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
     const assignee = adminNomById(d.assigne_a);
+    const contact = isContactDemande(d);
+    const sujetAffiche = contact ? d.plan_titre.replace('Demande de contact — ', '') : (d.plan_titre || '—');
 
     return `
       <tr>
         <td>${dateStr}</td>
         <td>${escapeHtml(d.client_nom || 'Client inconnu')}</td>
-        <td>${escapeHtml(d.plan_titre || '—')}</td>
+        <td><span class="type-tag ${contact ? 'contact' : 'sur-mesure'}">${contact ? 'Contact' : 'Sur mesure'}</span></td>
+        <td>${escapeHtml(sujetAffiche)}</td>
         <td><span class="badge ${d.statut}">${statutLabels[d.statut] || d.statut}</span></td>
         <td><span class="assignee-tag ${assignee ? '' : 'unassigned'}">${assignee ? escapeHtml(assignee) : 'Non assignée'}</span></td>
         <td><button class="icon-btn view-btn" data-id="${d.id}">Voir détail</button></td>
@@ -370,8 +383,12 @@ function openDetailModal(id) {
   const d = allDemandes.find(x => x.id == id);
   if (!d) return;
   activeDemande = d;
+  const contact = isContactDemande(d);
 
-  document.getElementById('dPlan').textContent = d.plan_titre ? 'Plan concerné : ' + d.plan_titre : 'Plan non spécifié';
+  document.getElementById('dPlan').textContent = contact
+    ? d.plan_titre.replace('Demande de contact — ', 'Sujet : ')
+    : (d.plan_titre ? 'Plan concerné : ' + d.plan_titre : 'Plan non spécifié');
+  document.getElementById('dModifLabel').textContent = contact ? 'Message du client' : 'Modifications demandées';
   document.getElementById('dClient').textContent = d.client_nom || '—';
   document.getElementById('dEmail').textContent = d.client_email || '—';
   document.getElementById('dTelephone').textContent = d.client_tel || '—';

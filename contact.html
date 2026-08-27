@@ -37,6 +37,9 @@
         h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
         .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
 
+        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        .max-w-page { max-width:1900px; }
+
         /* ========== NAVBAR ========== */
         .navbar {
             position:fixed; top:0; left:0; right:0; z-index:100;
@@ -96,6 +99,9 @@
             background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%);
             padding:8rem 0 4rem; text-align:center; margin-top:5rem;
         }
+        .page-header-inner { width:100%; padding:0 3rem; }
+        @media(max-width:1280px) { .page-header-inner { padding:0 2rem; } }
+        @media(max-width:768px) { .page-header-inner { padding:0 1.5rem; } }
         .page-title {
             font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem);
             font-weight:300; color:var(--ardoise); margin-bottom:1rem; letter-spacing:2px;
@@ -105,11 +111,12 @@
             line-height:1.8;
         }
 
-        /* ========== SECTION CONTAINER ========== */
+        /* ========== SECTION CONTAINER — PLEINE LARGEUR ========== */
         .contact-container {
             display:grid; grid-template-columns:1fr 1fr; gap:4rem;
-            max-width:7xl; margin:4rem auto; padding:0 1.5rem; align-items:center;
+            width:100%; margin:4rem 0; padding:0 3rem; align-items:center;
         }
+        @media(max-width:1280px) { .contact-container { padding:0 2rem; gap:2.5rem; } }
         @media(max-width:1023px) {
             .contact-container { grid-template-columns:1fr; gap:2rem; }
         }
@@ -209,7 +216,7 @@
         .footer-social:hover { color:var(--or); }
 
         @media(max-width:768px) {
-            .contact-container { margin:2rem auto; }
+            .contact-container { margin:2rem 0; padding:0 1.5rem; }
         }
     </style>
 </head>
@@ -217,7 +224,7 @@
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -249,7 +256,7 @@
 
     <!-- ==================== PAGE HEADER ==================== -->
     <section class="page-header">
-        <div class="max-w-7xl mx-auto px-6 reveal">
+        <div class="page-header-inner reveal">
             <h1 class="page-title" data-fr="Nous contacter" data-en="Contact Us">Nous contacter</h1>
             <div class="sep-or" style="margin:1.5rem auto;"></div>
             <p class="page-desc" data-fr="Une question sur nos plans ? Besoin d'une personnalisation ? Notre équipe d'architectes est là pour vous aider. Envoyez-nous un message et nous vous répondrons dans les plus brefs délais." data-en="Questions about our plans? Need customization? Our team of architects is here to help. Send us a message and we'll respond as soon as possible.">Une question sur nos plans ? Besoin d'une personnalisation ? Notre équipe d'architectes est là pour vous aider. Envoyez-nous un message et nous vous répondrons dans les plus brefs délais.</p>
@@ -313,7 +320,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
@@ -344,7 +351,7 @@
                 </div>
             </div>
             <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
-                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick" data-en="© 2025 Archiclick">© 2025 Archiclick</p>
+                <p class="text-white/40 text-sm" data-fr="© 2026 Archiclick" data-en="© 2026 Archiclick">© 2026 Archiclick</p>
             </div>
         </div>
     </footer>
@@ -390,7 +397,11 @@
 
             window.toggleMobileMenu = toggleMobileMenu;
 
-            /* ---- FORMULAIRE ---- */
+            /* ---- FORMULAIRE ----
+               Les messages de contact sont enregistrés directement dans la table
+               demandes_sur_mesure (la même que celle utilisée par plan-detail.html),
+               ce qui les fait apparaître automatiquement dans l'admin db-demandes.html,
+               au même endroit que les demandes de personnalisation de plan. */
             window.submitForm = async function(event) {
                 event.preventDefault();
 
@@ -399,7 +410,6 @@
                 const phone = document.getElementById('contactPhone').value.trim();
                 const subject = document.getElementById('contactSubject').value.trim();
                 const message = document.getElementById('contactMessage').value.trim();
-                const msgEl = document.getElementById('formMessage');
                 const submitBtn = document.getElementById('submitBtn');
 
                 // Validation
@@ -412,16 +422,15 @@
                 submitBtn.textContent = currentLang === 'fr' ? 'Envoi en cours...' : 'Sending...';
 
                 try {
-                    // Créer une tâche dans la table demandes_contact
-                    const { data, error } = await supabase.from('demandes_contact').insert([{
-                        nom_client: name,
-                        email_client: email,
-                        telephone_client: phone,
-                        sujet: subject,
-                        message: message,
-                        statut: 'nouveau',
-                        date_creation: new Date().toISOString(),
-                        date_rappel: null
+                    const { error } = await supabase.from('demandes_sur_mesure').insert([{
+                        client_nom: name,
+                        client_email: email,
+                        client_tel: phone,
+                        plan_id: null,
+                        plan_titre: 'Demande de contact — ' + subject,
+                        modifications: message,
+                        statut: 'nouvelle',
+                        historique: [{ date: new Date().toISOString(), admin: 'Client (site web)', action: 'Nouveau message de contact soumis via le site' }]
                     }]);
 
                     if (error) throw error;
