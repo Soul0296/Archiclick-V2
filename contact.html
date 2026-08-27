@@ -359,6 +359,7 @@
     <!-- Supabase : script partagé (avec garde anti double-déclaration), comme sur les autres pages -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
+    <script src="js/client-sync.js"></script>
 
     <script>
         (function() {
@@ -441,6 +442,10 @@
                     }]);
 
                     if (error) throw error;
+
+                    // Synchronise automatiquement le client dans la table `clients`
+                    // (visible ensuite dans db-clients.html)
+                    await syncClientToDB(name, email, phone);
 
                     // Succès
                     showMessage(currentLang === 'fr' ? 'Message envoyé avec succès ! Nous vous répondrons bientôt.' : 'Message sent successfully! We will respond soon.', 'success');
