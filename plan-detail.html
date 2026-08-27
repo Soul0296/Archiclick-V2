@@ -822,6 +822,11 @@
                 // 1. Enregistrement du client dans la base (créé seulement s'il n'existe pas déjà)
                 // 2. Enregistrement de la demande sur mesure dans demandes_sur_mesure — c'est ce qui la fait
                 //    apparaître dans l'admin (db-demandes) pour traitement et réponse rapide au client
+                //
+                // CORRECTIF : la table demandes_sur_mesure a des colonnes historiques NOT NULL
+                // (nom, email) en plus des colonnes utilisées par le dashboard admin
+                // (client_nom, client_email, client_tel...) — on remplit les deux jeux, comme
+                // sur contact.html, pour éviter l'erreur 23502.
                 try {
                     const { data: existingClient } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
                     if (!existingClient) {
@@ -829,6 +834,12 @@
                     }
 
                     const { error: demandeError } = await supabase.from('demandes_sur_mesure').insert([{
+                        // Colonnes historiques obligatoires (NOT NULL)
+                        nom: name,
+                        email: email,
+                        telephone: phone,
+
+                        // Colonnes utilisées par le dashboard admin (db-demandes.html)
                         client_nom: name,
                         client_email: email,
                         client_tel: phone,
