@@ -396,7 +396,13 @@
                Les messages de contact sont enregistrés directement dans la table
                demandes_sur_mesure (la même que celle utilisée par plan-detail.html),
                ce qui les fait apparaître automatiquement dans l'admin db-demandes.html,
-               au même endroit que les demandes de personnalisation de plan. */
+               au même endroit que les demandes de personnalisation de plan.
+
+               CORRECTIF : la table a des colonnes historiques NOT NULL (nom, email)
+               en plus des colonnes utilisées par le dashboard admin (client_nom,
+               client_email, client_tel...). On remplit les deux jeux pour éviter
+               l'erreur 23502 (null value in column "nom") ET garder l'affichage
+               correct côté admin. */
             window.submitForm = async function(event) {
                 event.preventDefault();
 
@@ -418,6 +424,12 @@
 
                 try {
                     const { error } = await supabase.from('demandes_sur_mesure').insert([{
+                        // Colonnes historiques obligatoires (NOT NULL dans la table)
+                        nom: name,
+                        email: email,
+                        telephone: phone,
+
+                        // Colonnes utilisées par le dashboard admin (db-demandes.html)
                         client_nom: name,
                         client_email: email,
                         client_tel: phone,
