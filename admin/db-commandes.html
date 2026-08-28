@@ -72,6 +72,8 @@
 
   .icon-btn { background:none; border:1px solid var(--border); color:var(--grey-text); padding:6px 10px; border-radius:2px; cursor:pointer; font-size:12px; }
   .icon-btn:hover { color:var(--gold-light); border-color:var(--gold); }
+  .icon-btn.danger { color:var(--error); border-color:rgba(217,108,108,0.4); }
+  .icon-btn.danger:hover { color:#fff; background:var(--error); border-color:var(--error); }
   .empty-state { text-align:center; padding:50px 20px; color:var(--grey-text); }
 
   .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
@@ -109,7 +111,7 @@
   .action-zone { margin-top:22px; padding-top:18px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:10px; }
   .email-log { font-size:11px; color:var(--grey-text); margin-top:4px; }
 
-  .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+  .modal-actions { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:20px; }
 
   .confirm-popup { background:var(--black-soft); border:1px solid var(--error); border-radius:4px; padding:26px; max-width:420px; }
   .confirm-popup h3 { font-family:'Cormorant Garamond',serif; color:var(--error); font-size:20px; margin-bottom:12px; }
@@ -246,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="action-zone" id="actionZone"></div>
 
     <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="deleteCommandeBtn" style="display:none; color:var(--error); border-color:var(--error); margin-right:auto;">Supprimer la commande</button>
       <button type="button" class="btn btn-outline" id="closeDetailBtn">Fermer</button>
       <button type="button" class="btn btn-gold" id="saveNoteBtn">Enregistrer la note</button>
     </div>
@@ -282,10 +285,14 @@ let promosByCode = {};
 let currentFilter = 'toutes';
 let searchQuery = '';
 let isReadOnly = false;
+let isSuperAdmin = false;
 let activeCommande = null;
 
 document.addEventListener('adminReady', () => {
   isReadOnly = window.ADMIN.access('commandes') !== 'full';
+  // Un admin peut cumuler plusieurs rôles (voir permissions.js) : super admin
+  // uniquement si le rôle "super_admin" fait partie de ses rôles.
+  isSuperAdmin = Array.isArray(window.ADMIN.roles) && window.ADMIN.roles.includes('super_admin');
   loadCommandes();
 });
 
@@ -402,12 +409,16 @@ function renderCommandes() {
           <span class="badge ${cmd.statut}">${statutLabels[cmd.statut] || cmd.statut}</span>
           ${isUrgent ? '<span class="urgent-flag">⏱ +24h</span>' : ''}
         </td>
-        <td><button class="icon-btn view-btn" data-id="${cmd.id}">Voir détail</button></td>
+        <td>
+          <button class="icon-btn view-btn" data-id="${cmd.id}">Voir détail</button>
+          ${isSuperAdmin ? `<button class="icon-btn danger delete-btn" data-id="${cmd.id}" style="margin-left:6px;">Supprimer</button>` : ''}
+        </td>
       </tr>
     `;
   }).join('');
 
   document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => openDetailModal(btn.dataset.id)));
+  document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); supprimerCommande(btn.dataset.id); }));
 }
 
 async function generateInvoiceNumber() {
@@ -568,6 +579,9 @@ function openDetailModal(id) {
 
   renderStepper(cmd.statut);
   renderActionZone(cmd);
+
+  const deleteBtn = document.getElementById('deleteCommandeBtn');
+  deleteBtn.style.display = isSuperAdmin ? 'inline-block' : 'none';
 
   document.getElementById('detailModal').classList.add('open');
 }
@@ -746,6 +760,28 @@ async function annulerCommande(cmd) {
   document.getElementById('detailModal').classList.remove('open');
   loadCommandes();
 }
+
+// Suppression définitive d'une commande — action réservée au super admin.
+async function supprimerCommande(id) {
+  if (!isSuperAdmin) { showToast("Action réservée au super admin.", 'error'); return; }
+
+  const cmd = allCommandes.find(c => c.id == id);
+  if (!cmd) return;
+
+  const confirmText = `Supprimer définitivement la commande ${cmd.numero_commande || cmd.id} ?\nCette action est irréversible et effacera toutes les données associées (facture, notes, historique).`;
+  if (!confirm(confirmText)) return;
+
+  const { error } = await supabase.from('commandes').delete().eq('id', id);
+  if (error) { showToast('Erreur lors de la suppression : ' + error.message, 'error'); return; }
+
+  showToast('Commande supprimée définitivement.', 'success');
+  document.getElementById('detailModal').classList.remove('open');
+  loadCommandes();
+}
+
+document.getElementById('deleteCommandeBtn').addEventListener('click', () => {
+  if (activeCommande) supprimerCommande(activeCommande.id);
+});
 
 document.getElementById('saveNoteBtn').addEventListener('click', async () => {
   if (!activeCommande) return;
