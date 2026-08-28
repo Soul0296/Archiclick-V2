@@ -362,6 +362,7 @@
     <!-- Supabase (fichier commun, protégé contre la double déclaration) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
+    <script src="js/client-sync.js"></script>
 
     <script>
         (function() {
@@ -449,7 +450,14 @@
             /* ---- SOUMISSION PAIEMENT ----
                La table "commandes" a UNE colonne plan_id par ligne (pas de liste) :
                si le panier contient plusieurs plans, on crée une commande PAR plan,
-               chacune avec les mêmes infos client. */
+               chacune avec les mêmes infos client.
+
+               CORRECTIF : on synchronise désormais le client dans la table `clients`
+               via syncClientToDB() (js/client-sync.js) juste après la création de la
+               commande. Auparavant, aucun insert/update vers `clients` n'existait sur
+               cette page : un client qui commandait directement (sans passer par le
+               formulaire de contact ou de personnalisation) n'apparaissait jamais dans
+               db-clients.html, même si sa commande était bien enregistrée. */
             window.submitPayment = async function(event) {
                 event.preventDefault();
 
@@ -481,6 +489,9 @@
 
                     const { error } = await supabase.from('commandes').insert(rows);
                     if (error) throw error;
+
+                    // Synchronise le client dans la table `clients` (visible dans db-clients.html)
+                    await syncClientToDB(nom, email, phone);
 
                     localStorage.removeItem('panier');
                     sessionStorage.removeItem('panier');

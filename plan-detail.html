@@ -510,6 +510,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
+    <script src="js/client-sync.js"></script>
 
     <script>
         (function() {
@@ -819,7 +820,10 @@
                     return;
                 }
 
-                // 1. Enregistrement du client dans la base (créé seulement s'il n'existe pas déjà)
+                // 1. Synchronisation du client dans la table `clients` via syncClientToDB()
+                //    (js/client-sync.js) : crée la fiche si elle n'existe pas, ou met à jour
+                //    nom/téléphone si le client existe déjà — même logique partagée que
+                //    contact.html et confirmation.html.
                 // 2. Enregistrement de la demande sur mesure dans demandes_sur_mesure — c'est ce qui la fait
                 //    apparaître dans l'admin (db-demandes) pour traitement et réponse rapide au client
                 //
@@ -828,10 +832,7 @@
                 // (client_nom, client_email, client_tel...) — on remplit les deux jeux, comme
                 // sur contact.html, pour éviter l'erreur 23502.
                 try {
-                    const { data: existingClient } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
-                    if (!existingClient) {
-                        await supabase.from('clients').insert([{ nom: name, email: email, telephone: phone }]);
-                    }
+                    await syncClientToDB(name, email, phone);
 
                     const { error: demandeError } = await supabase.from('demandes_sur_mesure').insert([{
                         // Colonnes historiques obligatoires (NOT NULL)
