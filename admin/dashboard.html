@@ -589,14 +589,17 @@ async function loadPlansStat(startOfWeek) {
 async function loadCommandesStat(today) {
   try {
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-    const { count: countJour, data: jourData } = await supabase.from('commandes').select('id, created_at', { count:'exact' }).gte('created_at', startOfToday);
-    const { count: countAttente } = await supabase.from('commandes').select('*', { count:'exact', head:true }).eq('statut_paiement', 'en_attente');
+    // Commandes du jour (colonne réelle : date_commande, pas created_at)
+    const { count: countJour, data: jourData } = await supabase.from('commandes').select('id, date_commande', { count:'exact' }).gte('date_commande', startOfToday);
+
+    // En attente de paiement (colonne réelle : statut, pas statut_paiement)
+    const { count: countAttente } = await supabase.from('commandes').select('*', { count:'exact', head:true }).eq('statut', 'en_attente');
 
     document.getElementById('value-commandes').textContent = countJour ?? 0;
     document.getElementById('sub-commandes').innerHTML = `<strong>${countAttente ?? 0}</strong> en attente de paiement`;
 
     const lastSeen = lastSeenMap['commandes'];
-    setNotifDot('commandes', lastSeen ? (jourData || []).some(c => c.created_at > lastSeen) : (countJour ?? 0) > 0);
+    setNotifDot('commandes', lastSeen ? (jourData || []).some(c => c.date_commande > lastSeen) : (countJour ?? 0) > 0);
   } catch (err) { console.error('Erreur stat commandes:', err); }
 }
 
@@ -669,9 +672,9 @@ async function loadBlogStat() {
 
 async function loadComptabiliteStat(startOfMonth) {
   try {
-    const { data: commandesMois } = await supabase.from('commandes').select('montant_total, statut_paiement').gte('created_at', startOfMonth).eq('statut_paiement', 'payee');
+    const { data: commandesMois } = await supabase.from('commandes').select('montant_total, statut').gte('date_commande', startOfMonth).eq('statut', 'payee');
     const totalCA = (commandesMois || []).reduce((sum, c) => sum + (Number(c.montant_total) || 0), 0);
-    const { count: impayees } = await supabase.from('commandes').select('*', { count:'exact', head:true }).eq('statut_paiement', 'en_attente');
+    const { count: impayees } = await supabase.from('commandes').select('*', { count:'exact', head:true }).eq('statut', 'en_attente');
 
     document.getElementById('value-comptabilite').textContent = totalCA.toLocaleString('fr-FR') + ' FCFA';
     document.getElementById('sub-comptabilite').innerHTML = `<strong>${impayees ?? 0}</strong> facture(s) impayée(s)`;
@@ -851,10 +854,11 @@ function initSalesChart() {
 async function loadSalesChart(days) {
   try {
     const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    // Colonne réelle sur `commandes` : date_commande (pas created_at)
     const { data, error } = await supabase
       .from('commandes')
-      .select('created_at')
-      .gte('created_at', start.toISOString());
+      .select('date_commande')
+      .gte('date_commande', start.toISOString());
     if (error) throw error;
 
     let labels = [];
@@ -869,7 +873,8 @@ async function loadSalesChart(days) {
         buckets[key] = 0;
       }
       (data || []).forEach(row => {
-        const key = row.created_at.split('T')[0];
+        if (!row.date_commande) return;
+        const key = new Date(row.date_commande).toISOString().split('T')[0];
         if (buckets.hasOwnProperty(key)) buckets[key]++;
       });
       labels = Object.keys(buckets).map(k => new Date(k).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' }));
@@ -884,7 +889,8 @@ async function loadSalesChart(days) {
         buckets[key] = 0;
       }
       (data || []).forEach(row => {
-        const d = new Date(row.created_at);
+        if (!row.date_commande) return;
+        const d = new Date(row.date_commande);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         if (buckets.hasOwnProperty(key)) buckets[key]++;
       });
