@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de commande - Archiclick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
+            --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
+            --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
+            --success:#10b981;--error:#ef4444;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; font-weight:300; color:var(--ardoise); background:var(--blanc); line-height:1.7; overflow-x:hidden; }
+        h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
+        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
+        .max-w-page { max-width:1900px; }
+
+        /* ========== NAVBAR ========== */
+        .navbar { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(255,255,255,.97); backdrop-filter:blur(20px); padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15); }
+        .nav-link-item { position:relative; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:400; letter-spacing:2.5px; text-transform:uppercase; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-link-item::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--or); transition:width .4s ease; }
+        .nav-link-item:hover::after { width:100%; }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle { width:36px; height:36px; border:1px solid rgba(45,45,45,.3); background:transparent; font-family:'Inter',sans-serif; font-size:.7rem; font-weight:500; letter-spacing:1px; cursor:pointer; transition:all .4s ease; color:var(--ardoise); display:flex; align-items:center; justify-content:center; }
+        .lang-toggle:hover { border-color:var(--or); color:var(--or); }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn { display:none; background:none; border:none; font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise); }
+        @media(max-width:768px) { .burger-btn { display:block; } .desktop-nav { display:none !important; } }
+        .mobile-drawer { position:fixed; top:0; right:-100%; width:85%; max-width:340px; height:100%; background:var(--noir); z-index:1000; transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem; }
+        .mobile-drawer.open { right:0; }
+        .mobile-drawer a { display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:400; color:rgba(255,255,255,.7); text-decoration:none; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06); letter-spacing:2px; }
+        .mobile-drawer a:hover { color:var(--or); }
+        .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999; opacity:0; pointer-events:none; transition:opacity .4s ease; }
+        .drawer-overlay.open { opacity:1; pointer-events:auto; }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header { background:linear-gradient(135deg,#f5f0eb 0%,#eae3db 100%); padding:8rem 0 4rem; text-align:center; margin-top:5rem; }
+        .page-header-inner { width:100%; padding:0 3rem; }
+        @media(max-width:768px) { .page-header-inner { padding:0 1.5rem; } }
+        .page-title { font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem); font-weight:300; color:var(--ardoise); margin-bottom:1rem; letter-spacing:2px; }
+        .page-desc { font-size:.95rem; color:var(--gris-doux); max-width:600px; margin:0 auto; line-height:1.8; }
+
+        /* ========== FORMULAIRE DE RECHERCHE ========== */
+        .search-section { max-width:520px; margin:4rem auto; padding:0 1.5rem; }
+        .form-group { margin-bottom:1.5rem; }
+        .form-label { display:block; font-weight:500; margin-bottom:.5rem; font-size:.9rem; color:var(--ardoise); }
+        .form-input { width:100%; padding:1rem; border:1px solid var(--creme); font-family:'Inter',sans-serif; font-size:.9rem; font-weight:300; background:white; border-radius:4px; transition:all .3s ease; }
+        .form-input:focus { outline:none; border-color:var(--or); box-shadow:0 0 0 3px rgba(201,169,110,.1); }
+        .btn-submit { background:var(--or); color:var(--noir); border:none; padding:14px 36px; font-weight:500; letter-spacing:2px; text-transform:uppercase; font-size:.8rem; cursor:pointer; transition:all .4s ease; width:100%; }
+        .btn-submit:hover { background:var(--or-clair); transform:translateY(-2px); box-shadow:0 12px 30px rgba(201,169,110,.25); }
+        .btn-submit:disabled { opacity:.6; cursor:not-allowed; }
+        .form-message { margin-top:1rem; padding:1rem; border-radius:4px; font-size:.9rem; text-align:center; display:none; }
+        .form-message.error { background:rgba(239,68,68,.1); color:var(--error); border:1px solid rgba(239,68,68,.3); display:block; }
+
+        /* ========== RESULTAT / TIMELINE ========== */
+        .result-section { max-width:780px; margin:0 auto 5rem; padding:0 1.5rem; display:none; }
+        .result-header { text-align:center; margin-bottom:3rem; }
+        .result-header .ref { font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--ardoise); }
+        .result-header .plan-name { color:var(--gris-doux); font-size:.9rem; margin-top:.3rem; }
+
+        .timeline { display:flex; justify-content:space-between; align-items:flex-start; position:relative; margin:0 1rem; }
+        .timeline::before {
+            content:''; position:absolute; top:22px; left:5%; right:5%; height:2px;
+            background:var(--creme); z-index:1;
+        }
+        .timeline-progress { position:absolute; top:22px; left:5%; height:2px; background:var(--or); z-index:2; transition:width .6s ease; width:0%; }
+        .timeline-step { position:relative; z-index:3; text-align:center; flex:1; }
+        .step-circle {
+            width:46px; height:46px; border-radius:50%; background:var(--blanc); border:2px solid var(--creme);
+            display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; font-size:1.1rem; color:var(--gris-clair);
+            transition:all .4s ease;
+        }
+        .timeline-step.done .step-circle { border-color:var(--or); background:var(--or); color:var(--blanc); }
+        .timeline-step.current .step-circle { border-color:var(--or); color:var(--or); box-shadow:0 0 0 6px rgba(201,169,110,.15); }
+        .step-label { font-size:.78rem; color:var(--gris-doux); max-width:110px; margin:0 auto; line-height:1.5; }
+        .timeline-step.done .step-label, .timeline-step.current .step-label { color:var(--ardoise); font-weight:500; }
+        .step-date { font-size:.68rem; color:var(--gris-clair); margin-top:.3rem; }
+
+        @media(max-width:640px) {
+            .timeline { flex-direction:column; gap:1.6rem; align-items:flex-start; margin-left:1.5rem; }
+            .timeline::before { display:none; }
+            .timeline-progress { display:none; }
+            .timeline-step { display:flex; align-items:center; gap:1rem; text-align:left; }
+            .step-circle { margin:0; flex-shrink:0; }
+            .step-label { max-width:none; }
+        }
+
+        .order-summary { margin-top:3rem; border:1px solid var(--creme); border-radius:8px; padding:1.8rem; background:rgba(245,240,235,.4); }
+        .order-summary-row { display:flex; justify-content:space-between; padding:.6rem 0; border-bottom:1px solid var(--creme); font-size:.88rem; }
+        .order-summary-row:last-child { border-bottom:none; }
+        .order-summary-row .label { color:var(--gris-doux); }
+        .order-summary-row .value { color:var(--ardoise); font-weight:500; }
+
+        .new-search-link { display:block; text-align:center; margin-top:2rem; font-size:.85rem; color:var(--gris-doux); text-decoration:underline; cursor:pointer; }
+        .new-search-link:hover { color:var(--or); }
+
+        .footer-link { font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300; color:rgba(255,255,255,.5); text-decoration:none; transition:color .3s ease; }
+        .footer-link:hover { color:var(--or); }
+        .footer-social { color:rgba(255,255,255,.4); font-size:1rem; transition:color .3s ease; text-decoration:none; }
+        .footer-social:hover { color:var(--or); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
+            <div class="desktop-nav flex items-center gap-10">
+                <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
+                <a href="catalogue.html" class="nav-link-item" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+                <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
+                <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
+                <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+                <a href="suivi-commande.html" class="nav-link-item" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
+                <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
+        <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
+        <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
+        <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
+        <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="suivi-commande.html" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
+        <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
+
+    <section class="page-header">
+        <div class="page-header-inner reveal">
+            <h1 class="page-title" data-fr="Suivi de commande" data-en="Order Tracking">Suivi de commande</h1>
+            <div class="sep-or" style="margin:1.5rem auto;"></div>
+            <p class="page-desc" data-fr="Entrez votre numéro de commande et votre email pour suivre l'avancement de votre commande." data-en="Enter your order number and email to track the progress of your order.">Entrez votre numéro de commande et votre email pour suivre l'avancement de votre commande.</p>
+        </div>
+    </section>
+
+    <section class="search-section" id="searchSection">
+        <form id="searchForm">
+            <div class="form-group">
+                <label class="form-label" data-fr="Numéro de commande" data-en="Order number">Numéro de commande</label>
+                <input type="text" id="numeroCommande" class="form-input" required placeholder="Ex : FAC-2608-042" data-fr-placeholder="Ex : FAC-2608-042" data-en-placeholder="E.g. FAC-2608-042">
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-fr="Email utilisé lors de la commande" data-en="Email used for the order">Email utilisé lors de la commande</label>
+                <input type="email" id="emailCommande" class="form-input" required placeholder="votre@email.com" data-fr-placeholder="votre@email.com" data-en-placeholder="your@email.com">
+            </div>
+            <button type="submit" class="btn-submit" id="searchBtn" data-fr="Suivre ma commande" data-en="Track my order">Suivre ma commande</button>
+            <div class="form-message" id="searchMessage"></div>
+        </form>
+    </section>
+
+    <section class="result-section" id="resultSection">
+        <div class="result-header">
+            <div class="ref" id="resultRef"></div>
+            <div class="plan-name" id="resultPlanInfo"></div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-progress" id="timelineProgress"></div>
+            <div class="timeline-step" id="step1">
+                <div class="step-circle"><i class="fas fa-file-invoice"></i></div>
+                <div class="step-label" data-fr="Commande reçue" data-en="Order received">Commande reçue</div>
+                <div class="step-date" id="step1Date"></div>
+            </div>
+            <div class="timeline-step" id="step2">
+                <div class="step-circle"><i class="fas fa-credit-card"></i></div>
+                <div class="step-label" data-fr="Paiement confirmé" data-en="Payment confirmed">Paiement confirmé</div>
+                <div class="step-date" id="step2Date"></div>
+            </div>
+            <div class="timeline-step" id="step3">
+                <div class="step-circle"><i class="fas fa-receipt"></i></div>
+                <div class="step-label" data-fr="Facture envoyée" data-en="Invoice sent">Facture envoyée</div>
+                <div class="step-date" id="step3Date"></div>
+            </div>
+            <div class="timeline-step" id="step4">
+                <div class="step-circle"><i class="fas fa-paper-plane"></i></div>
+                <div class="step-label" data-fr="Plan(s) envoyé(s)" data-en="Plan(s) sent">Plan(s) envoyé(s)</div>
+                <div class="step-date" id="step4Date"></div>
+            </div>
+        </div>
+
+        <div class="order-summary">
+            <div class="order-summary-row"><span class="label" data-fr="Client" data-en="Client">Client</span><span class="value" id="sumClient"></span></div>
+            <div class="order-summary-row"><span class="label" data-fr="Montant total" data-en="Total amount">Montant total</span><span class="value" id="sumMontant"></span></div>
+            <div class="order-summary-row"><span class="label" data-fr="Date de commande" data-en="Order date">Date de commande</span><span class="value" id="sumDate"></span></div>
+        </div>
+
+        <div class="new-search-link" id="newSearchLink" data-fr="← Suivre une autre commande" data-en="← Track another order">← Suivre une autre commande</div>
+    </section>
+
+    <footer class="bg-noir py-16 mt-16">
+        <div class="max-w-page mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
+                        <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
+                        <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Légal" data-en="Legal">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
+                        <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Nous suivre" data-en="Follow us">Nous suivre</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="footer-social"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
+                <p class="text-white/40 text-sm" data-fr="© 2026 Archiclick" data-en="© 2026 Archiclick">© 2026 Archiclick</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+
+    <script>
+        (function() {
+            let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
+
+            function setLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('archiclick_lang', lang);
+                document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+                document.querySelectorAll('[data-fr]').forEach(el => { el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en; });
+                document.querySelectorAll('[data-fr-placeholder]').forEach(el => { el.placeholder = lang === 'fr' ? el.dataset.frPlaceholder : el.dataset.enPlaceholder; });
+            }
+            window.toggleLanguage = function() { setLang(currentLang === 'fr' ? 'en' : 'fr'); };
+
+            function toggleMobileMenu() {
+                document.getElementById('mobileDrawer').classList.toggle('open');
+                document.getElementById('drawerOverlay').classList.toggle('open');
+            }
+            window.toggleMobileMenu = toggleMobileMenu;
+
+            // Pré-remplissage depuis l'URL (lien envoyé depuis le popup de confirmation / email)
+            const urlParams = new URLSearchParams(window.location.search);
+            const prefilledRef = urlParams.get('ref');
+            if (prefilledRef) document.getElementById('numeroCommande').value = prefilledRef;
+
+            document.getElementById('searchForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const numero = document.getElementById('numeroCommande').value.trim();
+                const email = document.getElementById('emailCommande').value.trim();
+                const btn = document.getElementById('searchBtn');
+                const msgEl = document.getElementById('searchMessage');
+                msgEl.classList.remove('error');
+                msgEl.textContent = '';
+
+                btn.disabled = true;
+                btn.textContent = currentLang === 'fr' ? 'Recherche...' : 'Searching...';
+
+                try {
+                    const { data, error } = await supabase
+                        .from('commandes')
+                        .select('*')
+                        .ilike('numero_commande', numero)
+                        .ilike('client_email', email)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (!data) {
+                        msgEl.textContent = currentLang === 'fr'
+                            ? "Aucune commande trouvée avec ces informations. Vérifiez le numéro et l'email saisis."
+                            : "No order found with this information. Please check the order number and email.";
+                        msgEl.classList.add('error');
+                        return;
+                    }
+
+                    renderResult(data);
+                } catch (err) {
+                    console.error('Erreur recherche commande:', err);
+                    msgEl.textContent = currentLang === 'fr' ? 'Une erreur est survenue. Merci de réessayer.' : 'An error occurred. Please try again.';
+                    msgEl.classList.add('error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = currentLang === 'fr' ? 'Suivre ma commande' : 'Track my order';
+                }
+            });
+
+            function renderResult(cmd) {
+                document.getElementById('searchSection').style.display = 'none';
+                document.getElementById('resultSection').style.display = 'block';
+
+                document.getElementById('resultRef').textContent = cmd.numero_commande || ('#' + cmd.id);
+                document.getElementById('resultPlanInfo').textContent = cmd.numero_facture ? ('Facture ' + cmd.numero_facture) : '';
+
+                document.getElementById('sumClient').textContent = cmd.client_nom || '-';
+                document.getElementById('sumMontant').textContent = (Number(cmd.montant_total) || 0).toLocaleString('fr-FR') + ' FCFA';
+                document.getElementById('sumDate').textContent = cmd.date_commande ? new Date(cmd.date_commande).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '-';
+
+                // Détermination de l'étape actuelle à partir des colonnes existantes
+                const step1Done = true; // la commande existe forcément
+                const step2Done = cmd.statut === 'payee';
+                const step3Done = !!(cmd.numero_facture && cmd.facture_pdf_path);
+                const step4Done = !!cmd.email_plans_envoye_at;
+
+                const steps = [
+                    { id: 'step1', done: step1Done, date: cmd.date_commande },
+                    { id: 'step2', done: step2Done, date: step2Done ? cmd.date_commande : null },
+                    { id: 'step3', done: step3Done, date: null },
+                    { id: 'step4', done: step4Done, date: cmd.email_plans_envoye_at }
+                ];
+
+                let lastDoneIndex = -1;
+                steps.forEach((s, i) => { if (s.done) lastDoneIndex = i; });
+
+                steps.forEach((s, i) => {
+                    const el = document.getElementById(s.id);
+                    el.classList.remove('done', 'current');
+                    if (s.done) {
+                        el.classList.add('done');
+                        el.querySelector('.step-circle').innerHTML = '<i class="fas fa-check"></i>';
+                    } else if (i === lastDoneIndex + 1) {
+                        el.classList.add('current');
+                    }
+                    const dateEl = document.getElementById(s.id + 'Date');
+                    dateEl.textContent = s.date ? new Date(s.date).toLocaleDateString('fr-FR', { day:'numeric', month:'short' }) : '';
+                });
+
+                const progressPct = lastDoneIndex >= 0 ? (lastDoneIndex / (steps.length - 1)) * 90 : 0;
+                document.getElementById('timelineProgress').style.width = progressPct + '%';
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            document.getElementById('newSearchLink').addEventListener('click', () => {
+                document.getElementById('resultSection').style.display = 'none';
+                document.getElementById('searchSection').style.display = 'block';
+                document.getElementById('searchForm').reset();
+            });
+
+            document.addEventListener('DOMContentLoaded', () => setLang(currentLang));
+            setLang(currentLang);
+        })();
+    </script>
+
+</body>
+</html>

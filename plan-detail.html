@@ -24,7 +24,6 @@
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        html { width:100%; max-width:100%; overflow-x:hidden; }
         body { font-family:'Inter',sans-serif; font-weight:300; color:var(--ardoise); background:var(--blanc); line-height:1.7; overflow-x:hidden; }
         h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
 
@@ -248,6 +247,7 @@
                 <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
                 <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
                 <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+                <a href="suivi-commande.html" class="nav-link-item" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
             </div>
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
@@ -263,6 +263,7 @@
         <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="suivi-commande.html" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
@@ -509,7 +510,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
-    <script src="js/client-sync.js"></script>
 
     <script>
         (function() {
@@ -819,10 +819,7 @@
                     return;
                 }
 
-                // 1. Synchronisation du client dans la table `clients` via syncClientToDB()
-                //    (js/client-sync.js) : crée la fiche si elle n'existe pas, ou met à jour
-                //    nom/téléphone si le client existe déjà — même logique partagée que
-                //    contact.html et confirmation.html.
+                // 1. Enregistrement du client dans la base (créé seulement s'il n'existe pas déjà)
                 // 2. Enregistrement de la demande sur mesure dans demandes_sur_mesure — c'est ce qui la fait
                 //    apparaître dans l'admin (db-demandes) pour traitement et réponse rapide au client
                 //
@@ -831,7 +828,10 @@
                 // (client_nom, client_email, client_tel...) — on remplit les deux jeux, comme
                 // sur contact.html, pour éviter l'erreur 23502.
                 try {
-                    await syncClientToDB(name, email, phone);
+                    const { data: existingClient } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
+                    if (!existingClient) {
+                        await supabase.from('clients').insert([{ nom: name, email: email, telephone: phone }]);
+                    }
 
                     const { error: demandeError } = await supabase.from('demandes_sur_mesure').insert([{
                         // Colonnes historiques obligatoires (NOT NULL)
