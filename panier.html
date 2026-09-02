@@ -28,7 +28,11 @@
             --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
+
+        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        .max-w-page { max-width:1900px; }
         * { margin:0; padding:0; box-sizing:border-box; }
+        html { width:100%; max-width:100%; overflow-x:hidden; }
         body {
             font-family:'Inter',sans-serif; font-weight:300;
             color:var(--ardoise); background:var(--blanc);
@@ -90,7 +94,7 @@
         .drawer-overlay.open { opacity:1; pointer-events:auto; }
 
         .panier-container {
-            max-width:7xl; margin:6rem auto; padding:0 1.5rem;
+            max-width:1900px; margin:6rem auto; padding:0 1.5rem;
             display:grid; grid-template-columns:2fr 1fr; gap:2rem;
         }
         @media(max-width:1023px) {
@@ -317,7 +321,7 @@
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -329,7 +333,6 @@
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
                 <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
-                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
                 <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -343,13 +346,12 @@
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
-        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
 
     <!-- ==================== PANIER ==================== -->
     <section class="py-8 pb-24">
-        <div class="max-w-7xl mx-auto px-6 mb-8 reveal">
+        <div class="max-w-page mx-auto px-6 mb-8 reveal">
             <h1 class="page-title" data-fr="Votre panier" data-en="Your Cart">Votre panier</h1>
         </div>
 
@@ -407,7 +409,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
