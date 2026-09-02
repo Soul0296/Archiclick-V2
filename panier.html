@@ -240,6 +240,19 @@
             font-size:.75rem; text-decoration:underline;
         }
 
+        .terms-check-row {
+            display:flex; align-items:flex-start; gap:.6rem;
+            margin-bottom:.8rem; font-size:.78rem; line-height:1.6;
+            color:var(--gris-doux);
+        }
+        .terms-check-row input[type="checkbox"] {
+            width:17px; height:17px; margin-top:2px; flex-shrink:0;
+            cursor:pointer; accent-color:var(--or);
+        }
+        .terms-check-row label { cursor:pointer; }
+        .terms-check-row a { color:var(--or); text-decoration:underline; }
+        .terms-check-row a:hover { color:var(--or-clair); }
+
         .btn-primary {
             background:var(--or); color:var(--noir); border:none;
             padding:14px 36px; font-weight:500; letter-spacing:2px;
@@ -401,6 +414,21 @@
                     <span class="summary-total-price" id="totalPrice">0 FCFA</span>
                 </div>
 
+                <div class="terms-check-row">
+                    <input type="checkbox" id="acceptCGV" onchange="updateCheckoutState()">
+                    <label for="acceptCGV">
+                        <span data-fr="J'ai lu et j'accepte les" data-en="I have read and accept the">J'ai lu et j'accepte les</span>
+                        <a href="cgv.html" target="_blank" data-fr="Conditions Générales de Vente" data-en="General Terms of Sale">Conditions Générales de Vente</a>
+                    </label>
+                </div>
+                <div class="terms-check-row">
+                    <input type="checkbox" id="acceptConfidentialite" onchange="updateCheckoutState()">
+                    <label for="acceptConfidentialite">
+                        <span data-fr="J'ai lu et j'accepte la" data-en="I have read and accept the">J'ai lu et j'accepte la</span>
+                        <a href="confidentialite.html" target="_blank" data-fr="Politique de confidentialité" data-en="Privacy Policy">Politique de confidentialité</a>
+                    </label>
+                </div>
+
                 <button class="btn-primary" onclick="goToConfirmation()" id="checkoutBtn" disabled data-fr="Passer la commande" data-en="Checkout">Passer la commande</button>
                 <button class="btn-secondary" onclick="goToCatalog()" data-fr="Continuer vos achats" data-en="Continue shopping">Continuer vos achats</button>
             </div>
@@ -465,12 +493,11 @@
                 const container = document.getElementById('panierItems');
                 if (panier.length === 0) {
                     container.innerHTML = `<div class="empty-panier"><i class="fas fa-shopping-bag"></i><p data-fr="Votre panier est vide" data-en="Your cart is empty">Votre panier est vide</p></div>`;
-                    document.getElementById('checkoutBtn').disabled = true;
+                    updateCheckoutState();
                     updatePrice();
                     return;
                 }
 
-                document.getElementById('checkoutBtn').disabled = false;
                 container.innerHTML = panier.map((item, idx) => {
                     const options = [];
                     if (item.options.dwg) options.push('DWG');
@@ -489,8 +516,15 @@
                     </div>`;
                 }).join('');
                 updatePrice();
+                updateCheckoutState();
                 observeReveals();
             }
+
+            window.updateCheckoutState = function() {
+                const cgvChecked = document.getElementById('acceptCGV').checked;
+                const confidentialiteChecked = document.getElementById('acceptConfidentialite').checked;
+                document.getElementById('checkoutBtn').disabled = !(panier.length > 0 && cgvChecked && confidentialiteChecked);
+            };
 
             window.removeItem = function(idx) {
                 panier.splice(idx, 1);
