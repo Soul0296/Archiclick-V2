@@ -38,7 +38,11 @@
             --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
+
+        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        .max-w-page { max-width:1900px; }
         * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:100%; max-width:100%; margin:0; padding:0; overflow-x:hidden; }
         body {
             font-family:'Inter',sans-serif; font-weight:300;
             color:var(--ardoise); background:var(--blanc);
@@ -384,7 +388,7 @@
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar" id="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -396,7 +400,6 @@
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
                 <a href="panier.html" class="nav-icon" title="Panier"><i class="fas fa-shopping-bag"></i></a>
-                <a href="compte.html" class="nav-icon" title="Compte"><i class="far fa-user"></i></a>
                 <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -410,13 +413,12 @@
         <a href="a-propos.html" data-fr="A propos" data-en="About">A propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
-        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
 
     <!-- ==================== PAGE HEADER AVEC IMAGE DE FOND ==================== -->
     <header class="page-header">
-        <div class="header-content max-w-7xl mx-auto px-6 reveal">
+        <div class="header-content max-w-page mx-auto px-6 reveal">
             <p class="section-label" style="color:var(--or-clair);margin-bottom:.8rem;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:500;letter-spacing:4px;text-transform:uppercase;" data-fr="Notre collection" data-en="Our Collection">Notre collection</p>
             <h1 class="page-title" data-fr="Tous nos plans de maison" data-en="All House Plans">Tous nos plans de maison</h1>
             <div class="sep-or" style="margin:1.5rem auto;background:var(--or-clair);"></div>
@@ -548,7 +550,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
