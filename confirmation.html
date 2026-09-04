@@ -188,6 +188,21 @@
         .success-modal p { font-size:.9rem; color:var(--gris-doux); line-height:1.7; margin-bottom:1.8rem; }
         .success-modal .btn-primary { width:100%; }
 
+        /* Bloc de suivi de commande dans le popup de succès */
+        .tracking-box {
+            background:var(--beige); border-radius:8px; padding:1.2rem;
+            margin-bottom:1.5rem; text-align:left;
+        }
+        .tracking-box .tracking-ref-label { font-size:.75rem; color:var(--gris-doux); margin-bottom:.3rem; }
+        .tracking-box .tracking-ref-value { font-family:monospace; font-size:1.1rem; font-weight:600; color:var(--noir); margin-bottom:.8rem; }
+        .tracking-link-btn {
+            display:inline-flex; align-items:center; gap:.5rem; background:var(--or); color:var(--noir);
+            padding:10px 20px; border-radius:4px; text-decoration:none; font-size:.8rem;
+            font-weight:500; letter-spacing:.5px; text-transform:uppercase; width:100%; justify-content:center;
+        }
+        .tracking-link-btn:hover { background:var(--or-clair); }
+        .tracking-note { font-size:.78rem; color:var(--gris-doux); margin-top:.8rem; line-height:1.6; }
+
         @media(max-width:768px) {
             .confirmation-container { margin-top:5rem; }
             .operator-buttons { grid-template-columns:1fr; }
@@ -205,6 +220,7 @@
                 <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
                 <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
                 <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+                <a href="suivi-commande.html" class="nav-link-item" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
             </div>
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
@@ -220,6 +236,7 @@
         <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="suivi-commande.html" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
@@ -357,6 +374,18 @@
             <div class="success-icon"><i class="fas fa-check"></i></div>
             <h3 data-fr="Commande enregistrée !" data-en="Order registered!">Commande enregistrée !</h3>
             <p data-fr="Votre commande a bien été enregistrée. Après vérification de votre paiement, vos plans vous seront envoyés par email sous peu." data-en="Your order has been registered. After payment verification, your plans will be sent to you by email shortly.">Votre commande a bien été enregistrée. Après vérification de votre paiement, vos plans vous seront envoyés par email sous peu.</p>
+
+            <!-- Bloc de suivi de commande — rempli dynamiquement après création de la commande -->
+            <div class="tracking-box" id="trackingBox" style="display:none;">
+                <div class="tracking-ref-label" data-fr="Votre numéro de commande" data-en="Your order number">Votre numéro de commande</div>
+                <div class="tracking-ref-value" id="trackingRefValue">-</div>
+                <a href="#" class="tracking-link-btn" id="trackingLink" target="_self">
+                    <i class="fas fa-truck-fast"></i>
+                    <span data-fr="Suivre ma commande" data-en="Track my order">Suivre ma commande</span>
+                </a>
+                <div class="tracking-note" id="trackingNote"></div>
+            </div>
+
             <button class="btn-primary" onclick="closeSuccessPopup()" data-fr="Retour à l'accueil" data-en="Back to home">Retour à l'accueil</button>
         </div>
     </div>
@@ -454,12 +483,14 @@
                si le panier contient plusieurs plans, on crée une commande PAR plan,
                chacune avec les mêmes infos client.
 
-               CORRECTIF : on synchronise désormais le client dans la table `clients`
-               via syncClientToDB() (js/client-sync.js) juste après la création de la
-               commande. Auparavant, aucun insert/update vers `clients` n'existait sur
-               cette page : un client qui commandait directement (sans passer par le
-               formulaire de contact ou de personnalisation) n'apparaissait jamais dans
-               db-clients.html, même si sa commande était bien enregistrée. */
+               La synchronisation client (syncClientToDB) reste en place comme avant.
+
+               NOUVEAU : on récupère le(s) numero_commande généré(s) via .select()
+               après l'insert, pour construire le lien de suivi affiché dans le
+               popup de succès (suivi-commande.html?ref=NUMERO). Si plusieurs plans
+               ont été commandés, plusieurs commandes/numéros sont créés : on affiche
+               le premier et on prévient qu'un lien a été envoyé par email pour
+               chacune. */
             window.submitPayment = async function(event) {
                 event.preventDefault();
 
@@ -489,7 +520,7 @@
                         date_commande: new Date().toISOString()
                     }));
 
-                    const { error } = await supabase.from('commandes').insert(rows);
+                    const { data: insertedRows, error } = await supabase.from('commandes').insert(rows).select('numero_commande');
                     if (error) throw error;
 
                     // Synchronise le client dans la table `clients` (visible dans db-clients.html)
@@ -498,6 +529,7 @@
                     localStorage.removeItem('panier');
                     sessionStorage.removeItem('panier');
 
+                    showTrackingInfo(insertedRows || []);
                     document.getElementById('successOverlay').classList.add('show');
 
                 } catch (err) {
@@ -507,6 +539,31 @@
                     btn.textContent = currentLang === 'fr' ? 'Paiement effectué - Créer la commande' : 'Payment done - Create order';
                 }
             };
+
+            function showTrackingInfo(insertedRows) {
+                const validRefs = insertedRows.map(r => r.numero_commande).filter(Boolean);
+                if (validRefs.length === 0) {
+                    // Le numéro n'a pas pu être récupéré (génération asynchrone côté DB, etc.)
+                    // — on n'affiche pas le bloc plutôt que d'afficher un lien cassé.
+                    return;
+                }
+
+                const firstRef = validRefs[0];
+                document.getElementById('trackingRefValue').textContent = firstRef;
+                document.getElementById('trackingLink').href = 'suivi-commande.html?ref=' + encodeURIComponent(firstRef);
+                document.getElementById('trackingBox').style.display = 'block';
+
+                const noteEl = document.getElementById('trackingNote');
+                if (validRefs.length > 1) {
+                    noteEl.textContent = currentLang === 'fr'
+                        ? `Vous avez commandé ${validRefs.length} plans séparément — un numéro de suivi a été généré pour chacun. Retrouvez-les tous dans l'email de confirmation.`
+                        : `You ordered ${validRefs.length} plans separately — a tracking number was generated for each. You'll find them all in the confirmation email.`;
+                } else {
+                    noteEl.textContent = currentLang === 'fr'
+                        ? 'Conservez ce numéro, il vous sera aussi envoyé par email.'
+                        : 'Keep this number, it will also be sent to you by email.';
+                }
+            }
 
             window.closeSuccessPopup = function() {
                 window.location.href = 'index.html';

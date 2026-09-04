@@ -28,7 +28,11 @@
             --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
+
+        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        .max-w-page { max-width:1900px; }
         * { margin:0; padding:0; box-sizing:border-box; }
+        html { width:100%; max-width:100%; overflow-x:hidden; }
         body {
             font-family:'Inter',sans-serif; font-weight:300;
             color:var(--ardoise); background:var(--blanc);
@@ -115,7 +119,7 @@
         }
         .content-section h2:first-of-type { margin-top:0; }
         .content-section p {
-            color:var(--gris-doux); font-size:1rem; line-height:2;
+            color:var(--gris-doux); font-size:.8rem; line-height:1.9;
             margin-bottom:1rem;
         }
         .content-section ul {
@@ -124,6 +128,7 @@
         .content-section ul li {
             padding:.6rem 0; border-bottom:1px solid var(--creme);
             color:var(--ardoise); display:flex; align-items:flex-start; gap:1rem;
+            font-size:.8rem;
         }
         .content-section ul li i {
             color:var(--or); font-size:1rem; width:20px; text-align:center; margin-top:4px;
@@ -157,7 +162,7 @@
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -169,7 +174,6 @@
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
                 <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
-                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
                 <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -183,13 +187,12 @@
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
-        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
 
     <!-- ==================== HEADER ==================== -->
     <section class="page-header">
-        <div class="max-w-7xl mx-auto px-6 text-center">
+        <div class="max-w-page mx-auto px-6 text-center">
             <p class="page-subtitle reveal" data-fr="Protection des données" data-en="Data protection">Protection des données</p>
             <h1 class="page-title reveal reveal-d1" data-fr="Politique de Confidentialité" data-en="Privacy Policy">Politique de Confidentialité</h1>
             <div class="sep-or mt-6 reveal reveal-d1"></div>
@@ -198,7 +201,7 @@
 
     <!-- ==================== CONTENU ==================== -->
     <section class="content-section">
-        <div class="max-w-4xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
 
             <div class="reveal">
                 <p data-fr="Archiclick accorde une importance particulière à la protection de vos données personnelles. Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations." data-en="Archiclick attaches great importance to the protection of your personal data. This privacy policy informs you about how we collect, use and protect your information.">Archiclick accorde une importance particulière à la protection de vos données personnelles. Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons et protégeons vos informations.</p>
@@ -282,7 +285,7 @@
             </div>
 
             <div class="text-center mt-12 reveal">
-                <p class="text-sm text-gris-doux" data-fr="Dernière mise à jour : 15 juin 2025" data-en="Last updated: June 15, 2025">Dernière mise à jour : 15 juin 2025</p>
+                <p class="text-sm text-gris-doux" data-fr="Dernière mise à jour : 2 septembre 2026" data-en="Last updated: September 2, 2026">Dernière mise à jour : 2 septembre 2026</p>
             </div>
 
         </div>
@@ -290,7 +293,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
