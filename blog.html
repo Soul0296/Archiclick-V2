@@ -28,7 +28,11 @@
             --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
         }
+
+        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        .max-w-page { max-width:1900px; }
         * { margin:0; padding:0; box-sizing:border-box; }
+        html { width:100%; max-width:100%; overflow-x:hidden; }
         body {
             font-family:'Inter',sans-serif; font-weight:300;
             color:var(--ardoise); background:var(--blanc);
@@ -108,7 +112,7 @@
         /* ========== ARTICLES GRID ========== */
         .articles-grid {
             display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
-            gap:2rem; max-width:7xl; margin:4rem auto; padding:0 1.5rem;
+            gap:2rem; max-width:1900px; margin:4rem auto; padding:0 1.5rem;
         }
         @media(max-width:768px) {
             .articles-grid { grid-template-columns:1fr; gap:1.5rem; }
@@ -205,7 +209,7 @@
 
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
                 <a href="index.html" class="nav-link-item" data-fr="Accueil" data-en="Home">Accueil</a>
@@ -217,7 +221,6 @@
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
                 <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
-                <a href="compte.html" class="nav-icon"><i class="far fa-user"></i></a>
                 <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -231,13 +234,12 @@
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
-        <a href="compte.html" data-fr="Mon Compte" data-en="My Account">Mon Compte</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
 
     <!-- ==================== PAGE HEADER ==================== -->
     <section class="page-header">
-        <div class="max-w-7xl mx-auto px-6 reveal">
+        <div class="max-w-page mx-auto px-6 reveal">
             <h1 class="page-title" data-fr="Notre Blog" data-en="Our Blog">Notre Blog</h1>
             <div class="sep-or" style="margin:1.5rem auto;"></div>
             <p class="page-desc" data-fr="Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison." data-en="Tips, trends and news from the world of architecture and construction in Cameroon. Discover our articles to build your home well.">Conseils, tendances et actualités du monde de l'architecture et de la construction au Cameroun. Découvrez nos articles pour bien construire votre maison.</p>
@@ -253,7 +255,7 @@
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-noir py-16 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
