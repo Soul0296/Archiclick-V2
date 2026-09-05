@@ -294,6 +294,57 @@
             color:var(--gris-doux); text-decoration:line-through; margin-right:8px;
         }
 
+        /* ========== ANIMATION SECTION PROMOTIONS ========== */
+        .promo-eyebrow-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            background:linear-gradient(90deg, var(--or), var(--or-clair), var(--or));
+            background-size:200% auto;
+            color:var(--noir); font-family:'Inter',sans-serif; font-size:.72rem;
+            font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+            padding:8px 20px; border-radius:30px; margin-bottom:1.2rem;
+            animation:promoShine 3s linear infinite, promoBounce 2.2s ease-in-out infinite;
+            box-shadow:0 4px 20px rgba(201,169,110,.35);
+        }
+        .promo-eyebrow-badge i { animation:promoRing 1.8s ease-in-out infinite; }
+        @keyframes promoShine {
+            0% { background-position:0% center; }
+            100% { background-position:200% center; }
+        }
+        @keyframes promoBounce {
+            0%,100% { transform:translateY(0); }
+            50% { transform:translateY(-4px); }
+        }
+        @keyframes promoRing {
+            0%,100% { transform:rotate(0deg); }
+            10% { transform:rotate(14deg); }
+            20% { transform:rotate(-10deg); }
+            30% { transform:rotate(6deg); }
+            40% { transform:rotate(0deg); }
+        }
+        .promo-card-wrap { position:relative; }
+        .promo-card-wrap .plan-card {
+            border:2px solid transparent;
+            animation:promoGlow 2.4s ease-in-out infinite;
+        }
+        @keyframes promoGlow {
+            0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.06); border-color:rgba(201,169,110,.25); }
+            50%     { box-shadow:0 10px 40px rgba(201,169,110,.35); border-color:rgba(201,169,110,.7); }
+        }
+        .promo-corner-tag {
+            position:absolute; top:-10px; right:16px; z-index:6;
+            background:#ef4444; color:#fff; font-family:'Inter',sans-serif;
+            font-size:.68rem; font-weight:600; letter-spacing:.5px;
+            padding:6px 12px; border-radius:20px; box-shadow:0 4px 12px rgba(239,68,68,.4);
+            animation:promoPop 1.6s ease-in-out infinite;
+        }
+        @keyframes promoPop {
+            0%,100% { transform:scale(1); }
+            50%     { transform:scale(1.08); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .promo-eyebrow-badge, .promo-eyebrow-badge i, .promo-card-wrap .plan-card, .promo-corner-tag { animation:none; }
+        }
+
         /* ========== ÉTAPES ========== */
         .step-num {
             font-family:'Cormorant Garamond',serif; font-size:3.5rem;
@@ -588,6 +639,7 @@
     <section class="py-24 lg:py-32 bg-white" data-theme="light">
         <div class="max-w-page mx-auto px-6">
             <div class="text-center mb-16">
+                <div class="promo-eyebrow-badge reveal"><i class="fas fa-bolt"></i><span data-fr="Offres à durée limitée" data-en="Limited-time offers">Offres à durée limitée</span></div>
                 <p class="section-label reveal" data-fr="Offres spéciales" data-en="Special offers">Offres spéciales</p>
                 <h2 class="section-title reveal reveal-d1" data-fr="Promotions" data-en="Promotions">Promotions</h2>
                 <div class="sep-or mt-6 reveal reveal-d1"></div>
@@ -876,6 +928,23 @@
                     const prixHtml = (type === 'promo' && p.en_promo && p.prix_promo)
                         ? '<span class="old-price">' + (p.prix_base || 0).toLocaleString('fr-FR') + '</span>' + (p.prix_promo || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>'
                         : (p.prix_base || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>';
+
+                    // Animation d'attraction spécifique aux cartes de la section Promotions
+                    if (type === 'promo' && p.en_promo && p.prix_promo && p.prix_base) {
+                        const pct = Math.round((1 - (p.prix_promo / p.prix_base)) * 100);
+                        return '<div class="promo-card-wrap reveal">' +
+                            '<div class="promo-corner-tag">-' + pct + '%</div>' +
+                            '<div class="plan-card">' +
+                            '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
+                            '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +
+                            '<div class="card-meta"><span><i class="fas fa-layer-group meta-icon"></i>' + (p.etages || '?') + ' ' + et + '</span>' +
+                            '<span><i class="fas fa-bed meta-icon"></i>' + (p.chambres || '?') + ' ' + ch + '</span>' +
+                            '<span><i class="fas fa-bath meta-icon"></i>' + (p.sdb || '?') + ' sdb</span>' +
+                            '<span><i class="fas fa-ruler-combined meta-icon"></i>' + (p.surface_habitable || '?') + ' m²</span></div>' +
+                            '<div class="card-footer"><div class="card-price">' + prixHtml + '</div>' +
+                            '<a href="plan-detail.html?id=' + p.id + '" class="btn-outline" style="padding:10px 22px;font-size:.7rem;">' + buy + '</a></div></div></div></div>';
+                    }
+
                     return '<div class="plan-card reveal">' +
                         '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
                         '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +

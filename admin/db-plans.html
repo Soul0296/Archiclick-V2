@@ -74,6 +74,9 @@
   .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; }
   .badge.actif { background:rgba(127,184,138,0.15); color:var(--success); }
   .badge.inactif { background:rgba(217,108,108,0.15); color:var(--error); }
+  .badge.promo { background:rgba(201,169,97,0.18); color:var(--gold-light); }
+  .promo-price-tag { font-size:10px; color:var(--grey-text); margin-top:2px; display:block; }
+  .promo-price-tag .old { text-decoration:line-through; margin-right:4px; }
   .file-tag { font-size:10px; padding:2px 7px; border-radius:8px; background:rgba(201,169,97,0.12); color:var(--gold-light); margin-right:4px; }
   .file-tag.missing { background:rgba(217,108,108,0.12); color:var(--error); }
 
@@ -251,11 +254,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <thead>
         <tr>
           <th>Réf.</th><th>Image</th><th>Titre</th><th>Type</th><th>Prix</th>
-          <th>Fichiers</th><th>Statut</th><th>Actions</th>
+          <th>Promo</th><th>Fichiers</th><th>Statut</th><th>Actions</th>
         </tr>
       </thead>
       <tbody id="plansTableBody">
-        <tr><td colspan="8" class="loader">Chargement des plans...</td></tr>
+        <tr><td colspan="9" class="loader">Chargement des plans...</td></tr>
       </tbody>
     </table>
   </div>
@@ -422,6 +425,31 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<!-- MODAL RAPIDE : METTRE EN PROMO -->
+<div class="modal-overlay" id="promoModal">
+  <div class="modal" style="max-width:420px;">
+    <h2>Mettre en promotion</h2>
+    <p style="font-size:13px; color:var(--grey-text); margin-bottom:20px;">
+      Plan : <strong style="color:#fff;" id="promoPlanTitre"></strong>
+    </p>
+    <form id="promoForm">
+      <input type="hidden" id="promoPlanId">
+      <div class="form-group">
+        <label>Prix de base actuel</label>
+        <input type="text" id="promoPrixBase" disabled style="opacity:0.8;">
+      </div>
+      <div class="form-group">
+        <label>Prix promotionnel (FCFA)</label>
+        <input type="number" id="promoPrixPromo" min="0" required placeholder="Doit être inférieur au prix de base">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="promoCancelBtn">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="promoSaveBtn">Activer la promo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="../js/supabase.js"></script>
@@ -480,11 +508,11 @@ async function loadPlans() {
   const { data, error } = await supabase.from('plans').select('*').order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Erreur : ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Erreur : ${error.message}</td></tr>`;
     return;
   }
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Aucun plan pour l'instant.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Aucun plan pour l'instant.</td></tr>`;
     return;
   }
 
@@ -498,6 +526,11 @@ async function loadPlans() {
         <td>${escapeHtml(plan.type_batiment || '')}</td>
         <td>${Number(plan.prix_base || 0).toLocaleString('fr-FR')} FCFA</td>
         <td>
+          ${plan.en_promo && plan.prix_promo
+            ? `<span class="badge promo">En promo</span><span class="promo-price-tag"><span class="old">${Number(plan.prix_base || 0).toLocaleString('fr-FR')}</span>${Number(plan.prix_promo).toLocaleString('fr-FR')} FCFA</span>`
+            : `<span class="badge inactif" style="opacity:.5;">Aucune</span>`}
+        </td>
+        <td>
           <span class="file-tag ${plan.fichier_pdf ? '' : 'missing'}">PDF</span>
           <span class="file-tag ${plan.fichier_dwg ? '' : 'missing'}">DWG</span>
         </td>
@@ -505,6 +538,7 @@ async function loadPlans() {
         <td class="actions-cell">
           ${!isReadOnly ? `
             <button class="icon-btn edit-btn" data-id="${plan.id}">Modifier</button>
+            <button class="icon-btn promo-btn" data-id="${plan.id}" style="color:${plan.en_promo ? 'var(--error)' : 'var(--gold-light)'};">${plan.en_promo ? 'Retirer promo' : 'Mettre en promo'}</button>
             <button class="icon-btn delete-btn" data-id="${plan.id}" style="color:var(--error);">Supprimer</button>
           ` : 'Lecture seule'}
         </td>
@@ -515,8 +549,72 @@ async function loadPlans() {
   if (!isReadOnly) {
     document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id, data)));
     document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deletePlan(btn.dataset.id)));
+    document.querySelectorAll('.promo-btn').forEach(btn => btn.addEventListener('click', () => togglePromoClick(btn.dataset.id, data)));
   }
 }
+
+/* ==========================================================================
+   GESTION RAPIDE DE LA PROMOTION D'UN PLAN
+   Colonnes réutilisées telles qu'utilisées par index.html : en_promo (bool),
+   prix_promo (numeric). Retirer une promo remet en_promo à false (le prix
+   promo reste en base mais n'est plus affiché nulle part tant que en_promo
+   est false — pas besoin de l'effacer).
+   ========================================================================== */
+function togglePromoClick(id, plans) {
+  const plan = plans.find(p => p.id == id);
+  if (!plan) return;
+
+  if (plan.en_promo) {
+    if (!confirm(`Retirer la promotion sur "${plan.titre}" ? Le plan reviendra à son prix normal (${Number(plan.prix_base || 0).toLocaleString('fr-FR')} FCFA).`)) return;
+    removePromo(id);
+  } else {
+    openPromoModal(plan);
+  }
+}
+
+async function removePromo(id) {
+  const { error } = await supabase.from('plans').update({ en_promo: false }).eq('id', id);
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+  showToast('Promotion retirée.', 'success');
+  loadPlans();
+}
+
+function openPromoModal(plan) {
+  document.getElementById('promoPlanId').value = plan.id;
+  document.getElementById('promoPlanTitre').textContent = plan.titre;
+  document.getElementById('promoPrixBase').textContent = Number(plan.prix_base || 0).toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('promoPrixPromo').value = '';
+  document.getElementById('promoPrixPromo').max = plan.prix_base || '';
+  document.getElementById('promoModal').classList.add('open');
+}
+
+document.getElementById('promoCancelBtn').addEventListener('click', () => {
+  document.getElementById('promoModal').classList.remove('open');
+});
+
+document.getElementById('promoForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('promoPlanId').value;
+  const prixPromo = parseFloat(document.getElementById('promoPrixPromo').value);
+  const prixBaseText = document.getElementById('promoPrixBase').textContent.replace(/\D/g, '');
+  const prixBase = parseFloat(prixBaseText);
+
+  if (!prixPromo || prixPromo <= 0) { showToast('Entre un prix promo valide.', 'error'); return; }
+  if (prixPromo >= prixBase) { showToast('Le prix promo doit être inférieur au prix de base.', 'error'); return; }
+
+  const btn = document.getElementById('promoSaveBtn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+
+  const { error } = await supabase.from('plans').update({ en_promo: true, prix_promo: prixPromo }).eq('id', id);
+
+  btn.disabled = false; btn.textContent = 'Activer la promo';
+
+  if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+
+  showToast('Promotion activée avec succès.', 'success');
+  document.getElementById('promoModal').classList.remove('open');
+  loadPlans();
+});
 
 const modal = document.getElementById('planModal');
 const form = document.getElementById('planForm');
