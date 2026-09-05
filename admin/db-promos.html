@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -19,16 +20,39 @@
     --error: #D96C6C; --success: #7FB88A; --warning: #D9B76C; --border: rgba(201,169,97,0.2);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; }
+  html { width:100%; max-width:100%; overflow-x:hidden; }
+  body { font-family:'Inter',sans-serif; background:var(--black); color:#fff; display:flex; min-height:100vh; width:100%; max-width:100%; overflow-x:hidden; }
+  img, table, canvas { max-width:100%; }
 
-  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
-  .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; }
+  .sidebar { width:240px; background:var(--black-soft); border-right:1px solid var(--border); padding:28px 0; position:fixed; top:0; left:0; bottom:0; overflow-y:auto; overflow-x:hidden; transition:width 0.25s ease; z-index:120; }
+  .sidebar .logo { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; text-align:center; letter-spacing:1px; color:var(--gold-light); margin-bottom:32px; padding:0 20px; white-space:nowrap; overflow:hidden; }
   .sidebar .logo span { color:var(--gold); }
-  .nav-item { display:block; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; }
+  .sidebar .logo .logo-mini-collapsed { display:none; }
+  .nav-item { display:flex; align-items:center; padding:12px 24px; color:var(--grey-text); text-decoration:none; font-size:13px; letter-spacing:0.5px; border-left:2px solid transparent; transition:all 0.15s; white-space:nowrap; }
+  .nav-item i { width:18px; text-align:center; margin-right:12px; font-size:14px; flex-shrink:0; }
   .nav-item:hover { background:rgba(201,169,97,0.06); color:var(--gold-light); }
   .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,169,97,0.08); }
 
-  .main { margin-left:240px; flex:1; padding:32px 40px; }
+  .sidebar-collapse-btn {
+    display:none; position:absolute; top:24px; right:-13px; width:26px; height:26px;
+    background:var(--black-soft); border:1px solid var(--border); border-radius:50%;
+    color:var(--gold-light); font-size:11px; cursor:pointer; align-items:center; justify-content:center;
+    z-index:10; transition:transform 0.25s ease;
+  }
+  .sidebar-collapse-btn:hover { border-color:var(--gold); color:var(--gold); }
+  @media (min-width:901px) { .sidebar-collapse-btn { display:flex; } }
+
+  .sidebar.collapsed { width:72px; }
+  .sidebar.collapsed .logo .logo-full { display:none; }
+  .sidebar.collapsed .logo .logo-mini-collapsed { display:inline; }
+  .sidebar.collapsed .logo { padding:0; }
+  .sidebar.collapsed .nav-item { padding:12px 0; justify-content:center; }
+  .sidebar.collapsed .nav-item i { margin-right:0; font-size:16px; }
+  .sidebar.collapsed .nav-text { display:none; }
+  .sidebar.collapsed .sidebar-collapse-btn { transform:rotate(180deg); }
+
+  .main { margin-left:240px; flex:1; padding:32px 40px; min-width:0; max-width:100%; transition:margin-left 0.25s ease; }
+  body.sidebar-collapsed .main { margin-left:72px; }
   .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:600; }
 
@@ -88,6 +112,12 @@
   .mobile-topbar { display:none; }
   .sidebar-overlay { display:none; }
 
+  .page-header, .filters, .modal-actions, .code-cell, .toggle-row { min-width:0; }
+
+  @media (max-width: 1024px) {
+    .main { padding:28px 24px; }
+  }
+
   @media (max-width: 900px) {
     .mobile-topbar {
       display:flex; align-items:center; justify-content:space-between;
@@ -99,24 +129,45 @@
     .mobile-topbar .logo-mini span { color:var(--gold); }
     .menu-toggle-btn { background:none; border:1px solid var(--border); color:var(--gold-light); padding:8px 12px; border-radius:3px; font-size:15px; cursor:pointer; }
 
-    .sidebar { transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
+    .sidebar { width:80%; max-width:280px; transform:translateX(-100%); transition:transform 0.3s ease; top:56px; z-index:140; }
     .sidebar.open { transform:translateX(0); }
+    .sidebar.collapsed { width:80%; max-width:280px; }
+    .sidebar.collapsed .logo .logo-full { display:inline; }
+    .sidebar.collapsed .logo .logo-mini-collapsed { display:none; }
+    .sidebar.collapsed .nav-item { padding:12px 24px; justify-content:flex-start; }
+    .sidebar.collapsed .nav-item i { margin-right:12px; }
+    .sidebar.collapsed .nav-text { display:inline; }
 
     .sidebar-overlay.open {
       display:block; position:fixed; top:56px; left:0; right:0; bottom:0;
       background:rgba(0,0,0,0.6); z-index:130;
     }
 
-    .main { margin-left:0 !important; padding:76px 16px 24px !important; }
-    .stats-grid { grid-template-columns:1fr 1fr !important; }
-    .table-wrap { overflow-x:auto; }
+    body.sidebar-collapsed .main { margin-left:0; }
+    .main { margin-left:0 !important; padding:72px 16px 24px !important; width:100%; }
+
+    .page-header { flex-wrap:wrap; gap:10px; }
+    .page-header h1 { font-size:22px; }
+    .filters { gap:8px; }
+
+    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     table { min-width:640px; }
+
     .form-row { grid-template-columns:1fr !important; }
-    .page-header { flex-wrap:wrap; }
+    .modal { padding:20px; max-height:88vh; }
+    .modal-actions { flex-wrap:wrap; }
+    .modal-actions .btn { flex:1 1 auto; }
+
+    .toast { left:16px; right:16px; bottom:16px; }
   }
 
   @media (max-width: 480px) {
-    .stats-grid { grid-template-columns:1fr !important; }
+    .page-header h1 { font-size:20px; }
+    .page-header .btn { width:100%; }
+    .filter-btn { font-size:11px; padding:7px 12px; }
+    .modal { padding:16px; }
+    .modal h2 { font-size:20px; }
+    .code-cell { font-size:12px; }
   }
 
 </style>
@@ -138,24 +189,41 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.sidebar .nav-item').forEach(function(link) {
     link.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
   });
+
+  /* Rétractation de la sidebar (icônes seules), état mémorisé */
+  var collapseBtn = document.getElementById('sidebarCollapseBtn');
+  var isCollapsed = localStorage.getItem('archiclick_sidebar_collapsed') === '1';
+  function applyCollapsedState() {
+    sidebar.classList.toggle('collapsed', isCollapsed);
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  }
+  applyCollapsedState();
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', function() {
+      isCollapsed = !isCollapsed;
+      localStorage.setItem('archiclick_sidebar_collapsed', isCollapsed ? '1' : '0');
+      applyCollapsedState();
+    });
+  }
 });
 </script>
 
-<div class="sidebar">
-  <div class="logo">Archi<span>click</span></div>
-  <a href="dashboard.html" class="nav-item" data-page="dashboard">Tableau de bord</a>
-  <a href="db-plans.html" class="nav-item" data-page="plans">Plans</a>
-  <a href="db-commandes.html" class="nav-item" data-page="commandes">Commandes</a>
-  <a href="db-clients.html" class="nav-item" data-page="clients">Clients</a>
-  <a href="db-avis.html" class="nav-item" data-page="avis">Avis clients</a>
-  <a href="db-demandes.html" class="nav-item" data-page="demandes">Demandes sur mesure</a>
-  <a href="db-promos.html" class="nav-item active" data-page="promos">Codes Promo</a>
-  <a href="db-blog.html" class="nav-item" data-page="blog">Blog</a>
-  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite">Comptabilité</a>
-  <a href="db-taches.html" class="nav-item" data-page="taches">Tâches</a>
-  <a href="db-parametres.html" class="nav-item" data-page="parametres">Paramètres</a>
-  <a href="db-admins.html" class="nav-item" data-page="admins">Gestion des admins</a>
-  <a href="#" id="logoutBtn" class="nav-item" style="margin-top:20px; color:var(--error);">Déconnexion</a>
+<div class="sidebar" id="sidebar">
+  <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Réduire / agrandir le menu"><i class="fas fa-angle-left"></i></button>
+  <div class="logo"><span class="logo-full">Archi<span>click</span></span><span class="logo-mini-collapsed">A<span>c</span></span></div>
+  <a href="dashboard.html" class="nav-item" data-page="dashboard" title="Tableau de bord"><i class="fas fa-gauge-high"></i><span class="nav-text">Tableau de bord</span></a>
+  <a href="db-plans.html" class="nav-item" data-page="plans" title="Plans"><i class="fas fa-drafting-compass"></i><span class="nav-text">Plans</span></a>
+  <a href="db-commandes.html" class="nav-item" data-page="commandes" title="Commandes"><i class="fas fa-receipt"></i><span class="nav-text">Commandes</span></a>
+  <a href="db-clients.html" class="nav-item" data-page="clients" title="Clients"><i class="fas fa-users"></i><span class="nav-text">Clients</span></a>
+  <a href="db-avis.html" class="nav-item" data-page="avis" title="Avis clients"><i class="fas fa-star"></i><span class="nav-text">Avis clients</span></a>
+  <a href="db-demandes.html" class="nav-item" data-page="demandes" title="Demandes sur mesure"><i class="fas fa-pen-ruler"></i><span class="nav-text">Demandes sur mesure</span></a>
+  <a href="db-promos.html" class="nav-item active" data-page="promos" title="Codes Promo"><i class="fas fa-ticket"></i><span class="nav-text">Codes Promo</span></a>
+  <a href="db-blog.html" class="nav-item" data-page="blog" title="Blog"><i class="fas fa-newspaper"></i><span class="nav-text">Blog</span></a>
+  <a href="db-comptabilite.html" class="nav-item" data-page="comptabilite" title="Comptabilité"><i class="fas fa-calculator"></i><span class="nav-text">Comptabilité</span></a>
+  <a href="db-taches.html" class="nav-item" data-page="taches" title="Tâches"><i class="fas fa-list-check"></i><span class="nav-text">Tâches</span></a>
+  <a href="db-parametres.html" class="nav-item" data-page="parametres" title="Paramètres"><i class="fas fa-gear"></i><span class="nav-text">Paramètres</span></a>
+  <a href="db-admins.html" class="nav-item" data-page="admins" title="Gestion des admins"><i class="fas fa-user-shield"></i><span class="nav-text">Gestion des admins</span></a>
+  <a href="#" id="logoutBtn" class="nav-item" style="margin-top:20px; color:var(--error);" title="Déconnexion"><i class="fas fa-arrow-right-from-bracket"></i><span class="nav-text">Déconnexion</span></a>
 </div>
 
 <div class="main">
