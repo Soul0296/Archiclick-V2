@@ -287,6 +287,7 @@
             <div class="info-section">
                 <div class="plan-title-row reveal">
                     <h1 class="plan-title" id="planTitle"></h1>
+                    <span id="promoBadgeDetail" style="display:none;background:#ef4444;color:#fff;font-size:.68rem;font-weight:600;letter-spacing:.5px;padding:6px 12px;border-radius:20px;white-space:nowrap;align-self:flex-start;"></span>
                     <button class="share-btn" onclick="sharePlan()"><i class="fas fa-share-alt"></i> <span data-fr="Partager" data-en="Share">Partager</span></button>
                 </div>
 
@@ -388,7 +389,7 @@
                 </div>
 
                 <div class="price-section reveal">
-                    <div class="price-row"><span data-fr="Plan de base" data-en="Base plan">Plan de base</span><span id="basePriceDisplay">0 FCFA</span></div>
+                    <div class="price-row"><span data-fr="Plan de base" data-en="Base plan">Plan de base</span><span><span id="promoOldPriceInline" style="text-decoration:line-through;color:var(--gris-clair);margin-right:6px;display:none;"></span><span id="basePriceDisplay">0 FCFA</span></span></div>
                     <div class="price-row" id="dwgPriceRow" style="display:none;"><span data-fr="DWG supplémentaire" data-en="Additional DWG">DWG supplémentaire</span><span id="dwgAddPrice">0 FCFA</span></div>
                     <div class="price-row" id="physiquePriceRow" style="display:none;"><span data-fr="Dossier + livraison/expédition" data-en="Folder + delivery/shipping">Dossier + livraison/expédition</span><span id="physiqueAddPrice" data-fr="Frais à confirmer" data-en="Fees to confirm">Frais à confirmer</span></div>
                     <div class="price-row total"><span data-fr="Total" data-en="Total">Total</span><span id="totalPrice">0 FCFA</span></div>
@@ -547,7 +548,13 @@
                         return;
                     }
                     currentPlan = data;
-                    basePrice = data.prix_base || 0;
+                    // Prix promo pris en compte partout où le prix de base est utilisé
+                    // (plan-detail, panier, confirmation) — dès que en_promo est actif
+                    // et qu'un prix_promo valide est renseigné.
+                    const isOnPromo = !!(data.en_promo && data.prix_promo && data.prix_promo < data.prix_base);
+                    basePrice = isOnPromo ? data.prix_promo : (data.prix_base || 0);
+                    currentPlan._isOnPromo = isOnPromo;
+                    currentPlan._prixOriginal = data.prix_base || 0;
                     renderPlan();
                     setLang(currentLang);
                     loadAvis();
@@ -580,6 +587,18 @@
                 document.getElementById('planSurface').textContent = currentPlan.surface_habitable || '?';
                 document.getElementById('planDesc').textContent = currentPlan.description || 'Découvrez ce magnifique plan d\'architecture.';
                 document.getElementById('planExtraMeta').innerHTML = buildExtraMeta(currentPlan);
+
+                // Badge et ancien prix barré si le plan est en promotion
+                if (currentPlan._isOnPromo) {
+                    const pct = Math.round((1 - (currentPlan.prix_promo / currentPlan._prixOriginal)) * 100);
+                    const badgeEl = document.getElementById('promoBadgeDetail');
+                    badgeEl.textContent = '-' + pct + '%';
+                    badgeEl.style.display = 'inline-block';
+
+                    const oldPriceEl = document.getElementById('promoOldPriceInline');
+                    oldPriceEl.textContent = currentPlan._prixOriginal.toLocaleString('fr-FR') + ' FCFA';
+                    oldPriceEl.style.display = 'inline';
+                }
 
                 if (!currentPlan.fichier_dwg) {
                     document.getElementById('dwgOptionGroup').style.display = 'none';
@@ -802,7 +821,12 @@
                     physique_frais_a_confirmer: document.getElementById('optPhysique').checked
                 };
                 const prix = parseFloat(document.getElementById('totalPrice').textContent.replace(/\s|FCFA/g, ''));
-                const item = { plan_id: planId, titre: currentPlan.titre, options, prix, date: new Date().toISOString() };
+                const item = {
+                    plan_id: planId, titre: currentPlan.titre, options, prix, date: new Date().toISOString(),
+                    // Infos promo transmises pour affichage (prix barré) dans panier.html et confirmation.html
+                    en_promo: !!currentPlan._isOnPromo,
+                    prix_original_base: currentPlan._isOnPromo ? currentPlan._prixOriginal : null
+                };
                 let panier = JSON.parse(localStorage.getItem('panier') || '[]');
                 panier.push(item);
                 localStorage.setItem('panier', JSON.stringify(panier));

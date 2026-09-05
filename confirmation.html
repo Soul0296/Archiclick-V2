@@ -110,6 +110,8 @@
         .recap-item-title { font-weight:500; color:var(--ardoise); margin-bottom:.3rem; }
         .recap-item-details { font-size:.85rem; color:var(--gris-doux); margin-bottom:.5rem; }
         .recap-item-price { font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--or); font-weight:400; }
+        .recap-item-price .old-price { font-family:'Inter',sans-serif; font-size:.8rem; font-weight:400; color:var(--gris-doux); text-decoration:line-through; margin-right:8px; }
+        .recap-promo-badge { display:inline-block; background:#ef4444; color:#fff; font-size:.62rem; font-weight:600; letter-spacing:.3px; padding:3px 8px; border-radius:10px; margin-bottom:.4rem; }
         .recap-divider { border-top:1px solid rgba(201,169,110,.3); margin:1.5rem 0; }
         .recap-total { display:flex; justify-content:space-between; align-items:center; padding:1.5rem; background:white; border-radius:8px; border:2px solid var(--or); }
         .recap-total-label { font-weight:500; color:var(--ardoise); }
@@ -247,14 +249,6 @@
                 <h2 class="recap-title" data-fr="Récapitulatif de votre commande" data-en="Order Summary">Récapitulatif de votre commande</h2>
                 <div id="recapItems"></div>
                 <div class="recap-divider"></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:.95rem;color:var(--gris-doux);">
-                    <span data-fr="Sous-total" data-en="Subtotal">Sous-total</span>
-                    <span id="recapSubtotal">0 FCFA</span>
-                </div>
-                <div id="recapDiscountRow" style="display:none;justify-content:space-between;margin-bottom:1rem;font-size:.95rem;color:#10b981;">
-                    <span id="recapPromoLabel">Code promo</span>
-                    <span id="recapDiscount">- 0 FCFA</span>
-                </div>
                 <div class="recap-total">
                     <span class="recap-total-label" data-fr="Montant total" data-en="Total Amount">Montant total</span>
                     <span class="recap-total-price" id="recapTotal">0 FCFA</span>
@@ -409,25 +403,12 @@
             let selectedOperator = null;
             let panier = [];
             let totalAmount = 0;
-            let appliedPromo = null;
-
-            // ---------- CALCUL DE LA REDUCTION ----------
-            // Reprend la même logique que panier.html pour rester cohérent
-            function calculateDiscount(subtotal) {
-                if (!appliedPromo) return 0;
-                if (appliedPromo.type === '%') {
-                    return subtotal * (appliedPromo.reduction / 100);
-                }
-                return Math.min(appliedPromo.reduction, subtotal);
-            }
 
             function loadPanier() {
                 panier = JSON.parse(sessionStorage.getItem('panier') || '[]');
                 if (panier.length === 0) {
                     panier = JSON.parse(localStorage.getItem('panier') || '[]');
                 }
-                // Récupère le code promo appliqué sur la page panier (perdu jusqu'ici — c'est le bug)
-                appliedPromo = JSON.parse(sessionStorage.getItem('promo_appliquee') || 'null');
 
                 if (panier.length === 0) {
                     document.querySelector('.confirmation-container').innerHTML = '<div style="padding:2rem;text-align:center;color:red;">' + (currentLang === 'fr' ? 'Panier vide - Retournez au panier' : 'Empty cart - Return to cart') + '</div>';
@@ -446,35 +427,23 @@
                     if (item.options.physique) options.push(currentLang === 'fr' ? 'Dossier physique' : 'Physical folder');
                     if (item.options.region) options.push(item.options.region);
 
+                    // Prix promo transmis depuis plan-detail.html (item.en_promo / prix_original_base)
+                    const promoBadge = item.en_promo ? `<span class="recap-promo-badge">${currentLang === 'fr' ? 'PROMO' : 'SALE'}</span><br>` : '';
+                    const priceHtml = (item.en_promo && item.prix_original_base)
+                        ? `<span class="old-price">${item.prix_original_base.toLocaleString('fr-FR')}</span>${item.prix.toLocaleString('fr-FR')} FCFA`
+                        : `${item.prix.toLocaleString('fr-FR')} FCFA`;
+
                     return `<div class="recap-item">
+                        ${promoBadge}
                         <div class="recap-item-title">${item.titre}</div>
                         ${options.length > 0 ? `<div class="recap-item-details">+ ${options.join(', ')}</div>` : ''}
-                        <div class="recap-item-price">${item.prix.toLocaleString('fr-FR')} FCFA</div>
+                        <div class="recap-item-price">${priceHtml}</div>
                     </div>`;
                 }).join('');
 
                 document.getElementById('recapItems').innerHTML = html;
-
-                const subtotal = totalAmount;
-                const discountAmount = calculateDiscount(subtotal);
-                const total = Math.max(0, subtotal - discountAmount);
-
-                document.getElementById('recapSubtotal').textContent = subtotal.toLocaleString('fr-FR') + ' FCFA';
-
-                if (appliedPromo) {
-                    const promoLabel = appliedPromo.type === '%'
-                        ? `${appliedPromo.code} (-${appliedPromo.reduction}%)`
-                        : `${appliedPromo.code} (-${Number(appliedPromo.reduction).toLocaleString('fr-FR')} FCFA)`;
-                    document.getElementById('recapPromoLabel').textContent = promoLabel;
-                    document.getElementById('recapDiscount').textContent = '- ' + discountAmount.toLocaleString('fr-FR') + ' FCFA';
-                    document.getElementById('recapDiscountRow').style.display = 'flex';
-                } else {
-                    document.getElementById('recapDiscountRow').style.display = 'none';
-                }
-
-                totalAmount = total;
-                document.getElementById('recapTotal').textContent = total.toLocaleString('fr-FR') + ' FCFA';
-                document.getElementById('amountConfirm').textContent = total.toLocaleString('fr-FR') + ' FCFA';
+                document.getElementById('recapTotal').textContent = totalAmount.toLocaleString('fr-FR') + ' FCFA';
+                document.getElementById('amountConfirm').textContent = totalAmount.toLocaleString('fr-FR') + ' FCFA';
                 updatePlaceholders();
             }
 
@@ -548,28 +517,17 @@
                 btn.textContent = currentLang === 'fr' ? 'Création en cours...' : 'Creating...';
 
                 try {
-                    // La table "commandes" a une ligne par plan : si un code promo global
-                    // est appliqué sur le panier, on le répartit au prorata du prix de
-                    // chaque plan pour que la somme des montant_total corresponde bien au
-                    // total réduit affiché au client.
-                    const subtotal = panier.reduce((sum, item) => sum + item.prix, 0);
-                    const discountAmount = calculateDiscount(subtotal);
-
-                    const rows = panier.map(item => {
-                        const itemDiscount = subtotal > 0 ? (item.prix / subtotal) * discountAmount : 0;
-                        const montantFinal = Math.max(0, Math.round(item.prix - itemDiscount));
-                        return {
-                            client_nom: nom,
-                            client_email: email,
-                            client_tel: phone,
-                            plan_id: item.plan_id,
-                            options: item.options || {},
-                            montant_total: montantFinal,
-                            code_promo_applique: appliedPromo ? appliedPromo.code : null,
-                            statut: 'en_attente',
-                            date_commande: new Date().toISOString()
-                        };
-                    });
+                    const rows = panier.map(item => ({
+                        client_nom: nom,
+                        client_email: email,
+                        client_tel: phone,
+                        plan_id: item.plan_id,
+                        options: item.options || {},
+                        montant_total: item.prix,
+                        code_promo_applique: (item.options && item.options.promo) ? item.options.promo : null,
+                        statut: 'en_attente',
+                        date_commande: new Date().toISOString()
+                    }));
 
                     const { data: insertedRows, error } = await supabase.from('commandes').insert(rows).select('numero_commande');
                     if (error) throw error;
@@ -579,7 +537,6 @@
 
                     localStorage.removeItem('panier');
                     sessionStorage.removeItem('panier');
-                    sessionStorage.removeItem('promo_appliquee');
 
                     showTrackingInfo(insertedRows || []);
                     document.getElementById('successOverlay').classList.add('show');
