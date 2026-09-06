@@ -285,6 +285,7 @@
 
             <!-- INFO & ACHAT -->
             <div class="info-section">
+                <div id="planTypeLabel" style="font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--or);margin-bottom:.5rem;"></div>
                 <div class="plan-title-row reveal">
                     <h1 class="plan-title" id="planTitle"></h1>
                     <span id="promoBadgeDetail" style="display:none;background:#ef4444;color:#fff;font-size:.68rem;font-weight:600;letter-spacing:.5px;padding:6px 12px;border-radius:20px;white-space:nowrap;align-self:flex-start;"></span>
@@ -580,6 +581,7 @@
             function renderPlan() {
                 if (!currentPlan) return;
                 document.getElementById('planTitle').textContent = currentPlan.titre || 'Plan sans titre';
+                document.getElementById('planTypeLabel').textContent = currentPlan.type_batiment || '';
                 document.getElementById('planReference').textContent = currentPlan.reference ? 'Réf. ' + currentPlan.reference : '';
                 document.getElementById('planEtages').textContent = currentPlan.nombre_etages || '?';
                 document.getElementById('planChambres').textContent = currentPlan.chambres || '?';
@@ -1022,6 +1024,7 @@
                         return `<a href="plan-detail.html?id=${p.id}" class="similar-card">
                             <img src="${img}" alt="${p.titre}">
                             <div class="similar-card-body">
+                                ${p.type_batiment ? `<span class="card-type" style="font-family:'Inter',sans-serif;font-size:.65rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--or);display:block;margin-bottom:.3rem;">${p.type_batiment}</span>` : ''}
                                 <div class="similar-card-title">${p.titre}</div>
                                 <div class="similar-card-price">${(p.prix_base || 0).toLocaleString('fr-FR')} FCFA</div>
                             </div>

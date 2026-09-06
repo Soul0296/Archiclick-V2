@@ -3,446 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archiclick - Plans de Maison Cameroun</title>
+    <title>Détail Plan - Archiclick</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/index.min.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
-                        'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
-                        'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: {
+            'noir':'#0a0a0a','charbon':'#1a1a1a','ardoise':'#2d2d2d',
+            'or':'#c9a96e','or-clair':'#dfc599','beige':'#f5f0eb',
+            'creme':'#eae3db','gris-doux':'#888888','gris-clair':'#b0b0b0'
+        } } } }
     </script>
     <style>
         :root {
             --noir:#0a0a0a;--charbon:#1a1a1a;--ardoise:#2d2d2d;
             --or:#c9a96e;--or-clair:#dfc599;--beige:#f5f0eb;
             --creme:#eae3db;--gris-doux:#888;--gris-clair:#b0b0b0;--blanc:#fff;
-            --bleu-nuit:#1a2849;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; max-width:100%; margin:0; padding:0; overflow-x:hidden; }
-        body {
-            font-family:'Inter',sans-serif; font-weight:300;
-            color:var(--ardoise); background:var(--blanc);
-            line-height:1.7; overflow-x:hidden;
-        }
+        html { width:100%; max-width:100%; overflow-x:hidden; }
+        body { font-family:'Inter',sans-serif; font-weight:300; color:var(--ardoise); background:var(--blanc); line-height:1.7; overflow-x:hidden; }
         h1,h2,h3,h4 { font-family:'Cormorant Garamond',serif; font-weight:400; letter-spacing:1px; }
-        .sep-or { width:60px; height:1px; background:var(--or); margin:0 auto; }
 
-        /* Largeur de page — pleine largeur, plus de grosses gouttières sur grand écran */
+        /* Largeur de page — pleine largeur, plus de gouttières géantes sur grand écran */
         .max-w-page { max-width:1900px; }
 
-        /* ========== CAROUSEL ========== */
-        .hero-carousel { position:relative; width:100%; height:100vh; min-height:600px; overflow:hidden; }
-        .hero-slide {
-            position:absolute; inset:0; opacity:0;
-            transition:opacity 1.2s ease-in-out;
-            background-size:cover; background-position:center;
-        }
-        .hero-slide.active { opacity:1; }
-        .hero-slide::after {
-            content:''; position:absolute; inset:0;
-            background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,.15) 40%,rgba(0,0,0,.50) 100%);
-        }
-        .hero-content {
-            position:absolute; top:50%; left:50%;
-            transform:translate(-50%,-50%); text-align:center;
-            color:#fff; width:90%; max-width:750px; z-index:10;
-            animation:heroIn 1s ease-out;
-        }
-        .hero-slide:not(.active) .hero-content { animation:none; }
-        @keyframes heroIn {
-            from { opacity:0; transform:translate(-50%,-48%); }
-            to   { opacity:1; transform:translate(-50%,-50%); }
-        }
-        .hero-title {
-            font-family:'Cormorant Garamond',serif;
-            font-size:clamp(2.5rem,6vw,4.5rem); font-weight:300;
-            letter-spacing:4px; line-height:1.15; margin-bottom:1.2rem;
-        }
-        .hero-sub {
-            font-family:'Inter',sans-serif; font-size:clamp(.85rem,1.5vw,1.05rem);
-            font-weight:300; letter-spacing:3px; text-transform:uppercase;
-            opacity:.85; margin-bottom:2.5rem;
-        }
-        .hero-arrow {
-            position:absolute; top:50%; transform:translateY(-50%); z-index:20;
-            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25);
-            color:#fff; width:56px; height:56px; cursor:pointer;
-            transition:all .4s ease; display:flex; align-items:center; justify-content:center; font-size:.9rem;
-        }
-        .hero-arrow:hover { background:var(--or); border-color:var(--or); color:var(--noir); }
-        .hero-arrow.prev { left:2rem; }
-        .hero-arrow.next { right:2rem; }
-        .hero-dots {
-            position:absolute; bottom:2.5rem; left:50%;
-            transform:translateX(-50%); display:flex; gap:12px; z-index:20;
-        }
-        .hero-dot {
-            width:8px; height:8px; background:rgba(255,255,255,.4);
-            cursor:pointer; transition:all .4s ease; border:none;
-        }
-        .hero-dot.active { background:var(--or); width:32px; }
-        .hero-dot:hover { background:rgba(255,255,255,.8); }
-        .scroll-hint {
-            position:absolute; bottom:5rem; left:50%;
-            transform:translateX(-50%); z-index:20;
-            color:rgba(255,255,255,.6); animation:scrollB 2s infinite;
-        }
-        @keyframes scrollB {
-            0%,100% { transform:translateX(-50%) translateY(0); }
-            50%     { transform:translateX(-50%) translateY(8px); }
-        }
-        @media(max-width:768px) {
-            .hero-carousel { min-height:500px; }
-            .hero-arrow { width:40px; height:40px; font-size:.75rem; }
-            .hero-arrow.prev { left:.8rem; }
-            .hero-arrow.next { right:.8rem; }
-        }
-
-        /* ========== NAVBAR ========== */
-        .navbar {
-            position:fixed; top:0; left:0; right:0; z-index:100;
-            padding:1.5rem 0; transition:all .5s ease;
-        }
-        .navbar.scrolled-light {
-            background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
-            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
-        }
-        .navbar.scrolled-dark {
-            background:rgba(10,10,10,.95); backdrop-filter:blur(20px);
-            padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15);
-        }
-        .nav-link-item {
-            position:relative; font-family:'Inter',sans-serif; font-size:.78rem;
-            font-weight:400; letter-spacing:2.5px; text-transform:uppercase;
-            text-decoration:none; transition:color .4s ease;
-        }
-        .nav-link-item::after {
-            content:''; position:absolute; bottom:-4px; left:0;
-            width:0; height:1px; background:var(--or); transition:width .4s ease;
-        }
+        .navbar { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(255,255,255,.97); backdrop-filter:blur(20px); padding:.8rem 0; box-shadow:0 1px 0 rgba(201,169,110,.15); }
+        .nav-link-item { position:relative; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:400; letter-spacing:2.5px; text-transform:uppercase; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-link-item::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--or); transition:width .4s ease; }
         .nav-link-item:hover::after { width:100%; }
-        .nav-link-item, .nav-icon, .lang-toggle, .burger-btn { color:rgba(255,255,255,.8); }
-        .nav-link-item:hover, .nav-icon:hover { color:var(--or); }
-        .lang-toggle {
-            width:36px; height:36px; border:1px solid rgba(255,255,255,.3);
-            background:transparent; font-family:'Inter',sans-serif;
-            font-size:.7rem; font-weight:500; letter-spacing:1px;
-            cursor:pointer; transition:all .4s ease;
-            display:flex; align-items:center; justify-content:center;
-        }
+        .nav-link-item:hover { color:var(--or); }
+        .lang-toggle { width:36px; height:36px; border:1px solid rgba(45,45,45,.3); background:transparent; font-family:'Inter',sans-serif; font-size:.7rem; font-weight:500; letter-spacing:1px; cursor:pointer; transition:all .4s ease; color:var(--ardoise); display:flex; align-items:center; justify-content:center; }
         .lang-toggle:hover { border-color:var(--or); color:var(--or); }
-        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; }
-        .navbar.text-dark .nav-link-item { color:var(--ardoise); }
-        .navbar.text-dark .nav-link-item:hover { color:var(--or); }
-        .navbar.text-dark .nav-icon { color:var(--ardoise); }
-        .navbar.text-dark .nav-icon:hover { color:var(--or); }
-        .navbar.text-dark .lang-toggle { border-color:rgba(45,45,45,.3); color:var(--ardoise); }
-        .navbar.text-dark .lang-toggle:hover { border-color:var(--or); color:var(--or); }
-        .navbar.text-dark .burger-btn { color:var(--ardoise); }
-        .navbar.text-light .nav-link-item { color:rgba(255,255,255,.8); }
-        .navbar.text-light .nav-link-item:hover { color:var(--or); }
-        .navbar.text-light .nav-icon { color:rgba(255,255,255,.8); }
-        .navbar.text-light .nav-icon:hover { color:var(--or); }
-        .navbar.text-light .lang-toggle { border-color:rgba(255,255,255,.3); color:rgba(255,255,255,.8); }
-        .navbar.text-light .lang-toggle:hover { border-color:var(--or); color:var(--or); }
-        .navbar.text-light .burger-btn { color:rgba(255,255,255,.8); }
-
-        /* ========== MOBILE ========== */
-        .mobile-drawer {
-            position:fixed; top:0; right:-100%; width:85%; max-width:340px;
-            height:100%; background:var(--noir); z-index:1000;
-            transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem;
-        }
+        .nav-icon { font-size:1.1rem; text-decoration:none; transition:color .4s ease; color:var(--ardoise); }
+        .nav-icon:hover { color:var(--or); }
+        .burger-btn { display:none; background:none; border:none; font-size:1.3rem; cursor:pointer; padding:.5rem; color:var(--ardoise); }
+        @media(max-width:768px) { .burger-btn { display:block; } .desktop-nav { display:none !important; } }
+        .mobile-drawer { position:fixed; top:0; right:-100%; width:85%; max-width:340px; height:100%; background:var(--noir); z-index:1000; transition:right .4s cubic-bezier(.25,.8,.25,1); padding:6rem 2.5rem 2rem; }
         .mobile-drawer.open { right:0; }
-        .mobile-drawer a {
-            display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem;
-            font-weight:400; color:rgba(255,255,255,.7); text-decoration:none;
-            padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06);
-            transition:color .3s ease; letter-spacing:2px;
-        }
+        .mobile-drawer a { display:block; font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:400; color:rgba(255,255,255,.7); text-decoration:none; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06); letter-spacing:2px; }
         .mobile-drawer a:hover { color:var(--or); }
-        .drawer-overlay {
-            position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
-            opacity:0; pointer-events:none; transition:opacity .4s ease;
-        }
+        .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999; opacity:0; pointer-events:none; transition:opacity .4s ease; }
         .drawer-overlay.open { opacity:1; pointer-events:auto; }
-        .burger-btn {
-            display:none; background:none; border:none;
-            font-size:1.3rem; cursor:pointer; padding:.5rem; transition:color .4s ease;
-        }
-        @media(max-width:768px) {
-            .burger-btn { display:block; }
-            .desktop-nav { display:none !important; }
-        }
 
-        /* ========== BOUTONS ========== */
-        .btn-or {
-            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
-            font-weight:500; letter-spacing:3px; text-transform:uppercase;
-            text-decoration:none; color:var(--noir); background:var(--or);
-            border:none; padding:14px 36px; cursor:pointer; transition:all .4s ease;
-        }
-        .btn-or:hover {
-            background:var(--or-clair); transform:translateY(-2px);
-            box-shadow:0 12px 30px rgba(201,169,110,.25);
-        }
-        .btn-outline {
-            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
-            font-weight:400; letter-spacing:3px; text-transform:uppercase;
-            text-decoration:none; color:var(--or); background:transparent;
-            border:1px solid var(--or); padding:14px 36px; cursor:pointer; transition:all .4s ease;
-        }
-        .btn-outline:hover { background:var(--or); color:var(--noir); }
-        .btn-outline-dark {
-            display:inline-block; font-family:'Inter',sans-serif; font-size:.75rem;
-            font-weight:400; letter-spacing:3px; text-transform:uppercase;
-            text-decoration:none; color:var(--ardoise); background:transparent;
-            border:1px solid var(--ardoise); padding:13px 32px; cursor:pointer; transition:all .4s ease;
-        }
-        .btn-outline-dark:hover { border-color:var(--or); color:var(--or); }
+        /* ========== CONTENEUR PRINCIPAL — PLEINE LARGEUR ========== */
+        .detail-container { display:grid; grid-template-columns:1.05fr 1fr; gap:3.5rem; width:100%; margin:6rem 0 0; padding:0 3rem; }
+        @media(max-width:1280px) { .detail-container { padding:0 2rem; gap:2.5rem; } }
+        @media(max-width:1023px) { .detail-container { grid-template-columns:1fr; gap:2rem; } }
 
-        /* ========== REVEAL AU SCROLL ========== */
-        .reveal { opacity:0; transform:translateY(40px); transition:opacity .9s ease-out, transform .9s ease-out; }
+        /* ========== GRAND CARROUSEL ========== */
+        .gallery-main { position:sticky; top:7rem; height:fit-content; }
+        .carousel-frame { position:relative; width:100%; aspect-ratio:4/3; border-radius:10px; overflow:hidden; background:var(--creme); box-shadow:0 20px 50px rgba(0,0,0,.08); }
+        .carousel-frame img.carousel-slide {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            object-fit:cover; opacity:0; transition:opacity .5s ease; cursor:zoom-in;
+        }
+        .carousel-frame img.carousel-slide.active { opacity:1; }
+        .carousel-arrow {
+            position:absolute; top:50%; transform:translateY(-50%);
+            width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.9);
+            border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+            font-size:1rem; color:var(--ardoise); transition:all .3s ease; z-index:5;
+        }
+        .carousel-arrow:hover { background:var(--or); color:#fff; }
+        .carousel-arrow.prev { left:16px; }
+        .carousel-arrow.next { right:16px; }
+        .carousel-counter {
+            position:absolute; bottom:14px; right:14px; background:rgba(0,0,0,.55);
+            color:#fff; font-size:.75rem; padding:4px 12px; border-radius:12px; z-index:5;
+        }
+        .new-badge {
+            position:absolute; top:14px; left:14px; background:var(--or); color:var(--noir);
+            font-size:.7rem; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+            padding:6px 12px; border-radius:3px; z-index:5;
+        }
+        .zoom-btn {
+            position:absolute; bottom:14px; left:14px; width:38px; height:38px; border-radius:50%;
+            background:rgba(255,255,255,.9); border:none; cursor:pointer; display:flex;
+            align-items:center; justify-content:center; font-size:.9rem; color:var(--ardoise);
+            z-index:5; transition:all .3s ease;
+        }
+        .zoom-btn:hover { background:var(--or); color:#fff; }
+        .thumbnails { display:grid; grid-template-columns:repeat(5, 1fr); gap:.8rem; margin-top:1rem; }
+        .thumb { width:100%; aspect-ratio:1; object-fit:cover; border-radius:4px; cursor:pointer; transition:all .3s ease; border:2px solid transparent; }
+        .thumb:hover { border-color:var(--or); }
+        .thumb.active { border-color:var(--or); box-shadow:0 0 0 2px rgba(201,169,110,.2); }
+
+        /* ========== LIGHTBOX ZOOM ========== */
+        .lightbox-overlay { position:fixed; inset:0; background:rgba(0,0,0,.94); z-index:2000; display:none; align-items:center; justify-content:center; }
+        .lightbox-overlay.open { display:flex; }
+        .lightbox-img-wrap { position:relative; width:92vw; height:88vh; display:flex; align-items:center; justify-content:center; overflow:hidden; touch-action:pan-y; }
+        .lightbox-img { max-width:100%; max-height:100%; object-fit:contain; cursor:zoom-in; transition:transform .3s ease; user-select:none; }
+        .lightbox-img.zoomed { cursor:zoom-out; transform:scale(2); }
+        .lightbox-close { position:absolute; top:18px; right:22px; background:rgba(255,255,255,.1); border:none; color:#fff; font-size:1.2rem; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:6; transition:background .3s ease; }
+        .lightbox-close:hover { background:rgba(255,255,255,.25); }
+        .lightbox-arrow { position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,.12); border:none; color:#fff; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .3s ease; z-index:6; }
+        .lightbox-arrow:hover { background:rgba(255,255,255,.25); }
+        .lightbox-arrow.prev { left:16px; }
+        .lightbox-arrow.next { right:16px; }
+        .lightbox-counter { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.75); font-size:.85rem; z-index:6; }
+        .zoom-hint { position:absolute; bottom:18px; right:24px; color:rgba(255,255,255,.45); font-size:.72rem; z-index:6; }
+        @media(max-width:768px){ .lightbox-arrow{width:40px;height:40px;font-size:1rem;} .zoom-hint{display:none;} }
+
+        /* ========== BLOC INFO / TITRE ========== */
+        .info-section { }
+        .plan-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.3rem; }
+        .plan-title { font-size:clamp(1.8rem,4vw,2.5rem); color:var(--ardoise); letter-spacing:1px; }
+        .share-btn { background:transparent; border:1px solid var(--creme); color:var(--gris-doux); padding:8px 14px; font-size:.75rem; cursor:pointer; border-radius:4px; white-space:nowrap; transition:all .3s ease; }
+        .share-btn:hover { border-color:var(--or); color:var(--or); }
+
+        .plan-sub-row { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+        .plan-reference { font-size:.8rem; color:var(--gris-clair); letter-spacing:1px; }
+        .rating-summary { display:flex; align-items:center; gap:.4rem; font-size:.85rem; color:var(--gris-doux); }
+        .rating-summary .stars { color:var(--or); letter-spacing:1px; }
+
+        /* ---- NOUVELLE grille des caractéristiques du plan (meilleure disposition) ---- */
+        .plan-specs-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:1.3rem 1rem; margin-bottom:2rem; padding:1.6rem 1.8rem; background:rgba(245,240,235,.5); border:1px solid var(--creme); border-radius:10px; }
+        .spec-item { display:flex; align-items:center; gap:.8rem; }
+        .spec-icon { font-size:1.35rem; color:var(--or); width:30px; text-align:center; flex-shrink:0; }
+        .spec-text { display:flex; flex-direction:column; line-height:1.25; }
+        .spec-value { font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--ardoise); font-weight:500; }
+        .spec-label { font-size:.72rem; color:var(--gris-doux); text-transform:uppercase; letter-spacing:.5px; }
+
+        .plan-desc { color:var(--gris-doux); line-height:1.9; margin-bottom:2.5rem; font-size:.95rem; }
+
+        .options-section { border:1px solid var(--creme); padding:2rem; border-radius:8px; background:rgba(245,240,235,.5); margin-bottom:2rem; }
+        .options-title { font-size:1.1rem; font-weight:500; margin-bottom:1.5rem; color:var(--ardoise); }
+        .option-group { display:flex; align-items:flex-start; gap:1rem; padding:1rem 0; border-bottom:1px solid var(--creme); }
+        .option-group:last-child { border-bottom:none; }
+        .option-check { width:20px; height:20px; margin-top:2px; cursor:pointer; accent-color:var(--or); }
+        .option-content { flex:1; }
+        .option-label { font-weight:500; color:var(--ardoise); margin-bottom:.3rem; cursor:pointer; }
+        .option-desc { font-size:.85rem; color:var(--gris-doux); margin-bottom:.5rem; line-height:1.6; }
+        .option-price { font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--or); font-weight:400; }
+
+        .region-select { display:none; margin-top:1rem; }
+        .region-select.show { display:block; }
+        .region-select select { width:100%; padding:.7rem; border:1px solid var(--creme); font-family:'Inter',sans-serif; font-size:.9rem; background:white; cursor:pointer; }
+        .region-select select:focus { outline:none; border-color:var(--or); }
+
+        .delivery-confirm-btn { margin-top:.5rem; width:auto; padding:10px 24px; }
+        .delivery-confirmed-note { display:none; margin-top:1rem; padding:.9rem 1rem; background:rgba(16,185,129,.1); border-left:3px solid #10b981; font-size:.83rem; color:var(--ardoise); line-height:1.6; border-radius:4px; }
+        .delivery-confirmed-note.show { display:block; }
+
+        .price-section { padding:2rem; border:2px solid var(--or); border-radius:8px; margin-bottom:2rem; background:rgba(201,169,110,.05); }
+        .price-row { display:flex; justify-content:space-between; margin-bottom:.8rem; font-size:.9rem; color:var(--gris-doux); }
+        .price-row.total { border-top:1px solid var(--creme); padding-top:.8rem; font-size:1.3rem; color:var(--ardoise); font-family:'Cormorant Garamond',serif; font-weight:400; }
+
+        .btn-primary { background:var(--or); color:var(--noir); border:none; padding:14px 36px; font-weight:500; letter-spacing:2px; text-transform:uppercase; font-size:.8rem; cursor:pointer; transition:all .4s ease; width:100%; margin-bottom:.8rem; }
+        .btn-primary:hover { background:var(--or-clair); transform:translateY(-2px); box-shadow:0 12px 30px rgba(201,169,110,.25); }
+        .btn-secondary { background:transparent; border:1.5px solid var(--or); color:var(--or); padding:14px 36px; font-weight:500; letter-spacing:2px; text-transform:uppercase; font-size:.8rem; cursor:pointer; transition:all .4s ease; width:100%; }
+        .btn-secondary:hover { background:var(--or); color:var(--noir); }
+
+        .customize-form { display:none; padding:2rem; border:1px solid var(--creme); background:rgba(245,240,235,.3); border-radius:8px; margin-top:2rem; }
+        .customize-form.show { display:block; }
+        .form-group { margin-bottom:1.5rem; }
+        .form-label { display:block; font-weight:500; margin-bottom:.5rem; font-size:.9rem; color:var(--ardoise); }
+        .form-input, .form-textarea, .form-select { width:100%; padding:.7rem; border:1px solid var(--creme); font-family:'Inter',sans-serif; font-size:.9rem; background:white; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline:none; border-color:var(--or); }
+        .form-textarea { resize:vertical; min-height:120px; }
+        .form-note { padding:1rem; background:rgba(16,185,129,.1); border-left:3px solid #10b981; margin-bottom:1.5rem; font-size:.85rem; color:var(--ardoise); line-height:1.6; margin-top:1rem; }
+
+        /* ========== POPUP D'INFORMATION (livraison / expédition) ========== */
+        .info-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:3000; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+        .info-modal-overlay.open { display:flex; }
+        .info-modal { background:#fff; max-width:460px; width:100%; padding:2.6rem 2.2rem 2.2rem; border-radius:10px; text-align:center; position:relative; box-shadow:0 30px 60px rgba(0,0,0,.3); }
+        .info-modal-icon { font-size:2.6rem; color:var(--or); margin-bottom:1.1rem; display:block; }
+        .info-modal-title { font-size:1.3rem; color:var(--ardoise); margin-bottom:.8rem; }
+        .info-modal-text { color:var(--gris-doux); font-size:.9rem; line-height:1.8; margin-bottom:1.6rem; }
+        .info-modal-close { position:absolute; top:14px; right:16px; background:none; border:none; font-size:1rem; color:var(--gris-doux); cursor:pointer; }
+        .info-modal-close:hover { color:var(--or); }
+        .info-modal .btn-primary { margin-bottom:0; }
+
+        /* ========== SECTIONS (avis / plans similaires) — PLEINE LARGEUR ========== */
+        .section-block { width:100%; margin:4rem 0; padding:0 3rem; }
+        @media(max-width:1280px) { .section-block { padding:0 2rem; } }
+        .section-heading { font-size:1.8rem; margin-bottom:2rem; text-align:center; }
+
+        /* ---- NOUVELLES cartes d'avis (style page d'accueil) ---- */
+        .avis-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1.5rem; margin-bottom:2.5rem; }
+        .avis-card { position:relative; background:#fff; border:1px solid var(--creme); border-top:3px solid var(--or); border-radius:8px; padding:1.8rem; transition:transform .35s ease, box-shadow .35s ease; }
+        .avis-card:hover { transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,.07); }
+        .avis-card .quote-icon { position:absolute; top:1.2rem; right:1.4rem; font-size:1.8rem; color:var(--creme); }
+        .avis-stars { color:var(--or); letter-spacing:2px; margin-bottom:.8rem; font-size:.95rem; }
+        .avis-comment { font-size:.92rem; color:var(--gris-doux); line-height:1.8; font-style:italic; margin-bottom:1.3rem; }
+        .avis-footer { display:flex; align-items:center; gap:.8rem; padding-top:1rem; border-top:1px solid var(--creme); }
+        .avis-avatar { width:42px; height:42px; border-radius:50%; background:var(--or); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:600; flex-shrink:0; }
+        .avis-client { font-weight:500; color:var(--ardoise); font-size:.9rem; }
+        .avis-date { font-size:.72rem; color:var(--gris-clair); }
+        .avis-reponse { margin-top:1rem; padding:.8rem 1rem; background:var(--beige); border-left:2px solid var(--or); font-size:.82rem; color:var(--ardoise); border-radius:4px; }
+        .avis-reponse strong { color:var(--or); font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:.3rem; }
+        .avis-empty { text-align:center; color:var(--gris-doux); padding:2rem; font-size:.9rem; grid-column:1/-1; }
+
+        .avis-form { border:1px solid var(--creme); border-radius:8px; padding:2rem; background:rgba(245,240,235,.4); max-width:640px; margin:0 auto; }
+        .avis-form h3 { font-size:1.2rem; margin-bottom:1.2rem; text-align:center; }
+        .star-picker { display:flex; gap:.4rem; justify-content:center; margin-bottom:1.2rem; font-size:1.6rem; }
+        .star-picker i { cursor:pointer; color:var(--gris-clair); transition:color .2s ease; }
+        .star-picker i.selected { color:var(--or); }
+        .avis-form-msg { text-align:center; font-size:.85rem; margin-top:1rem; }
+        .avis-form-msg.success { color:#10b981; }
+        .avis-form-msg.error { color:#ef4444; }
+
+        /* ========== PLANS SIMILAIRES ========== */
+        .similar-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:1.8rem; }
+        .similar-card { border:1px solid var(--creme); border-radius:8px; overflow:hidden; cursor:pointer; transition:transform .4s ease, box-shadow .4s ease; text-decoration:none; color:inherit; display:block; }
+        .similar-card:hover { transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,.08); }
+        .similar-card img { width:100%; height:180px; object-fit:cover; }
+        .similar-card-body { padding:1rem 1.2rem; }
+        .similar-card-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; margin-bottom:.4rem; }
+        .similar-card-price { color:var(--or); font-family:'Cormorant Garamond',serif; font-size:1.15rem; }
+        .similar-empty { text-align:center; color:var(--gris-doux); font-size:.9rem; grid-column:1/-1; }
+
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity .8s ease-out, transform .8s ease-out; }
         .reveal.visible { opacity:1; transform:translateY(0); }
-        .reveal-d1 { transition-delay:.15s; }
-        .reveal-d2 { transition-delay:.3s; }
-        .reveal-d3 { transition-delay:.45s; }
-        .reveal-d4 { transition-delay:.6s; }
 
-        /* ========== SECTION TITLES ========== */
-        .section-label {
-            font-family:'Inter',sans-serif; font-size:.7rem; font-weight:500;
-            letter-spacing:4px; text-transform:uppercase; color:var(--or); margin-bottom:.8rem;
-        }
-        .section-title {
-            font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem);
-            font-weight:300; color:var(--ardoise); letter-spacing:2px; line-height:1.2; margin-bottom:1rem;
-        }
-
-        /* ========== PARALLAX STICKY IMAGE ========== */
-        .parallax-section { overflow:hidden; }
-        .parallax-grid { display:grid; grid-template-columns:1fr 1fr; align-items:start; }
-        @media(max-width:1023px) { .parallax-grid { grid-template-columns:1fr; } }
-        .parallax-sticky-img {
-            position:sticky; top:100px; width:100%;
-            height:80vh; min-height:500px; overflow:hidden;
-        }
-        .parallax-sticky-img img { width:100%; height:100%; object-fit:cover; }
-        .parallax-accent {
-            position:absolute; bottom:-1.5rem; right:-1.5rem;
-            width:96px; height:96px; border:1px solid var(--or); opacity:.25;
-        }
-        @media(max-width:1023px) {
-            .parallax-sticky-img { position:relative; top:0; height:50vh; min-height:350px; }
-            .parallax-accent { display:none; }
-        }
-
-        /* ========== CARTES PLANS ========== */
-        .plan-card {
-            background:var(--blanc); overflow:hidden;
-            transition:transform .5s ease, box-shadow .5s ease; cursor:pointer;
-        }
-        .plan-card:hover { transform:translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,.08); }
-        .plan-card .card-img { position:relative; overflow:hidden; }
-        .plan-card .card-img img {
-            width:100%; height:280px; object-fit:cover; transition:transform .6s ease;
-        }
-        .plan-card:hover .card-img img { transform:scale(1.05); }
-        .card-badge {
-            position:absolute; top:1rem; left:1rem;
-            font-family:'Inter',sans-serif; font-size:.65rem; font-weight:500;
-            letter-spacing:2px; text-transform:uppercase;
-            background:var(--or); color:var(--noir); padding:6px 14px;
-        }
-        .card-body { padding:1.8rem; }
-        .card-title {
-            font-family:'Cormorant Garamond',serif; font-size:1.35rem;
-            font-weight:400; color:var(--ardoise); margin-bottom:.8rem; letter-spacing:.5px;
-        }
-        .card-meta { display:flex; flex-wrap:wrap; gap:.5rem 1rem; margin-bottom:1.2rem; }
-        .card-meta span {
-            font-family:'Inter',sans-serif; font-size:.75rem;
-            font-weight:300; color:var(--gris-doux); letter-spacing:.5px;
-        }
-        .meta-icon { color:var(--or)!important; font-size:.7rem!important; margin-right:4px!important; }
-        .card-footer {
-            display:flex; justify-content:space-between; align-items:center;
-            padding-top:1.2rem; border-top:1px solid var(--creme);
-        }
-        .card-price {
-            font-family:'Cormorant Garamond',serif; font-size:1.5rem;
-            font-weight:400; color:var(--or); letter-spacing:.5px;
-        }
-        .card-price small {
-            font-family:'Inter',sans-serif; font-size:.7rem;
-            font-weight:400; color:var(--gris-doux); letter-spacing:1px;
-        }
-        .card-price .old-price {
-            font-family:'Inter',sans-serif; font-size:.85rem; font-weight:400;
-            color:var(--gris-doux); text-decoration:line-through; margin-right:8px;
-        }
-
-        /* ========== ANIMATION SECTION PROMOTIONS ========== */
-        .promo-eyebrow-badge {
-            display:inline-flex; align-items:center; gap:8px;
-            background:linear-gradient(90deg, var(--or), var(--or-clair), var(--or));
-            background-size:200% auto;
-            color:var(--noir); font-family:'Inter',sans-serif; font-size:.72rem;
-            font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
-            padding:8px 20px; border-radius:30px; margin-bottom:1.2rem;
-            animation:promoShine 3s linear infinite, promoBounce 2.2s ease-in-out infinite;
-            box-shadow:0 4px 20px rgba(201,169,110,.35);
-        }
-        .promo-eyebrow-badge i { animation:promoRing 1.8s ease-in-out infinite; }
-        @keyframes promoShine {
-            0% { background-position:0% center; }
-            100% { background-position:200% center; }
-        }
-        @keyframes promoBounce {
-            0%,100% { transform:translateY(0); }
-            50% { transform:translateY(-4px); }
-        }
-        @keyframes promoRing {
-            0%,100% { transform:rotate(0deg); }
-            10% { transform:rotate(14deg); }
-            20% { transform:rotate(-10deg); }
-            30% { transform:rotate(6deg); }
-            40% { transform:rotate(0deg); }
-        }
-        .promo-card-wrap { position:relative; }
-        .promo-card-wrap .plan-card {
-            border:2px solid transparent;
-            animation:promoGlow 2.4s ease-in-out infinite;
-        }
-        @keyframes promoGlow {
-            0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.06); border-color:rgba(201,169,110,.25); }
-            50%     { box-shadow:0 10px 40px rgba(201,169,110,.35); border-color:rgba(201,169,110,.7); }
-        }
-        .promo-corner-tag {
-            position:absolute; top:-10px; right:16px; z-index:6;
-            background:#ef4444; color:#fff; font-family:'Inter',sans-serif;
-            font-size:.68rem; font-weight:600; letter-spacing:.5px;
-            padding:6px 12px; border-radius:20px; box-shadow:0 4px 12px rgba(239,68,68,.4);
-            animation:promoPop 1.6s ease-in-out infinite;
-        }
-        @keyframes promoPop {
-            0%,100% { transform:scale(1); }
-            50%     { transform:scale(1.08); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .promo-eyebrow-badge, .promo-eyebrow-badge i, .promo-card-wrap .plan-card, .promo-corner-tag { animation:none; }
-        }
-
-        /* ========== ÉTAPES ========== */
-        .step-num {
-            font-family:'Cormorant Garamond',serif; font-size:3.5rem;
-            font-weight:300; color:rgba(201,169,110,.15); line-height:1; margin-bottom:1rem;
-        }
-
-        /* ========== SECTION BLEU NUIT ========== */
-        .section-bleu-nuit {
-            background:var(--bleu-nuit); color:#fff;
-        }
-        .section-bleu-nuit .section-title {
-            color:#fff;
-        }
-        .section-bleu-nuit .card-title {
-            color:#fff;
-        }
-        .section-bleu-nuit .card-meta span {
-            color:rgba(255,255,255,.6);
-        }
-
-        /* ========== SECTION STATS ========== */
-        .parallax-bg { background-attachment:fixed; background-size:cover; background-position:center; }
-        @supports(-webkit-touch-callout:none) { .parallax-bg { background-attachment:scroll; } }
-
-        /* ========== TÉMOIGNAGES ========== */
-        .testimonial-card {
-            background:#fff; padding:2rem; border-left:1px solid var(--or);
-            transition:transform .5s ease, box-shadow .5s ease;
-        }
-        .testimonial-card:hover { transform:translateX(8px); box-shadow:0 20px 40px rgba(201,169,110,.1); }
-        .quote-mark {
-            font-size:3rem; color:var(--or); opacity:.3; margin-bottom:1rem;
-        }
-        .testimonial-text {
-            font-family:'Inter',sans-serif; font-size:.95rem;
-            color:var(--gris-doux); line-height:1.9; margin-bottom:1.5rem;
-        }
-        .testimonial-author {
-            font-family:'Cormorant Garamond',serif; font-size:1rem;
-            font-weight:400; color:var(--ardoise); letter-spacing:1px;
-        }
-
-        /* ========== MODAL AVIS ========== */
-        .modal-overlay {
-            display:none; position:fixed; inset:0; background:rgba(10,10,10,.7);
-            z-index:1000; align-items:center; justify-content:center; padding:20px;
-        }
-        .modal-overlay.open { display:flex; }
-        .avis-modal {
-            background:#fff; width:100%; max-width:480px; padding:2.5rem;
-            position:relative; border-top:2px solid var(--or);
-        }
-        .avis-modal h3 {
-            font-family:'Cormorant Garamond',serif; font-size:1.6rem;
-            color:var(--ardoise); margin-bottom:1.5rem; text-align:center;
-        }
-        .avis-modal .modal-close {
-            position:absolute; top:1rem; right:1.2rem; background:none; border:none;
-            font-size:1.3rem; color:var(--gris-doux); cursor:pointer; transition:color .3s ease;
-        }
-        .avis-modal .modal-close:hover { color:var(--or); }
-        .avis-form-group { margin-bottom:1.2rem; }
-        .avis-form-group label {
-            display:block; font-size:.75rem; letter-spacing:1px; text-transform:uppercase;
-            color:var(--or); margin-bottom:.5rem;
-        }
-        .avis-form-group input, .avis-form-group textarea {
-            width:100%; border:1px solid var(--creme); padding:.7rem .9rem;
-            font-family:'Inter',sans-serif; font-size:.9rem; color:var(--ardoise);
-            background:var(--beige);
-        }
-        .avis-form-group input:focus, .avis-form-group textarea:focus { outline:none; border-color:var(--or); }
-        .avis-form-group textarea { resize:vertical; min-height:90px; }
-        .star-rating { display:flex; gap:6px; font-size:1.6rem; }
-        .star-rating i { color:var(--gris-clair); cursor:pointer; transition:color .2s ease; }
-        .star-rating i.selected { color:var(--or); }
-        .avis-submit-btn { width:100%; margin-top:.5rem; }
-        .avis-submit-btn:disabled { opacity:.5; cursor:not-allowed; }
-        .avis-cta-wrap { text-align:center; margin-top:3rem; }
-
-        /* ========== FOOTER ========== */
-        .footer-link {
-            font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300;
-            color:rgba(255,255,255,.5); text-decoration:none;
-            transition:color .3s ease; letter-spacing:.5px;
-        }
+        .footer-link { font-family:'Inter',sans-serif; font-size:.82rem; font-weight:300; color:rgba(255,255,255,.5); text-decoration:none; transition:color .3s ease; }
         .footer-link:hover { color:var(--or); }
-        .footer-social {
-            color:rgba(255,255,255,.4); font-size:1rem;
-            transition:color .3s ease; text-decoration:none;
-        }
+        .footer-social { color:rgba(255,255,255,.4); font-size:1rem; transition:color .3s ease; text-decoration:none; }
         .footer-social:hover { color:var(--or); }
+
+        /* ========== RESPONSIVE SMARTPHONE UNIQUEMENT ========== */
+        @media(max-width:768px) {
+            .thumbnails { grid-template-columns:repeat(4, 1fr); }
+            .detail-container { margin-top:5rem; width:100%; padding:0 1rem; }
+            .section-block { width:100%; padding:0 1rem; }
+            .plan-specs-grid { grid-template-columns:repeat(2, 1fr); padding:1.2rem; }
+            /* Empêche les images de rester figées (sticky) au scroll sur smartphone */
+            .gallery-main { position:static; top:auto; }
+            .carousel-frame { aspect-ratio:1/1; border-radius:6px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- ==================== NAVBAR ==================== -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar">
         <div class="max-w-page mx-auto px-6 flex justify-between items-center">
             <a href="index.html"><img src="images/logo.png" alt="Archiclick" class="h-10"></a>
             <div class="desktop-nav flex items-center gap-10">
@@ -451,268 +248,215 @@
                 <a href="blog.html" class="nav-link-item" data-fr="Blog" data-en="Blog">Blog</a>
                 <a href="a-propos.html" class="nav-link-item" data-fr="À propos" data-en="About">À propos</a>
                 <a href="contact.html" class="nav-link-item" data-fr="Contact" data-en="Contact">Contact</a>
+                <a href="suivi-commande.html" class="nav-link-item" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
             </div>
             <div class="flex items-center gap-5">
                 <button class="lang-toggle" id="langBtn" onclick="toggleLanguage()">EN</button>
-                <a href="panier.html" class="nav-icon" title="Panier"><i class="fas fa-shopping-bag"></i></a>
+                <a href="panier.html" class="nav-icon"><i class="fas fa-shopping-bag"></i></a>
                 <button class="burger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
     </nav>
 
-    <!-- Mobile Drawer -->
     <div class="mobile-drawer" id="mobileDrawer">
         <a href="index.html" data-fr="Accueil" data-en="Home">Accueil</a>
         <a href="catalogue.html" data-fr="Catalogue" data-en="Catalog">Catalogue</a>
         <a href="blog.html" data-fr="Blog" data-en="Blog">Blog</a>
         <a href="a-propos.html" data-fr="À propos" data-en="About">À propos</a>
         <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
+        <a href="suivi-commande.html" data-fr="Suivi commande" data-en="Order Tracking">Suivi commande</a>
         <a href="panier.html" data-fr="Panier" data-en="Cart">Panier</a>
     </div>
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
 
-    <!-- ==================== HERO CAROUSEL ==================== -->
-    <section class="hero-carousel" data-theme="dark">
-        <div class="hero-slide active" style="background-image:url('https://images.pexels.com/photos/13203179/pexels-photo-13203179.jpeg');">
-            <div class="hero-content">
-                <p class="hero-sub" data-fr="L'excellence architecturale" data-en="Architectural Excellence">L'excellence architecturale</p>
-                <h1 class="hero-title" data-fr="Construisez votre maison" data-en="Build Your Dream Home">Construisez votre maison</h1>
-                <div class="sep-or" style="margin-bottom:2rem;"></div>
-                <a href="catalogue.html" class="btn-or" data-fr="Découvrir les plans" data-en="Discover Plans">Découvrir les plans</a>
+    <section class="py-8">
+        <div class="detail-container">
+            <!-- GRAND CARROUSEL -->
+            <div class="gallery-main reveal">
+                <div class="carousel-frame" id="carouselFrame">
+                    <span class="new-badge" id="newBadge" style="display:none;" data-fr="Nouveau" data-en="New">Nouveau</span>
+                    <button class="zoom-btn" id="zoomBtn" title="Agrandir"><i class="fas fa-search-plus"></i></button>
+                    <button class="carousel-arrow prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+                    <button class="carousel-arrow next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+                    <span class="carousel-counter" id="carouselCounter">1 / 1</span>
+                </div>
+                <div class="thumbnails" id="thumbnails"></div>
             </div>
-        </div>
-        <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/29334668/pexels-photo-29334668.png');">
-            <div class="hero-content">
-                <p class="hero-sub" data-fr="Sur mesure pour vous" data-en="Tailored for You">Sur mesure pour vous</p>
-                <h1 class="hero-title" data-fr="Créez l'espace idéal" data-en="Create Your Ideal Space">Créez l'espace idéal</h1>
-                <div class="sep-or" style="margin-bottom:2rem;"></div>
-                <a href="catalogue.html" class="btn-or" data-fr="Explorer le catalogue" data-en="Explore Catalog">Explorer le catalogue</a>
-            </div>
-        </div>
-        <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/8134847/pexels-photo-8134847.jpeg');">
-            <div class="hero-content">
-                <p class="hero-sub" data-fr="De la vision à la réalité" data-en="From Vision to Reality">De la vision à la réalité</p>
-                <h1 class="hero-title" data-fr="Réalisez vos ambitions" data-en="Achieve Your Dreams">Réalisez vos ambitions</h1>
-                <div class="sep-or" style="margin-bottom:2rem;"></div>
-                <a href="catalogue.html" class="btn-or" data-fr="Commencer maintenant" data-en="Start Now">Commencer maintenant</a>
-            </div>
-        </div>
-        <button class="hero-arrow prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
-        <button class="hero-arrow next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
-        <div class="hero-dots">
-            <button class="hero-dot active" onclick="goSlide(0)"></button>
-            <button class="hero-dot" onclick="goSlide(1)"></button>
-            <button class="hero-dot" onclick="goSlide(2)"></button>
-        </div>
-        <div class="scroll-hint"><i class="fas fa-chevron-down" style="font-size:1rem;"></i></div>
-    </section>
 
-    <!-- ==================== POURQUOI ARCHICLICK ==================== -->
-    <section class="py-24 lg:py-32 bg-white parallax-section" data-theme="light">
-        <div class="max-w-page mx-auto px-6">
-            <div class="parallax-grid">
-                <div class="relative reveal">
-                    <div class="parallax-sticky-img">
-                        <img src="https://images.pexels.com/photos/8089172/pexels-photo-8089172.jpeg" alt="Architecture moderne">
-                        <div class="parallax-accent"></div>
+            <!-- INFO & ACHAT -->
+            <div class="info-section">
+                <div id="planTypeLabel" style="font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--or);margin-bottom:.5rem;"></div>
+                <div class="plan-title-row reveal">
+                    <h1 class="plan-title" id="planTitle"></h1>
+                    <span id="promoBadgeDetail" style="display:none;background:#ef4444;color:#fff;font-size:.68rem;font-weight:600;letter-spacing:.5px;padding:6px 12px;border-radius:20px;white-space:nowrap;align-self:flex-start;"></span>
+                    <button class="share-btn" onclick="sharePlan()"><i class="fas fa-share-alt"></i> <span data-fr="Partager" data-en="Share">Partager</span></button>
+                </div>
+
+                <div class="plan-sub-row reveal">
+                    <div class="plan-reference" id="planReference"></div>
+                    <div class="rating-summary" id="ratingSummary" style="display:none;">
+                        <span class="stars" id="ratingStars"></span>
+                        <span id="ratingText"></span>
                     </div>
                 </div>
-                <div class="lg:pl-16">
-                    <p class="section-label reveal" data-fr="Notre engagement" data-en="Our commitment">Notre engagement</p>
-                    <h2 class="section-title reveal reveal-d1" data-fr="Pourquoi Archiclick ?" data-en="Why Archiclick?">Pourquoi Archiclick ?</h2>
-                    <div class="sep-or reveal reveal-d1" style="margin:0 0 2.5rem 0;"></div>
 
-                    <div class="space-y-8">
-                        <div class="flex gap-5 reveal reveal-d1">
-                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
-                                <i class="fas fa-drafting-compass text-sm"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Plans professionnels certifiés" data-en="Certified professional plans">Plans professionnels certifiés</h3>
-                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Chaque plan est conçu par un architecte diplômé d'État avec une expertise approfondie des normes de construction au Cameroun." data-en="Each plan is designed by a state-certified architect with deep expertise in Cameroonian building standards.">Chaque plan est conçu par un architecte diplômé d'État avec une expertise approfondie des normes de construction au Cameroun.</p>
-                            </div>
-                        </div>
+                <!-- Nouvelle grille de caractéristiques -->
+                <div class="plan-specs-grid reveal" id="planMetaContainer">
+                    <div class="spec-item">
+                        <i class="fas fa-layer-group spec-icon"></i>
+                        <div class="spec-text"><span class="spec-value" id="planEtages">-</span><span class="spec-label" data-fr="étage(s)" data-en="floor(s)">étage(s)</span></div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bed spec-icon"></i>
+                        <div class="spec-text"><span class="spec-value" id="planChambres">-</span><span class="spec-label" data-fr="chambre(s)" data-en="bedroom(s)">chambre(s)</span></div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bath spec-icon"></i>
+                        <div class="spec-text"><span class="spec-value" id="planSdb">-</span><span class="spec-label" data-fr="salle(s) d'eau" data-en="bathroom(s)">salle(s) d'eau</span></div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-ruler-combined spec-icon"></i>
+                        <div class="spec-text"><span class="spec-value"><span id="planSurface">-</span> m²</span><span class="spec-label" data-fr="surface habitable" data-en="living area">surface habitable</span></div>
+                    </div>
+                    <span id="planExtraMeta"></span>
+                </div>
 
-                        <div class="flex gap-5 reveal reveal-d2">
-                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
-                                <i class="fas fa-bolt text-sm"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Livraison express sous 2h" data-en="Express delivery within 2 hours">Livraison express sous 2h</h3>
-                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Dès votre paiement confirmé, notre équipe prépare et envoie votre dossier complet par email en moins de 2 heures." data-en="As soon as your payment is confirmed, our team sends your complete file by email in under 2 hours.">Dès votre paiement confirmé, notre équipe prépare et envoie votre dossier complet par email en moins de 2 heures.</p>
-                            </div>
-                        </div>
+                <p class="plan-desc reveal" id="planDesc"></p>
 
-                        <div class="flex gap-5 reveal reveal-d3">
-                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
-                                <i class="fas fa-sliders-h text-sm"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Personnalisation sur mesure" data-en="Bespoke customization">Personnalisation sur mesure</h3>
-                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Adaptez chaque plan à vos contraintes topographiques et vos goûts avec un suivi direct par un architecte." data-en="Adapt each plan to your constraints and tastes with direct follow-up by an architect.">Adaptez chaque plan à vos contraintes topographiques et vos goûts avec un suivi direct par un architecte.</p>
-                            </div>
-                        </div>
+                <div class="options-section reveal">
+                    <div class="options-title" data-fr="Options disponibles" data-en="Available options">Options disponibles</div>
 
-                        <div class="flex gap-5 reveal reveal-d4">
-                            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-or text-or mt-1">
-                                <i class="fas fa-shield-alt text-sm"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg mb-2" style="color:var(--ardoise);" data-fr="Paiement sécurisé local" data-en="Secure local payment">Paiement sécurisé local</h3>
-                                <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Réglez par MTN Mobile Money ou Orange Money. Aucun frais caché, aucun intermédiaire." data-en="Pay via MTN or Orange Money. No hidden fees, no intermediary.">Réglez par MTN Mobile Money ou Orange Money. Aucun frais caché, aucun intermédiaire.</p>
-                            </div>
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPDF" checked disabled>
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Plan PDF (inclus)" data-en="PDF Plan (included)">Plan PDF (inclus)</div>
+                            <div class="option-desc" data-fr="Fichier PDF haute résolution du plan complet" data-en="High-resolution PDF file of complete plan">Fichier PDF haute résolution du plan complet</div>
                         </div>
                     </div>
 
-                    <a href="catalogue.html" class="btn-outline-dark mt-12 inline-block reveal reveal-d4" data-fr="Voir le catalogue" data-en="View catalog">Voir le catalogue</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== COMMENT ÇA MARCHE ==================== -->
-    <section class="py-24 lg:py-32" style="background:var(--beige);" data-theme="light">
-        <div class="max-w-page mx-auto px-6">
-            <div class="text-center mb-16">
-                <p class="section-label reveal" data-fr="Processus simple" data-en="Simple process">Processus simple</p>
-                <h2 class="section-title reveal reveal-d1" data-fr="Comment ça marche ?" data-en="How it works?">Comment ça marche ?</h2>
-                <div class="sep-or mt-6 reveal reveal-d1"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-                <div class="text-center reveal reveal-d1">
-                    <div class="step-num">01</div>
-                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-search text-or text-lg"></i></div>
-                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Choisissez" data-en="Choose">Choisissez</h3>
-                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Parcourez plus de 50 plans et trouvez celui adapté à vos besoins." data-en="Browse 50+ plans and find the right one for you.">Parcourez plus de 50 plans et trouvez celui adapté à vos besoins.</p>
-                </div>
-                <div class="text-center reveal reveal-d2">
-                    <div class="step-num">02</div>
-                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-pen-ruler text-or text-lg"></i></div>
-                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Personnalisez" data-en="Customize">Personnalisez</h3>
-                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Ajoutez options et demandez modifications avec suivi d'un architecte." data-en="Add options and request modifications with architect support.">Ajoutez options et demandez modifications avec suivi d'un architecte.</p>
-                </div>
-                <div class="text-center reveal reveal-d3">
-                    <div class="step-num">03</div>
-                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-mobile-alt text-or text-lg"></i></div>
-                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Payez" data-en="Pay">Payez</h3>
-                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="MTN ou Orange Money - simple et sécurisé, aucuns frais cachés." data-en="MTN or Orange Money - simple and secure, no hidden fees.">MTN ou Orange Money - simple et sécurisé, aucuns frais cachés.</p>
-                </div>
-                <div class="text-center reveal reveal-d4">
-                    <div class="step-num">04</div>
-                    <div class="w-10 h-10 mx-auto mb-4 flex items-center justify-center"><i class="fas fa-download text-or text-lg"></i></div>
-                    <h3 class="text-xl mb-3" style="color:var(--ardoise);" data-fr="Recevez" data-en="Receive">Recevez</h3>
-                    <p class="text-sm" style="color:var(--gris-doux);line-height:1.9;" data-fr="Dossier complet par email en moins de 2 heures après paiement." data-en="Complete file by email within 2 hours of payment.">Dossier complet par email en moins de 2 heures après paiement.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== BEST-SELLERS ==================== -->
-    <section class="py-24 lg:py-32 bg-white" data-theme="light">
-        <div class="max-w-page mx-auto px-6">
-            <div class="text-center mb-16">
-                <p class="section-label reveal" data-fr="Les plus populaires" data-en="Most popular">Les plus populaires</p>
-                <h2 class="section-title reveal reveal-d1" data-fr="Best-Sellers" data-en="Best-Sellers">Best-Sellers</h2>
-                <div class="sep-or mt-6 reveal reveal-d1"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="best-sellers">
-                <div class="text-center text-gris-doux py-12">Chargement...</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== NOUVEAUTÉS (BLEU NUIT) ==================== -->
-    <section class="py-24 lg:py-32 section-bleu-nuit" data-theme="dark">
-        <div class="max-w-page mx-auto px-6">
-            <div class="text-center mb-16">
-                <p class="section-label reveal" data-fr="Récemment ajoutés" data-en="Recently added">Récemment ajoutés</p>
-                <h2 class="section-title reveal reveal-d1" data-fr="Nouveautés" data-en="Latest">Nouveautés</h2>
-                <div class="sep-or mt-6 reveal reveal-d1"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="nouveautes">
-                <div class="text-center text-gray-400 py-12">Chargement...</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== PROMOTIONS ==================== -->
-    <section class="py-24 lg:py-32 bg-white" data-theme="light">
-        <div class="max-w-page mx-auto px-6">
-            <div class="text-center mb-16">
-                <div class="promo-eyebrow-badge reveal"><i class="fas fa-bolt"></i><span data-fr="Offres à durée limitée" data-en="Limited-time offers">Offres à durée limitée</span></div>
-                <p class="section-label reveal" data-fr="Offres spéciales" data-en="Special offers">Offres spéciales</p>
-                <h2 class="section-title reveal reveal-d1" data-fr="Promotions" data-en="Promotions">Promotions</h2>
-                <div class="sep-or mt-6 reveal reveal-d1"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10" id="promotions">
-                <div class="text-center text-gris-doux py-12">Chargement...</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== STATISTIQUES ==================== -->
-    <section class="py-24 lg:py-32 parallax-bg text-white flex items-center justify-center" style="background-image:url('https://images.pexels.com/photos/4792479/pexels-photo-4792479.jpeg'); min-height:500px;" data-theme="dark">
-        <div class="absolute inset-0 bg-black/30"></div>
-        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
-            <h2 class="section-title reveal" style="color:#fff;font-size:clamp(2.5rem,5vw,4rem);" data-fr="+5 000 maisons construites" data-en="+5,000 houses built">+5 000 maisons construites</h2>
-            <p class="text-lg reveal reveal-d1 mt-4" style="opacity:.9;" data-fr="Des clients satisfaits au Cameroun et dans toute l'Afrique de l'Ouest" data-en="Satisfied customers in Cameroon and across West Africa">Des clients satisfaits au Cameroun et dans toute l'Afrique de l'Ouest</p>
-        </div>
-    </section>
-
-    <!-- ==================== TÉMOIGNAGES ==================== -->
-    <section class="py-24 lg:py-32 bg-beige" data-theme="light">
-        <div class="max-w-page mx-auto px-6">
-            <div class="text-center mb-16">
-                <p class="section-label reveal" data-fr="Ils nous font confiance" data-en="They trust us">Ils nous font confiance</p>
-                <h2 class="section-title reveal reveal-d1" data-fr="Témoignages clients" data-en="Customer testimonials">Témoignages clients</h2>
-                <div class="sep-or mt-6 reveal reveal-d1"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="avis">
-                <div class="text-center text-gris-doux py-12">Chargement...</div>
-            </div>
-            <div class="avis-cta-wrap">
-                <button type="button" class="btn-outline-dark" id="openAvisModalBtn" data-fr="Laisser un avis" data-en="Leave a review">Laisser un avis</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- ==================== MODAL LAISSER UN AVIS ==================== -->
-    <div class="modal-overlay" id="avisModal">
-        <div class="avis-modal">
-            <button type="button" class="modal-close" id="closeAvisModalBtn">&times;</button>
-            <h3 data-fr="Partagez votre expérience" data-en="Share your experience">Partagez votre expérience</h3>
-            <form id="avisForm">
-                <div class="avis-form-group">
-                    <label data-fr="Votre nom" data-en="Your name">Votre nom</label>
-                    <input type="text" id="avisNom" required>
-                </div>
-                <div class="avis-form-group">
-                    <label data-fr="Votre note" data-en="Your rating">Votre note</label>
-                    <div class="star-rating" id="starRating">
-                        <i class="fas fa-star" data-value="1"></i>
-                        <i class="fas fa-star" data-value="2"></i>
-                        <i class="fas fa-star" data-value="3"></i>
-                        <i class="fas fa-star" data-value="4"></i>
-                        <i class="fas fa-star" data-value="5"></i>
+                    <div class="option-group" id="dwgOptionGroup">
+                        <input type="checkbox" class="option-check" id="optDWG" onchange="updatePrice()">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Fichier DWG (plomberie/électricité)" data-en="DWG File (plumbing/electrical)">Fichier DWG (plomberie/électricité)</div>
+                            <div class="option-desc" data-fr="Fichier technique modifiable (AutoCAD) indispensable pour vos artisans : plans de plomberie, câblage électrique, réseaux et exécution précise sur le chantier." data-en="Editable technical file (AutoCAD) essential for your contractors: plumbing layout, electrical wiring, networks and precise on-site execution.">Fichier technique modifiable (AutoCAD) indispensable pour vos artisans : plans de plomberie, câblage électrique, réseaux et exécution précise sur le chantier.</div>
+                            <div class="option-price" id="dwgPrice">+ 0 FCFA</div>
+                        </div>
                     </div>
-                    <input type="hidden" id="avisNote" value="0">
-                </div>
-                <div class="avis-form-group">
-                    <label data-fr="Votre commentaire" data-en="Your comment">Votre commentaire</label>
-                    <textarea id="avisCommentaire" required></textarea>
-                </div>
-                <button type="submit" class="btn-or avis-submit-btn" id="avisSubmitBtn" data-fr="Envoyer" data-en="Submit">Envoyer</button>
-            </form>
-        </div>
-    </div>
 
-    <!-- ==================== FOOTER ==================== -->
-    <footer class="bg-noir py-16">
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPhysique" onchange="toggleRegionSelect(); updatePrice();">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Dossier physique imprimé + livraison" data-en="Printed folder + delivery">Dossier physique imprimé + livraison</div>
+                            <div class="option-desc" data-fr="Impression couleur et livraison (Yaoundé) ou expédition (autres villes) dans tout le Cameroun." data-en="Color printing and delivery (Yaoundé) or shipping (other cities) throughout Cameroon.">Impression couleur et livraison (Yaoundé) ou expédition (autres villes) dans tout le Cameroun.</div>
+                            <div class="option-price" data-fr="Frais à confirmer" data-en="Fees to be confirmed">Frais à confirmer</div>
+
+                            <div class="region-select" id="regionSelect">
+                                <select id="regionSelectInput" onchange="deliveryAddressConfirmed=false; updatePrice();">
+                                    <option value="">Sélectionner une ville</option>
+                                    <option value="douala">Douala</option>
+                                    <option value="yaounde">Yaoundé</option>
+                                    <option value="buea">Buéa</option>
+                                    <option value="limbe">Limbé</option>
+                                    <option value="kumba">Kumba</option>
+                                    <option value="bamenda">Bamenda</option>
+                                    <option value="bafoussam">Bafoussam</option>
+                                    <option value="garoua">Garoua</option>
+                                    <option value="maroua">Maroua</option>
+                                </select>
+                            </div>
+                            <div class="region-select" id="physiqueAddressForm">
+                                <div class="form-group" style="margin-top:1rem;">
+                                    <label class="form-label" data-fr="Adresse complète de livraison" data-en="Full delivery address">Adresse complète de livraison</label>
+                                    <textarea class="form-textarea" id="livraisonAdresse" style="min-height:80px;" oninput="deliveryAddressConfirmed=false;" placeholder="Quartier, rue, points de repère..." data-fr-placeholder="Quartier, rue, points de repère..." data-en-placeholder="District, street, landmarks..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-fr="Ville" data-en="City">Ville</label>
+                                    <input type="text" class="form-input" id="livraisonVille" oninput="deliveryAddressConfirmed=false;" placeholder="Ex : Douala" data-fr-placeholder="Ex : Douala" data-en-placeholder="E.g. Douala">
+                                </div>
+                                <button type="button" class="btn-secondary delivery-confirm-btn" onclick="confirmDeliveryAddress()" data-fr="Valider mon adresse" data-en="Confirm my address">Valider mon adresse</button>
+                                <div class="delivery-confirmed-note" id="deliveryConfirmedNote" data-fr="Adresse enregistrée. Notre service client vous contactera pour les frais, et vous recevrez le dossier numérique par email." data-en="Address saved. Our customer service will contact you for the fees, and you'll receive the digital folder by email.">Adresse enregistrée. Notre service client vous contactera pour les frais, et vous recevrez le dossier numérique par email.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <input type="checkbox" class="option-check" id="optPersonnalisation" onchange="toggleCustomizeForm(); updatePrice();">
+                        <div class="option-content">
+                            <div class="option-label" data-fr="Personnalisation sur mesure" data-en="Custom customization">Personnalisation sur mesure</div>
+                            <div class="option-desc" data-fr="Demandez une modification du plan selon vos besoins. L'architecte vous contactera pour déterminer le coût exact." data-en="Request a plan modification to your needs. The architect will contact you to determine the exact cost.">Demandez une modification du plan selon vos besoins. L'architecte vous contactera pour déterminer le coût exact.</div>
+                            <div class="option-price" data-fr="Tarif à définir" data-en="Price to be determined">Tarif à définir</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="price-section reveal">
+                    <div class="price-row"><span data-fr="Plan de base" data-en="Base plan">Plan de base</span><span><span id="promoOldPriceInline" style="text-decoration:line-through;color:var(--gris-clair);margin-right:6px;display:none;"></span><span id="basePriceDisplay">0 FCFA</span></span></div>
+                    <div class="price-row" id="dwgPriceRow" style="display:none;"><span data-fr="DWG supplémentaire" data-en="Additional DWG">DWG supplémentaire</span><span id="dwgAddPrice">0 FCFA</span></div>
+                    <div class="price-row" id="physiquePriceRow" style="display:none;"><span data-fr="Dossier + livraison/expédition" data-en="Folder + delivery/shipping">Dossier + livraison/expédition</span><span id="physiqueAddPrice" data-fr="Frais à confirmer" data-en="Fees to confirm">Frais à confirmer</span></div>
+                    <div class="price-row total"><span data-fr="Total" data-en="Total">Total</span><span id="totalPrice">0 FCFA</span></div>
+                </div>
+
+                <button class="btn-primary" id="buyBtn" onclick="addToCart()" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+                <button class="btn-secondary" onclick="goToCatalog()" data-fr="Continuer le catalogue" data-en="Continue shopping">Continuer le catalogue</button>
+
+                <div class="customize-form" id="customizeForm">
+                    <div class="form-note" data-fr="L'architecte vous contactera pour définir le coût exact en fonction de vos modifications. Remplissez le formulaire ci-dessous." data-en="The architect will contact you to determine the exact cost based on your modifications. Fill in the form below.">L'architecte vous contactera pour définir le coût exact en fonction de vos modifications. Remplissez le formulaire ci-dessous.</div>
+                    <div class="form-group"><label class="form-label" data-fr="Nom complet" data-en="Full name">Nom complet</label><input type="text" class="form-input" id="formName" required></div>
+                    <div class="form-group"><label class="form-label" data-fr="Email" data-en="Email">Email</label><input type="email" class="form-input" id="formEmail" required></div>
+                    <div class="form-group"><label class="form-label" data-fr="Téléphone" data-en="Phone">Téléphone</label><input type="tel" class="form-input" id="formPhone" required></div>
+                    <div class="form-group">
+                        <label class="form-label" data-fr="Modifications souhaitées" data-en="Desired modifications">Modifications souhaitées</label>
+                        <textarea class="form-textarea" id="formModifications" required placeholder="Décrivez les modifications que vous souhaitez apporter au plan..." data-fr-placeholder="Décrivez les modifications que vous souhaitez apporter au plan..." data-en-placeholder="Describe the modifications you would like to make to the plan..."></textarea>
+                    </div>
+                    <button class="btn-primary" onclick="sendCustomizeEmail()" data-fr="Envoyer la demande" data-en="Submit request">Envoyer la demande</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SECTION AVIS ==================== -->
+    <section class="section-block reveal">
+        <h2 class="section-heading" data-fr="Avis clients" data-en="Customer Reviews">Avis clients</h2>
+        <div class="avis-grid" id="avisList">
+            <div class="avis-empty" data-fr="Chargement des avis..." data-en="Loading reviews...">Chargement des avis...</div>
+        </div>
+
+        <div class="avis-form">
+            <h3 data-fr="Laissez votre avis sur ce plan" data-en="Leave a review for this plan">Laissez votre avis sur ce plan</h3>
+            <div class="star-picker" id="starPicker">
+                <i class="fas fa-star" data-value="1"></i>
+                <i class="fas fa-star" data-value="2"></i>
+                <i class="fas fa-star" data-value="3"></i>
+                <i class="fas fa-star" data-value="4"></i>
+                <i class="fas fa-star" data-value="5"></i>
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-fr="Votre nom" data-en="Your name">Votre nom</label>
+                <input type="text" class="form-input" id="avisNom" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-fr="Votre commentaire" data-en="Your comment">Votre commentaire</label>
+                <textarea class="form-textarea" id="avisCommentaire" required placeholder="Partagez votre expérience avec ce plan..." data-fr-placeholder="Partagez votre expérience avec ce plan..." data-en-placeholder="Share your experience with this plan..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="submitAvis()" data-fr="Envoyer mon avis" data-en="Submit my review">Envoyer mon avis</button>
+            <div class="avis-form-msg" id="avisFormMsg"></div>
+        </div>
+    </section>
+
+    <!-- ==================== PLANS SIMILAIRES ==================== -->
+    <section class="section-block reveal">
+        <h2 class="section-heading" data-fr="Plans similaires" data-en="Similar Plans">Plans similaires</h2>
+        <div class="similar-grid" id="similarGrid">
+            <div class="similar-empty" data-fr="Chargement..." data-en="Loading...">Chargement...</div>
+        </div>
+    </section>
+
+    <footer class="bg-noir py-16 mt-16">
         <div class="max-w-page mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                 <div>
                     <img src="images/logo.png" alt="Archiclick" class="h-10 mb-4">
-                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le marché camerounais et africain." data-en="Professional house plans for the Cameroonian and African market.">Plans de maison professionnels pour le marché camerounais et africain.</p>
+                    <p class="text-sm text-white/50" data-fr="Plans de maison professionnels pour le Cameroun." data-en="Professional house plans for Cameroon.">Plans de maison professionnels pour le Cameroun.</p>
                 </div>
                 <div>
                     <h4 class="text-or font-semibold mb-4 text-sm tracking-wider" data-fr="Navigation" data-en="Navigation">Navigation</h4>
@@ -720,7 +464,6 @@
                         <li><a href="index.html" class="footer-link" data-fr="Accueil" data-en="Home">Accueil</a></li>
                         <li><a href="catalogue.html" class="footer-link" data-fr="Catalogue" data-en="Catalog">Catalogue</a></li>
                         <li><a href="blog.html" class="footer-link" data-fr="Blog" data-en="Blog">Blog</a></li>
-                        <li><a href="a-propos.html" class="footer-link" data-fr="À propos" data-en="About">À propos</a></li>
                     </ul>
                 </div>
                 <div>
@@ -728,7 +471,6 @@
                     <ul class="space-y-2">
                         <li><a href="cgv.html" class="footer-link" data-fr="CGV" data-en="Terms">CGV</a></li>
                         <li><a href="confidentialite.html" class="footer-link" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a></li>
-                        <li><a href="contact.html" class="footer-link" data-fr="Contact" data-en="Contact">Contact</a></li>
                     </ul>
                 </div>
                 <div>
@@ -741,344 +483,583 @@
                 </div>
             </div>
             <div style="border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; text-align:center;">
-                <p class="text-white/40 text-sm" data-fr="© 2025 Archiclick - Tous droits réservés" data-en="© 2025 Archiclick - All rights reserved">© 2025 Archiclick - Tous droits réservés</p>
+                <p class="text-white/40 text-sm" data-fr="© 2026 Archiclick" data-en="© 2026 Archiclick">© 2026 Archiclick</p>
             </div>
         </div>
     </footer>
 
-    <!-- Supabase -->
+    <!-- ==================== LIGHTBOX ZOOM ==================== -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <button class="lightbox-close" id="lightboxCloseBtn"><i class="fas fa-times"></i></button>
+        <button class="lightbox-arrow prev" id="lightboxPrevBtn"><i class="fas fa-chevron-left"></i></button>
+        <div class="lightbox-img-wrap" id="lightboxImgWrap">
+            <img class="lightbox-img" id="lightboxImg" src="" alt="Vue agrandie">
+        </div>
+        <button class="lightbox-arrow next" id="lightboxNextBtn"><i class="fas fa-chevron-right"></i></button>
+        <span class="lightbox-counter" id="lightboxCounter">1 / 1</span>
+        <span class="zoom-hint" data-fr="Cliquez sur l'image pour zoomer" data-en="Click image to zoom">Cliquez sur l'image pour zoomer</span>
+    </div>
+
+    <!-- ==================== POPUP D'INFORMATION ==================== -->
+    <div class="info-modal-overlay" id="infoModalOverlay">
+        <div class="info-modal">
+            <button class="info-modal-close" id="infoModalCloseBtn"><i class="fas fa-times"></i></button>
+            <i class="fas fa-circle-check info-modal-icon"></i>
+            <h3 class="info-modal-title" id="infoModalTitle" data-fr="Demande enregistrée" data-en="Request saved">Demande enregistrée</h3>
+            <p class="info-modal-text" id="infoModalText"></p>
+            <button class="btn-primary" id="infoModalOkBtn" data-fr="Compris" data-en="Got it">Compris</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
 
     <script>
         (function() {
             let currentLang = localStorage.getItem('archiclick_lang') || 'fr';
-            let allPlans = [];
-            let bestSellerPlans = [];
-            let promoPlans = [];
-            let nouveauPlans = [];
+            let currentPlan = null;
+            let basePrice = 0;
+            let dwgCost = 0;
+            let slideImages = [];
             let currentSlide = 0;
-            let autoplayInterval;
-            let selectedNote = 0;
+            let lightboxIndex = 0;
+            let selectedRating = 0;
+            let deliveryAddressConfirmed = false;
 
-            /* ---- CAROUSEL ---- */
-            function show(n) {
-                const slides = document.querySelectorAll('.hero-slide');
-                const dots = document.querySelectorAll('.hero-dot');
-                if (n >= slides.length) currentSlide = 0;
-                if (n < 0) currentSlide = slides.length - 1;
-                slides.forEach(s => s.classList.remove('active'));
-                dots.forEach(d => d.classList.remove('active'));
-                slides[currentSlide].classList.add('active');
-                dots[currentSlide].classList.add('active');
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init('wAe0yWf88bXZbKdnl');
+            } else {
+                console.warn('EmailJS non chargé — le formulaire de personnalisation sera indisponible, mais le reste de la page fonctionne normalement.');
             }
 
-            function nextSlide() {
-                currentSlide++;
-                show(currentSlide);
-                clearInterval(autoplayInterval);
-                startAuto();
+            const urlParams = new URLSearchParams(window.location.search);
+            const planId = urlParams.get('id');
+
+            if (!planId) {
+                document.body.innerHTML = '<div style="text-align:center;padding:5rem 2rem;font-family:Inter,sans-serif;">Erreur : aucun identifiant de plan fourni dans l\'URL.</div>';
+                return;
             }
 
-            function prevSlide() {
-                currentSlide--;
-                show(currentSlide);
-                clearInterval(autoplayInterval);
-                startAuto();
-            }
-
-            function goSlide(n) {
-                currentSlide = n;
-                show(currentSlide);
-                clearInterval(autoplayInterval);
-                startAuto();
-            }
-
-            function startAuto() {
-                autoplayInterval = setInterval(() => {
-                    currentSlide++;
-                    show(currentSlide);
-                }, 5000);
-            }
-
-            window.nextSlide = nextSlide;
-            window.prevSlide = prevSlide;
-            window.goSlide = goSlide;
-
-            /* ---- NAVBAR SCROLL ---- */
-            const navbar = document.getElementById('navbar');
-            window.addEventListener('scroll', () => {
-                const heroCarousel = document.querySelector('.hero-carousel');
-                const carouselBottom = heroCarousel.offsetHeight;
-                if (window.scrollY > carouselBottom - 100) {
-                    navbar.classList.remove('text-light');
-                    navbar.classList.add('text-dark', 'scrolled-light');
-                } else {
-                    navbar.classList.remove('text-dark', 'scrolled-light');
-                    navbar.classList.add('text-light');
+            async function loadPlan() {
+                try {
+                    const { data, error } = await supabase.from('plans').select('*').eq('id', planId).single();
+                    if (error) throw error;
+                    if (!data) {
+                        document.body.innerHTML = '<div style="text-align:center;padding:5rem 2rem;font-family:Inter,sans-serif;">Ce plan n\'existe pas ou a été retiré.</div>';
+                        return;
+                    }
+                    currentPlan = data;
+                    // Prix promo pris en compte partout où le prix de base est utilisé
+                    // (plan-detail, panier, confirmation) — dès que en_promo est actif
+                    // et qu'un prix_promo valide est renseigné.
+                    const isOnPromo = !!(data.en_promo && data.prix_promo && data.prix_promo < data.prix_base);
+                    basePrice = isOnPromo ? data.prix_promo : (data.prix_base || 0);
+                    currentPlan._isOnPromo = isOnPromo;
+                    currentPlan._prixOriginal = data.prix_base || 0;
+                    renderPlan();
+                    setLang(currentLang);
+                    loadAvis();
+                    loadSimilarPlans();
+                } catch (err) {
+                    console.error('Erreur chargement plan:', err);
+                    document.body.innerHTML = '<div style="text-align:center;padding:5rem 2rem;font-family:Inter,sans-serif;color:#ef4444;">Erreur au chargement du plan : ' + (err.message || 'inconnue') + '</div>';
                 }
+            }
+
+            function buildExtraMeta(p) {
+                const items = [];
+                if (p.nombre_sejours) items.push(`<div class="spec-item"><i class="fas fa-couch spec-icon"></i><div class="spec-text"><span class="spec-value">${p.nombre_sejours}</span><span class="spec-label" data-fr="séjour(s)" data-en="living room(s)">séjour(s)</span></div></div>`);
+                if (p.nombre_garages) items.push(`<div class="spec-item"><i class="fas fa-warehouse spec-icon"></i><div class="spec-text"><span class="spec-value">${p.nombre_garages}</span><span class="spec-label" data-fr="garage(s)" data-en="garage(s)">garage(s)</span></div></div>`);
+                if (p.surface_terrain_min) items.push(`<div class="spec-item"><i class="fas fa-vector-square spec-icon"></i><div class="spec-text"><span class="spec-value">${p.surface_terrain_min} m²</span><span class="spec-label" data-fr="terrain min." data-en="min. land">terrain min.</span></div></div>`);
+                if (p.piscine) items.push(`<div class="spec-item"><i class="fas fa-water spec-icon"></i><div class="spec-text"><span class="spec-value">&nbsp;</span><span class="spec-label" data-fr="Piscine" data-en="Pool">Piscine</span></div></div>`);
+                if (p.buanderie) items.push(`<div class="spec-item"><i class="fas fa-soap spec-icon"></i><div class="spec-text"><span class="spec-value">&nbsp;</span><span class="spec-label" data-fr="Buanderie" data-en="Laundry room">Buanderie</span></div></div>`);
+                if (p.terrasse_balcon) items.push(`<div class="spec-item"><i class="fas fa-door-open spec-icon"></i><div class="spec-text"><span class="spec-value">&nbsp;</span><span class="spec-label" data-fr="Terrasse / Balcon" data-en="Terrace / Balcony">Terrasse / Balcon</span></div></div>`);
+                if (p.style_architectural) items.push(`<div class="spec-item"><i class="fas fa-drafting-compass spec-icon"></i><div class="spec-text"><span class="spec-value">${p.style_architectural}</span><span class="spec-label" data-fr="style" data-en="style">style</span></div></div>`);
+                return items.join('');
+            }
+
+            function renderPlan() {
+                if (!currentPlan) return;
+                document.getElementById('planTitle').textContent = currentPlan.titre || 'Plan sans titre';
+                document.getElementById('planTypeLabel').textContent = currentPlan.type_batiment || '';
+                document.getElementById('planReference').textContent = currentPlan.reference ? 'Réf. ' + currentPlan.reference : '';
+                document.getElementById('planEtages').textContent = currentPlan.nombre_etages || '?';
+                document.getElementById('planChambres').textContent = currentPlan.chambres || '?';
+                document.getElementById('planSdb').textContent = currentPlan.nombre_salles_eau || '?';
+                document.getElementById('planSurface').textContent = currentPlan.surface_habitable || '?';
+                document.getElementById('planDesc').textContent = currentPlan.description || 'Découvrez ce magnifique plan d\'architecture.';
+                document.getElementById('planExtraMeta').innerHTML = buildExtraMeta(currentPlan);
+
+                // Badge et ancien prix barré si le plan est en promotion
+                if (currentPlan._isOnPromo) {
+                    const pct = Math.round((1 - (currentPlan.prix_promo / currentPlan._prixOriginal)) * 100);
+                    const badgeEl = document.getElementById('promoBadgeDetail');
+                    badgeEl.textContent = '-' + pct + '%';
+                    badgeEl.style.display = 'inline-block';
+
+                    const oldPriceEl = document.getElementById('promoOldPriceInline');
+                    oldPriceEl.textContent = currentPlan._prixOriginal.toLocaleString('fr-FR') + ' FCFA';
+                    oldPriceEl.style.display = 'inline';
+                }
+
+                if (!currentPlan.fichier_dwg) {
+                    document.getElementById('dwgOptionGroup').style.display = 'none';
+                }
+
+                // Badge Nouveau (moins de 30 jours)
+                if (currentPlan.created_at) {
+                    const daysSince = (Date.now() - new Date(currentPlan.created_at).getTime()) / (1000 * 60 * 60 * 24);
+                    if (daysSince <= 30) document.getElementById('newBadge').style.display = 'block';
+                }
+
+                slideImages = (currentPlan.images && currentPlan.images.length) ? currentPlan.images : ['https://placehold.co/800x600/eae3db/b0b0b0?text=Plan'];
+                renderCarousel();
+
+                updatePrice();
+                observeReveals();
+            }
+
+            /* ---- CARROUSEL PRINCIPAL AVEC BOUTONS + ZOOM + SWIPE ---- */
+            function renderCarousel() {
+                const frame = document.getElementById('carouselFrame');
+                frame.querySelectorAll('.carousel-slide').forEach(el => el.remove());
+
+                slideImages.forEach((img, i) => {
+                    const el = document.createElement('img');
+                    el.src = img;
+                    el.className = 'carousel-slide' + (i === 0 ? ' active' : '');
+                    el.alt = currentPlan.titre + ' - image ' + (i + 1);
+                    el.addEventListener('click', () => openLightbox(i));
+                    frame.insertBefore(el, frame.querySelector('.carousel-arrow'));
+                });
+
+                currentSlide = 0;
+                updateCarouselCounter();
+
+                document.getElementById('thumbnails').innerHTML = slideImages.map((img, i) =>
+                    `<img src="${img}" class="thumb ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})" alt="Miniature ${i + 1}">`
+                ).join('');
+
+                addSwipe(frame, nextSlide, prevSlide);
+            }
+
+            function updateCarouselCounter() {
+                document.getElementById('carouselCounter').textContent = (currentSlide + 1) + ' / ' + slideImages.length;
+                document.querySelectorAll('.carousel-slide').forEach((el, i) => el.classList.toggle('active', i === currentSlide));
+                document.querySelectorAll('.thumb').forEach((el, i) => el.classList.toggle('active', i === currentSlide));
+            }
+
+            window.nextSlide = function() {
+                currentSlide = (currentSlide + 1) % slideImages.length;
+                updateCarouselCounter();
+            };
+            window.prevSlide = function() {
+                currentSlide = (currentSlide - 1 + slideImages.length) % slideImages.length;
+                updateCarouselCounter();
+            };
+            window.goToSlide = function(i) {
+                currentSlide = i;
+                updateCarouselCounter();
+            };
+
+            /* ---- SWIPE TACTILE (mobile) ---- */
+            function addSwipe(el, onSwipeLeft, onSwipeRight) {
+                let startX = 0;
+                el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+                el.addEventListener('touchend', e => {
+                    const diff = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(diff) > 40) { diff < 0 ? onSwipeLeft() : onSwipeRight(); }
+                }, { passive: true });
+            }
+
+            /* ---- LIGHTBOX / ZOOM ---- */
+            const lightboxOverlay = document.getElementById('lightboxOverlay');
+            const lightboxImg = document.getElementById('lightboxImg');
+
+            function openLightbox(index) {
+                lightboxIndex = index;
+                updateLightbox();
+                lightboxOverlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeLightbox() {
+                lightboxOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+            function updateLightbox() {
+                lightboxImg.src = slideImages[lightboxIndex];
+                lightboxImg.classList.remove('zoomed');
+                document.getElementById('lightboxCounter').textContent = (lightboxIndex + 1) + ' / ' + slideImages.length;
+            }
+            function nextLightbox() { lightboxIndex = (lightboxIndex + 1) % slideImages.length; updateLightbox(); }
+            function prevLightbox() { lightboxIndex = (lightboxIndex - 1 + slideImages.length) % slideImages.length; updateLightbox(); }
+
+            document.getElementById('zoomBtn').addEventListener('click', () => openLightbox(currentSlide));
+            document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
+            document.getElementById('lightboxNextBtn').addEventListener('click', nextLightbox);
+            document.getElementById('lightboxPrevBtn').addEventListener('click', prevLightbox);
+            lightboxImg.addEventListener('click', () => lightboxImg.classList.toggle('zoomed'));
+            lightboxOverlay.addEventListener('click', (e) => { if (e.target === lightboxOverlay) closeLightbox(); });
+            document.addEventListener('keydown', (e) => {
+                if (!lightboxOverlay.classList.contains('open')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowRight') nextLightbox();
+                if (e.key === 'ArrowLeft') prevLightbox();
+            });
+            addSwipe(document.getElementById('lightboxImgWrap'), nextLightbox, prevLightbox);
+
+            /* ---- POPUP D'INFORMATION GÉNÉRIQUE ---- */
+            const infoModalOverlay = document.getElementById('infoModalOverlay');
+            function showInfoModal(text) {
+                document.getElementById('infoModalText').textContent = text;
+                infoModalOverlay.classList.add('open');
+            }
+            function closeInfoModal() { infoModalOverlay.classList.remove('open'); }
+            document.getElementById('infoModalCloseBtn').addEventListener('click', closeInfoModal);
+            document.getElementById('infoModalOkBtn').addEventListener('click', closeInfoModal);
+            infoModalOverlay.addEventListener('click', (e) => { if (e.target === infoModalOverlay) closeInfoModal(); });
+
+            /* ---- PARTAGER ---- */
+            window.sharePlan = function() {
+                const url = window.location.href;
+                if (navigator.share) {
+                    navigator.share({ title: currentPlan.titre, url: url }).catch(() => {});
+                } else {
+                    navigator.clipboard.writeText(url);
+                    alert(currentLang === 'fr' ? 'Lien copié !' : 'Link copied!');
+                }
+            };
+
+            /* ---- PRIX & OPTIONS ---- */
+            function updatePrice() {
+                dwgCost = document.getElementById('optDWG').checked ? (currentPlan.supplement_dwg || 0) : 0;
+                const physiqueChecked = document.getElementById('optPhysique').checked;
+
+                const subtotal = basePrice + dwgCost;
+
+                document.getElementById('basePriceDisplay').textContent = basePrice.toLocaleString('fr-FR') + ' FCFA';
+
+                if (dwgCost > 0) {
+                    document.getElementById('dwgPriceRow').style.display = 'flex';
+                    document.getElementById('dwgAddPrice').textContent = '+ ' + dwgCost.toLocaleString('fr-FR') + ' FCFA';
+                    document.getElementById('dwgPrice').textContent = '+ ' + dwgCost.toLocaleString('fr-FR') + ' FCFA';
+                } else {
+                    document.getElementById('dwgPriceRow').style.display = 'none';
+                }
+
+                // Le dossier physique n'a pas de prix fixe : les frais sont confirmés par le service client
+                document.getElementById('physiquePriceRow').style.display = physiqueChecked ? 'flex' : 'none';
+
+                document.getElementById('totalPrice').textContent = Math.max(0, subtotal).toLocaleString('fr-FR') + ' FCFA';
+            }
+
+            window.toggleRegionSelect = function() {
+                const show = document.getElementById('optPhysique').checked;
+                document.getElementById('regionSelect').classList.toggle('show', show);
+                document.getElementById('physiqueAddressForm').classList.toggle('show', show);
+                if (!show) {
+                    deliveryAddressConfirmed = false;
+                    document.getElementById('deliveryConfirmedNote').classList.remove('show');
+                }
+            };
+            window.toggleCustomizeForm = function() {
+                document.getElementById('customizeForm').classList.toggle('show', document.getElementById('optPersonnalisation').checked);
+            };
+
+            /* ---- VALIDATION DE L'ADRESSE DE LIVRAISON / EXPÉDITION ---- */
+            window.confirmDeliveryAddress = function() {
+                const region = document.getElementById('regionSelectInput').value;
+                const adresse = document.getElementById('livraisonAdresse').value.trim();
+                const ville = document.getElementById('livraisonVille').value.trim();
+
+                if (!region) {
+                    alert(currentLang === 'fr' ? 'Merci de sélectionner une ville de livraison.' : 'Please select a delivery city.');
+                    document.getElementById('regionSelectInput').focus();
+                    return;
+                }
+                if (!adresse || !ville) {
+                    alert(currentLang === 'fr' ? 'Merci de renseigner votre adresse complète et votre ville.' : 'Please provide your full address and city.');
+                    document.getElementById('livraisonAdresse').focus();
+                    return;
+                }
+
+                deliveryAddressConfirmed = true;
+                const isYaounde = region === 'yaounde';
+
+                const noteEl = document.getElementById('deliveryConfirmedNote');
+                noteEl.classList.add('show');
+
+                const msg = currentLang === 'fr'
+                    ? (isYaounde
+                        ? "Votre adresse a bien été enregistrée. Notre service client vous contactera très prochainement pour vous communiquer les frais d'impression et de livraison. Vous recevrez également le dossier numérique complet par email."
+                        : "Votre adresse a bien été enregistrée. Notre service client vous contactera très prochainement pour vous communiquer les frais d'impression et d'expédition. Vous recevrez également le dossier numérique complet par email.")
+                    : (isYaounde
+                        ? "Your address has been saved. Our customer service team will contact you shortly to confirm the printing and delivery fees. You will also receive the complete digital folder by email."
+                        : "Your address has been saved. Our customer service team will contact you shortly to confirm the printing and shipping fees. You will also receive the complete digital folder by email.");
+
+                showInfoModal(msg);
+                updatePrice();
+            };
+
+            window.addToCart = function() {
+                if (document.getElementById('optPersonnalisation').checked) {
+                    document.getElementById('customizeForm').scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
+
+                if (document.getElementById('optPhysique').checked && !deliveryAddressConfirmed) {
+                    alert(currentLang === 'fr' ? 'Merci de valider votre adresse de livraison avant d\'ajouter au panier.' : 'Please confirm your delivery address before adding to cart.');
+                    document.getElementById('physiqueAddressForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                const options = {
+                    pdf: true,
+                    dwg: document.getElementById('optDWG').checked,
+                    physique: document.getElementById('optPhysique').checked,
+                    region: document.getElementById('optPhysique').checked ? document.getElementById('regionSelectInput').value : null,
+                    livraison_adresse: document.getElementById('optPhysique').checked ? document.getElementById('livraisonAdresse').value.trim() : null,
+                    livraison_ville: document.getElementById('optPhysique').checked ? document.getElementById('livraisonVille').value.trim() : null,
+                    physique_frais_a_confirmer: document.getElementById('optPhysique').checked
+                };
+                const prix = parseFloat(document.getElementById('totalPrice').textContent.replace(/\s|FCFA/g, ''));
+                const item = {
+                    plan_id: planId, titre: currentPlan.titre, options, prix, date: new Date().toISOString(),
+                    // Infos promo transmises pour affichage (prix barré) dans panier.html et confirmation.html
+                    en_promo: !!currentPlan._isOnPromo,
+                    prix_original_base: currentPlan._isOnPromo ? currentPlan._prixOriginal : null
+                };
+                let panier = JSON.parse(localStorage.getItem('panier') || '[]');
+                panier.push(item);
+                localStorage.setItem('panier', JSON.stringify(panier));
+                alert(currentLang === 'fr' ? 'Ajouté au panier !' : 'Added to cart!');
+                window.location.href = 'panier.html';
+            };
+
+            window.sendCustomizeEmail = async function() {
+                const name = document.getElementById('formName').value.trim();
+                const email = document.getElementById('formEmail').value.trim();
+                const phone = document.getElementById('formPhone').value.trim();
+                const mods = document.getElementById('formModifications').value.trim();
+                if (!name || !email || !phone || !mods) {
+                    alert(currentLang === 'fr' ? 'Tous les champs sont requis' : 'All fields are required');
+                    return;
+                }
+
+                // 1. Enregistrement du client dans la base (créé seulement s'il n'existe pas déjà)
+                // 2. Enregistrement de la demande sur mesure dans demandes_sur_mesure — c'est ce qui la fait
+                //    apparaître dans l'admin (db-demandes) pour traitement et réponse rapide au client
+                //
+                // CORRECTIF : la table demandes_sur_mesure a des colonnes historiques NOT NULL
+                // (nom, email) en plus des colonnes utilisées par le dashboard admin
+                // (client_nom, client_email, client_tel...) — on remplit les deux jeux, comme
+                // sur contact.html, pour éviter l'erreur 23502.
+                try {
+                    const { data: existingClient } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
+                    if (!existingClient) {
+                        await supabase.from('clients').insert([{ nom: name, email: email, telephone: phone }]);
+                    }
+
+                    const { error: demandeError } = await supabase.from('demandes_sur_mesure').insert([{
+                        // Colonnes historiques obligatoires (NOT NULL)
+                        nom: name,
+                        email: email,
+                        telephone: phone,
+
+                        // Colonnes utilisées par le dashboard admin (db-demandes.html)
+                        client_nom: name,
+                        client_email: email,
+                        client_tel: phone,
+                        plan_id: planId,
+                        plan_titre: currentPlan.titre,
+                        modifications: mods,
+                        statut: 'nouvelle',
+                        historique: [{ date: new Date().toISOString(), admin: 'Client (site web)', action: 'Nouvelle demande soumise via le site' }]
+                    }]);
+                    if (demandeError) throw demandeError;
+                } catch (err) {
+                    console.error('Erreur enregistrement demande:', err);
+                    alert(currentLang === 'fr' ? 'Erreur lors de l\'enregistrement de votre demande. Merci de réessayer.' : 'Error saving your request. Please try again.');
+                    return;
+                }
+
+                // L'email est secondaire : s'il échoue, la demande est déjà enregistrée côté admin
+                try {
+                    if (typeof emailjs !== 'undefined') {
+                        await emailjs.send('service_kwivmyg', 'template_k6pwdx9', {
+                            to_email: 'archiclick@gmail.com', client_name: name, client_email: email,
+                            client_phone: phone, plan_name: currentPlan.titre, modifications: mods
+                        });
+                    }
+                } catch (emailErr) {
+                    console.warn('Email de notification non envoyé (la demande est tout de même enregistrée) :', emailErr);
+                }
+
+                alert(currentLang === 'fr' ? 'Demande envoyée ! L\'architecte vous contactera sous peu.' : 'Request sent!');
+                document.getElementById('customizeForm').classList.remove('show');
+                document.getElementById('optPersonnalisation').checked = false;
+                document.getElementById('formName').value = '';
+                document.getElementById('formEmail').value = '';
+                document.getElementById('formPhone').value = '';
+                document.getElementById('formModifications').value = '';
+            };
+
+            window.goToCatalog = function() { window.location.href = 'catalogue.html'; };
+
+            /* ================== AVIS CLIENTS ================== */
+            async function loadAvis() {
+                const { data, error } = await supabase
+                    .from('avis')
+                    .select('*')
+                    .eq('plan_id', planId)
+                    .eq('statut', 'publie')
+                    .order('date_avis', { ascending: false });
+
+                const container = document.getElementById('avisList');
+
+                if (error) {
+                    container.innerHTML = `<div class="avis-empty">Impossible de charger les avis.</div>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<div class="avis-empty" data-fr="Aucun avis pour le moment. Soyez le premier à donner votre avis !" data-en="No reviews yet. Be the first to leave one!">Aucun avis pour le moment. Soyez le premier à donner votre avis !</div>`;
+                    document.getElementById('ratingSummary').style.display = 'none';
+                    return;
+                }
+
+                // Note moyenne
+                const avg = data.reduce((s, a) => s + (a.note || 0), 0) / data.length;
+                document.getElementById('ratingStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+                document.getElementById('ratingText').textContent = avg.toFixed(1) + ' (' + data.length + (currentLang === 'fr' ? ' avis)' : ' reviews)');
+                document.getElementById('ratingSummary').style.display = 'flex';
+
+                container.innerHTML = data.map(a => `
+                    <div class="avis-card">
+                        <i class="fas fa-quote-right quote-icon"></i>
+                        <div class="avis-stars">${'★'.repeat(a.note || 0)}${'☆'.repeat(5 - (a.note || 0))}</div>
+                        <div class="avis-comment">${escapeHtml(a.commentaire)}</div>
+                        <div class="avis-footer">
+                            <div class="avis-avatar">${escapeHtml((a.client_nom || 'C').trim().charAt(0).toUpperCase())}</div>
+                            <div>
+                                <div class="avis-client">${escapeHtml(a.client_nom || 'Client')}</div>
+                                <div class="avis-date">${a.date_avis ? new Date(a.date_avis).toLocaleDateString('fr-FR') : ''}</div>
+                            </div>
+                        </div>
+                        ${a.reponse ? `<div class="avis-reponse"><strong>Réponse d'Archiclick</strong>${escapeHtml(a.reponse)}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+
+            // Sélecteur d'étoiles
+            document.getElementById('starPicker').addEventListener('click', (e) => {
+                const star = e.target.closest('i');
+                if (!star) return;
+                selectedRating = parseInt(star.dataset.value);
+                document.querySelectorAll('#starPicker i').forEach(s => {
+                    s.classList.toggle('selected', parseInt(s.dataset.value) <= selectedRating);
+                });
             });
 
-            /* ---- REVEAL AU SCROLL ---- */
-            function observeNewReveals() {
-                const reveals = document.querySelectorAll('.reveal');
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
-                        }
-                    });
-                }, { threshold: 0.1 });
-                reveals.forEach(el => observer.observe(el));
+            window.submitAvis = async function() {
+                const nom = document.getElementById('avisNom').value.trim();
+                const commentaire = document.getElementById('avisCommentaire').value.trim();
+                const msgEl = document.getElementById('avisFormMsg');
+                msgEl.textContent = ''; msgEl.className = 'avis-form-msg';
+
+                if (!nom || !commentaire || selectedRating === 0) {
+                    msgEl.textContent = currentLang === 'fr' ? 'Merci de remplir tous les champs et de choisir une note.' : 'Please fill all fields and select a rating.';
+                    msgEl.classList.add('error');
+                    return;
+                }
+
+                const { error } = await supabase.from('avis').insert([{
+                    plan_id: planId,
+                    client_nom: nom,
+                    note: selectedRating,
+                    commentaire: commentaire,
+                    statut: 'en_attente',
+                    date_avis: new Date().toISOString()
+                }]);
+
+                if (error) {
+                    msgEl.textContent = currentLang === 'fr' ? 'Erreur lors de l\'envoi de votre avis.' : 'Error submitting your review.';
+                    msgEl.classList.add('error');
+                    return;
+                }
+
+                msgEl.textContent = currentLang === 'fr'
+                    ? 'Merci ! Votre avis sera visible après validation par notre équipe.'
+                    : 'Thank you! Your review will appear once approved by our team.';
+                msgEl.classList.add('success');
+                document.getElementById('avisNom').value = '';
+                document.getElementById('avisCommentaire').value = '';
+                selectedRating = 0;
+                document.querySelectorAll('#starPicker i').forEach(s => s.classList.remove('selected'));
+            };
+
+            /* ================== PLANS SIMILAIRES ================== */
+            async function loadSimilarPlans() {
+                const container = document.getElementById('similarGrid');
+                try {
+                    const { data, error } = await supabase
+                        .from('plans')
+                        .select('id,titre,type_batiment,chambres,prix_base,images')
+                        .eq('actif', true)
+                        .eq('type_batiment', currentPlan.type_batiment)
+                        .neq('id', planId)
+                        .limit(4);
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = `<div class="similar-empty" data-fr="Aucun plan similaire pour l'instant." data-en="No similar plans yet.">Aucun plan similaire pour l'instant.</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = data.map(p => {
+                        const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/400x300/eae3db/b0b0b0?text=Plan';
+                        return `<a href="plan-detail.html?id=${p.id}" class="similar-card">
+                            <img src="${img}" alt="${p.titre}">
+                            <div class="similar-card-body">
+                                ${p.type_batiment ? `<span class="card-type" style="font-family:'Inter',sans-serif;font-size:.65rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--or);display:block;margin-bottom:.3rem;">${p.type_batiment}</span>` : ''}
+                                <div class="similar-card-title">${p.titre}</div>
+                                <div class="similar-card-price">${(p.prix_base || 0).toLocaleString('fr-FR')} FCFA</div>
+                            </div>
+                        </a>`;
+                    }).join('');
+                } catch (err) {
+                    console.error('Erreur plans similaires:', err);
+                    container.innerHTML = `<div class="similar-empty">Impossible de charger les plans similaires.</div>`;
+                }
             }
-            window.observeNewReveals = observeNewReveals;
 
             /* ---- LANGUE ---- */
             function setLang(lang) {
                 currentLang = lang;
                 localStorage.setItem('archiclick_lang', lang);
                 document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
-                document.querySelectorAll('[data-fr]').forEach(el => {
-                    el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en;
-                });
-                if (window.onLanguageChange) window.onLanguageChange();
+                document.querySelectorAll('[data-fr]').forEach(el => { el.textContent = lang === 'fr' ? el.dataset.fr : el.dataset.en; });
             }
+            window.toggleLanguage = function() { setLang(currentLang === 'fr' ? 'en' : 'fr'); };
 
-            function toggleLanguage() {
-                setLang(currentLang === 'fr' ? 'en' : 'fr');
-            }
-
-            window.toggleLanguage = toggleLanguage;
-            window.getAppLang = () => currentLang;
-
-            /* ---- MOBILE MENU ---- */
             function toggleMobileMenu() {
                 document.getElementById('mobileDrawer').classList.toggle('open');
                 document.getElementById('drawerOverlay').classList.toggle('open');
             }
             window.toggleMobileMenu = toggleMobileMenu;
 
-            /* ---- CHARGER PLANS + COMMANDES (POUR LES 3 SECTIONS) ---- */
-            async function loadPlans() {
-                try {
-                    const { data: plans, error: plansError } = await supabase.from('plans').select('*').eq('actif', true);
-                    if (plansError) throw plansError;
-                    allPlans = plans || [];
-
-                    /* Nouveautés : les 3 derniers plans ajoutés */
-                    nouveauPlans = [...allPlans]
-                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .slice(0, 3);
-
-                    /* Promotions : plans marqués en_promo */
-                    promoPlans = allPlans.filter(p => p.en_promo).slice(0, 4);
-
-                    /* Best-sellers : basé sur le nombre de commandes non annulées par plan */
-                    const { data: commandes, error: commandesError } = await supabase
-                        .from('commandes')
-                        .select('plan_id, statut')
-                        .neq('statut', 'annulee');
-                    if (commandesError) throw commandesError;
-
-                    const compteurVentes = {};
-                    (commandes || []).forEach(c => {
-                        if (!c.plan_id) return;
-                        compteurVentes[c.plan_id] = (compteurVentes[c.plan_id] || 0) + 1;
-                    });
-
-                    const idsTries = Object.keys(compteurVentes).sort((a, b) => compteurVentes[b] - compteurVentes[a]);
-                    bestSellerPlans = idsTries
-                        .map(id => allPlans.find(p => String(p.id) === String(id)))
-                        .filter(Boolean)
-                        .slice(0, 3);
-
-                    renderSections();
-                } catch (err) {
-                    console.error('Erreur:', err);
-                }
+            function observeReveals() {
+                const reveals = document.querySelectorAll('.reveal:not(.visible)');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+                }, { threshold: 0.1 });
+                reveals.forEach(el => observer.observe(el));
             }
 
-            function renderSections() {
-                renderCards('best-sellers', bestSellerPlans, 'bestseller');
-                renderCards('nouveautes', nouveauPlans, 'nouveau');
-                renderCards('promotions', promoPlans, 'promo');
-            }
-
-            function renderCards(id, plans, type) {
-                const c = document.getElementById(id);
-                if (!c) return;
-                if (!plans || !plans.length) {
-                    const msgs = {
-                        bestseller: currentLang === 'fr' ? 'Aucune vente enregistrée pour le moment' : 'No sales recorded yet',
-                        nouveau: currentLang === 'fr' ? 'Aucun plan disponible' : 'No plans available',
-                        promo: currentLang === 'fr' ? 'Aucune promotion en cours' : 'No promotions running'
-                    };
-                    c.innerHTML = '<div class="col-span-full text-center py-12">' + msgs[type] + '</div>';
-                    return;
-                }
-                const badge = type === 'nouveau' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Nouveau' : 'New') + '</div>'
-                    : type === 'bestseller' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Populaire' : 'Popular') + '</div>'
-                    : type === 'promo' ? '<div class="card-badge">' + (currentLang === 'fr' ? 'Promo' : 'Sale') + '</div>' : '';
-                const buy = currentLang === 'fr' ? 'Voir le plan' : 'View plan';
-                const et = currentLang === 'fr' ? 'ét.' : 'fl.';
-                const ch = currentLang === 'fr' ? 'ch.' : 'bdr';
-
-                c.innerHTML = plans.map(p => {
-                    const img = (p.images && p.images.length) ? p.images[0] : 'https://placehold.co/600x400/eae3db/b0b0b0?text=Plan';
-                    const prixHtml = (type === 'promo' && p.en_promo && p.prix_promo)
-                        ? '<span class="old-price">' + (p.prix_base || 0).toLocaleString('fr-FR') + '</span>' + (p.prix_promo || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>'
-                        : (p.prix_base || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>';
-
-                    // Animation d'attraction spécifique aux cartes de la section Promotions
-                    if (type === 'promo' && p.en_promo && p.prix_promo && p.prix_base) {
-                        const pct = Math.round((1 - (p.prix_promo / p.prix_base)) * 100);
-                        return '<div class="promo-card-wrap reveal">' +
-                            '<div class="promo-corner-tag">-' + pct + '%</div>' +
-                            '<div class="plan-card">' +
-                            '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
-                            '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +
-                            '<div class="card-meta"><span><i class="fas fa-layer-group meta-icon"></i>' + (p.etages || '?') + ' ' + et + '</span>' +
-                            '<span><i class="fas fa-bed meta-icon"></i>' + (p.chambres || '?') + ' ' + ch + '</span>' +
-                            '<span><i class="fas fa-bath meta-icon"></i>' + (p.sdb || '?') + ' sdb</span>' +
-                            '<span><i class="fas fa-ruler-combined meta-icon"></i>' + (p.surface_habitable || '?') + ' m²</span></div>' +
-                            '<div class="card-footer"><div class="card-price">' + prixHtml + '</div>' +
-                            '<a href="plan-detail.html?id=' + p.id + '" class="btn-outline" style="padding:10px 22px;font-size:.7rem;">' + buy + '</a></div></div></div></div>';
-                    }
-
-                    return '<div class="plan-card reveal">' +
-                        '<div class="card-img">' + badge + '<img src="' + img + '" alt="' + p.titre + '" loading="lazy"></div>' +
-                        '<div class="card-body"><h3 class="card-title">' + p.titre + '</h3>' +
-                        '<div class="card-meta"><span><i class="fas fa-layer-group meta-icon"></i>' + (p.etages || '?') + ' ' + et + '</span>' +
-                        '<span><i class="fas fa-bed meta-icon"></i>' + (p.chambres || '?') + ' ' + ch + '</span>' +
-                        '<span><i class="fas fa-bath meta-icon"></i>' + (p.sdb || '?') + ' sdb</span>' +
-                        '<span><i class="fas fa-ruler-combined meta-icon"></i>' + (p.surface_habitable || '?') + ' m²</span></div>' +
-                        '<div class="card-footer"><div class="card-price">' + prixHtml + '</div>' +
-                        '<a href="plan-detail.html?id=' + p.id + '" class="btn-outline" style="padding:10px 22px;font-size:.7rem;">' + buy + '</a></div></div></div>';
-                }).join('');
-                observeNewReveals();
-            }
-
-            /* ---- TÉMOIGNAGES PLATEFORME (depuis la table avis, plan_id NULL) ---- */
-            async function loadAvis() {
-                const c = document.getElementById('avis');
-                try {
-                    const { data, error } = await supabase
-                        .from('avis')
-                        .select('*')
-                        .is('plan_id', null)
-                        .eq('statut', 'publie')
-                        .order('date_avis', { ascending: false })
-                        .limit(6);
-                    if (error) throw error;
-                    renderAvis(data || []);
-                } catch (err) {
-                    console.error('Erreur:', err);
-                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Erreur au chargement des avis' : 'Error loading reviews') + '</div>';
-                }
-            }
-
-            function renderAvis(avisList) {
-                const c = document.getElementById('avis');
-                if (!avisList.length) {
-                    c.innerHTML = '<div class="col-span-full text-center py-12">' + (currentLang === 'fr' ? 'Aucun avis pour le moment. Soyez le premier à partager votre expérience !' : 'No reviews yet. Be the first to share your experience!') + '</div>';
-                    return;
-                }
-                c.innerHTML = avisList.map(a => {
-                    const etoiles = '★'.repeat(a.note || 0) + '☆'.repeat(5 - (a.note || 0));
-                    return '<div class="testimonial-card reveal"><div class="quote-mark">"</div>' +
-                        '<p class="testimonial-text">' + escapeHtml(a.commentaire || '') + '</p>' +
-                        '<span style="color:var(--or);letter-spacing:2px;">' + etoiles + '</span>' +
-                        '<p class="testimonial-author" style="margin-top:1.2rem;">— ' + escapeHtml(a.client_nom || '') + '</p></div>';
-                }).join('');
-                observeNewReveals();
-            }
-
-            function escapeHtml(str) {
-                const d = document.createElement('div');
-                d.textContent = str || '';
-                return d.innerHTML;
-            }
-
-            /* ---- MODAL LAISSER UN AVIS ---- */
-            const avisModal = document.getElementById('avisModal');
-            document.getElementById('openAvisModalBtn').addEventListener('click', () => {
-                avisModal.classList.add('open');
-            });
-            document.getElementById('closeAvisModalBtn').addEventListener('click', () => {
-                avisModal.classList.remove('open');
-            });
-            avisModal.addEventListener('click', (e) => {
-                if (e.target === avisModal) avisModal.classList.remove('open');
-            });
-
-            const stars = document.querySelectorAll('#starRating i');
-            stars.forEach(star => {
-                star.addEventListener('click', () => {
-                    selectedNote = parseInt(star.dataset.value, 10);
-                    document.getElementById('avisNote').value = selectedNote;
-                    stars.forEach(s => {
-                        s.classList.toggle('selected', parseInt(s.dataset.value, 10) <= selectedNote);
-                    });
-                });
-            });
-
-            document.getElementById('avisForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('avisSubmitBtn');
-                const nom = document.getElementById('avisNom').value.trim();
-                const commentaire = document.getElementById('avisCommentaire').value.trim();
-                const note = parseInt(document.getElementById('avisNote').value, 10);
-
-                if (!note) {
-                    alert(currentLang === 'fr' ? 'Merci de sélectionner une note.' : 'Please select a rating.');
-                    return;
-                }
-
-                btn.disabled = true;
-                btn.textContent = currentLang === 'fr' ? 'Envoi...' : 'Sending...';
-
-                try {
-                    const { error } = await supabase.from('avis').insert([{
-                        plan_id: null,
-                        client_nom: nom,
-                        note: note,
-                        commentaire: commentaire,
-                        statut: 'en_attente',
-                        date_avis: new Date().toISOString()
-                    }]);
-                    if (error) throw error;
-
-                    alert(currentLang === 'fr'
-                        ? 'Merci ! Votre avis sera publié après validation par notre équipe.'
-                        : 'Thank you! Your review will be published after our team validates it.');
-
-                    document.getElementById('avisForm').reset();
-                    selectedNote = 0;
-                    document.getElementById('avisNote').value = 0;
-                    stars.forEach(s => s.classList.remove('selected'));
-                    avisModal.classList.remove('open');
-                } catch (err) {
-                    console.error('Erreur:', err);
-                    alert(currentLang === 'fr' ? "Une erreur est survenue, réessayez." : 'An error occurred, please try again.');
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = currentLang === 'fr' ? 'Envoyer' : 'Submit';
-                }
-            });
-
-            window.onLanguageChange = function() {
-                renderSections();
-                loadAvis();
-            };
-
-            document.addEventListener('DOMContentLoaded', function() {
-                show(currentSlide);
-                startAuto();
-                loadPlans();
-                loadAvis();
-                setLang(currentLang);
-                observeNewReveals();
-            });
+            document.addEventListener('DOMContentLoaded', function() { loadPlan(); });
         })();
     </script>
 
