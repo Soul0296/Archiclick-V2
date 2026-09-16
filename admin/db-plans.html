@@ -458,8 +458,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 const BUCKET_IMAGES = 'plans-images';
 const BUCKET_FICHIERS = 'plans-fichiers'; // bucket privé
+const WATERMARK_TEXT = 'archiclick';
 
 let currentImages = [];
+let currentImagesOriginales = []; // chemins (bucket privé) des originaux, dans le même ordre que currentImages
 let newImageFiles = [];
 let newPdfFile = null;
 let newDwgFile = null;
@@ -471,6 +473,68 @@ const TYPE_ABBR = { villa: 'VIL', duplex: 'DUP', appartement: 'APP', studio: 'ST
 
 function sanitizeFileName(name) {
   return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.\-]/g, '_');
+}
+
+/* ==========================================================================
+   FILIGRANE AUTOMATIQUE (catalogue / carrousel)
+   Dès qu'une image est ajoutée, le site :
+   1) dessine le filigrane "archiclick" répété directement dans les pixels
+      de l'image (donc impossible à retirer par un simple clic droit),
+   2) choisit automatiquement la couleur du filigrane (noir ou blanc)
+      selon que le fond de l'image est plutôt clair ou plutôt foncé.
+   L'image d'origine (sans filigrane) est envoyée à part dans le bucket
+   privé, pour pouvoir plus tard fabriquer la version personnalisée
+   destinée aux clients qui ont payé.
+   ========================================================================== */
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function getAverageBrightness(ctx, width, height) {
+  const { data } = ctx.getImageData(0, 0, width, height);
+  let total = 0, count = 0;
+  for (let i = 0; i < data.length; i += 40) { // on regarde 1 pixel sur 10 pour que ça reste rapide
+    total += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+    count++;
+  }
+  return total / count; // 0 = tout noir, 255 = tout blanc
+}
+
+async function watermarkImage(file) {
+  const img = await loadImageFromFile(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const brightness = getAverageBrightness(ctx, canvas.width, canvas.height);
+  const color = brightness > 140 ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.22)';
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = `600 ${Math.round(canvas.width / 16)}px Inter, Arial, sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(-Math.PI / 8);
+  ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+  const stepX = canvas.width / 2.6;
+  const stepY = canvas.height / 5.5;
+  for (let y = -canvas.height * 0.5; y < canvas.height * 1.5; y += stepY) {
+    for (let x = -canvas.width * 0.5; x < canvas.width * 1.5; x += stepX) {
+      ctx.fillText(WATERMARK_TEXT, x, y);
+    }
+  }
+  ctx.restore();
+
+  const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  return new Promise((resolve) => canvas.toBlob(resolve, outputType, 0.92));
 }
 
 async function generateReference(typeBatiment) {
@@ -635,7 +699,7 @@ function openAddModal() {
   document.getElementById('supplementPersonnalisation').value = 0;
   document.getElementById('pdfCurrent').textContent = '';
   document.getElementById('dwgCurrent').textContent = '';
-  currentImages = []; newImageFiles = []; newPdfFile = null; newDwgFile = null;
+  currentImages = []; currentImagesOriginales = []; newImageFiles = []; newPdfFile = null; newDwgFile = null;
   existingPdfPath = ''; existingDwgPath = '';
   renderImagePreviews();
   modal.classList.add('open');
@@ -671,6 +735,7 @@ function openEditModal(id, plans) {
   document.getElementById('actif').value = String(!!plan.actif);
 
   currentImages = plan.images ? [...plan.images] : [];
+  currentImagesOriginales = plan.images_originales ? [...plan.images_originales] : [];
   newImageFiles = []; newPdfFile = null; newDwgFile = null;
   existingPdfPath = plan.fichier_pdf || '';
   existingDwgPath = plan.fichier_dwg || '';
@@ -701,7 +766,8 @@ function renderImagePreviews() {
   list.querySelectorAll('.remove-img').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.index);
-      if (btn.dataset.type === 'existing') currentImages.splice(idx, 1); else newImageFiles.splice(idx, 1);
+      if (btn.dataset.type === 'existing') { currentImages.splice(idx, 1); currentImagesOriginales.splice(idx, 1); }
+      else newImageFiles.splice(idx, 1);
       renderImagePreviews();
     });
   });
@@ -722,16 +788,26 @@ form.addEventListener('submit', async (e) => {
   saveBtn.textContent = 'Enregistrement...';
 
   try {
-    // Upload images (bucket public)
+    // Upload images : l'original est gardé en privé, seule la version avec filigrane part en public
     const uploadedImageUrls = [];
+    const uploadedOriginalPaths = [];
     for (const file of newImageFiles) {
+      // 1) Original tel quel, dans le bucket privé (servira plus tard pour la version client)
+      const originalFileName = `original_${Date.now()}_${sanitizeFileName(file.name)}`;
+      const { error: originalError } = await supabase.storage.from(BUCKET_FICHIERS).upload(originalFileName, file);
+      if (originalError) throw originalError;
+      uploadedOriginalPaths.push(originalFileName);
+
+      // 2) Version avec filigrane, envoyée dans le bucket public (catalogue / carrousel)
+      const watermarkedBlob = await watermarkImage(file);
       const fileName = `${Date.now()}_${sanitizeFileName(file.name)}`;
-      const { error: uploadError } = await supabase.storage.from(BUCKET_IMAGES).upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from(BUCKET_IMAGES).upload(fileName, watermarkedBlob);
       if (uploadError) throw uploadError;
       const { data: publicUrlData } = supabase.storage.from(BUCKET_IMAGES).getPublicUrl(fileName);
       uploadedImageUrls.push(publicUrlData.publicUrl);
     }
     const allImages = [...currentImages, ...uploadedImageUrls];
+    const allImagesOriginales = [...currentImagesOriginales, ...uploadedOriginalPaths];
 
     // Upload PDF (bucket privé) — remplace l'ancien si un nouveau est fourni
     let pdfPath = existingPdfPath;
@@ -772,6 +848,7 @@ form.addEventListener('submit', async (e) => {
       supplement_physique: parseInt(document.getElementById('supplementPhysique').value) || 0,
       supplement_personnalisation: parseInt(document.getElementById('supplementPersonnalisation').value) || 0,
       images: allImages,
+      images_originales: allImagesOriginales,
       fichier_pdf: pdfPath,
       fichier_dwg: dwgPath || null,
       actif: document.getElementById('actif').value === 'true'
